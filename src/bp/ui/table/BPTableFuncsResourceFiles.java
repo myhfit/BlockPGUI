@@ -1,0 +1,109 @@
+package bp.ui.table;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.Action;
+
+import bp.format.BPFormatDir;
+import bp.res.BPResource;
+import bp.res.BPResourceFile;
+import bp.res.BPResourceFileSystem;
+import bp.res.BPResourceHolder;
+import bp.ui.actions.BPAction;
+import bp.ui.scomp.BPTable;
+import bp.util.FileUtil;
+
+public class BPTableFuncsResourceFiles extends BPTableFuncsResource
+{
+	protected WeakReference<BPResource> m_base = null;
+
+	public BPTableFuncsResourceFiles()
+	{
+		m_colnames = new String[] { "Name", "Type", "Size", "Last Modify" };
+		m_cols = new Class<?>[] { String.class, String.class, Long.class, Long.class };
+	}
+
+	public Object getValue(BPResource res, int row, int col)
+	{
+		switch (col)
+		{
+			case 1:
+			{
+				if (res.isFileSystem())
+				{
+					BPResourceFileSystem fres = (BPResourceFileSystem) res;
+					if (fres.isFile())
+					{
+						return FileUtil.getExt(res.getName());
+					}
+					else if (fres.isDirectory())
+					{
+						return BPFormatDir.FORMAT_DIR;
+					}
+				}
+				else
+				{
+					return FileUtil.getExt(res.getName());
+				}
+				break;
+			}
+			case 2:
+			{
+				if (res.isFileSystem())
+				{
+					BPResourceFileSystem fres = (BPResourceFileSystem) res;
+					if (fres.isFile())
+					{
+						BPResourceFile f = (BPResourceFile) fres;
+						return f.getSize();
+					}
+				}
+				else if (res.isVirtual() && res instanceof BPResourceHolder)
+				{
+					BPResourceHolder hres = (BPResourceHolder) res;
+					byte[] bs = hres.getData();
+					if (bs != null)
+					{
+						return bs.length;
+					}
+				}
+				break;
+			}
+			case 3:
+			{
+				if (res.isFileSystem())
+				{
+					BPResourceFileSystem fres = (BPResourceFileSystem) res;
+					if (fres.isFile() || fres.isDirectory())
+						return fres.getLastModified();
+				}
+				break;
+			}
+			default:
+				return super.getValue(res, row, col);
+		}
+		return "";
+	}
+
+	public void setBaseResource(BPResource res)
+	{
+		m_base = new WeakReference<BPResource>(res);
+	}
+
+	public List<Action> getActions(BPTable<BPResource> table, List<BPResource> datas, int[] rows, int r, int c)
+	{
+		List<Action> rc = new ArrayList<Action>();
+		rc.add(m_acts.getNewFileAction(m_base.get(), m_channelid));
+		rc.add(m_acts.getOpenFileAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
+		rc.add(m_acts.getOpenFileAsAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
+		rc.add(m_acts.getOpenFileExternalAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
+		rc.add(BPAction.separator());
+		rc.add(m_acts.getDeleteResourcesAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
+		rc.add(m_acts.getRenameResAction(datas.get(0), m_channelid));
+		rc.add(BPAction.separator());
+		rc.add(m_acts.getPropertyAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
+		return rc;
+	}
+}

@@ -1,0 +1,173 @@
+package bp.ui.editor;
+
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
+
+import bp.config.BPConfig;
+import bp.config.BPSetting;
+import bp.config.BPSettingBase;
+import bp.config.BPSettingItem;
+import bp.config.UIConfigs;
+import bp.data.BPTextContainerBase;
+import bp.format.BPFormat;
+import bp.format.BPFormatJSON;
+import bp.res.BPResource;
+import bp.ui.scomp.BPEditorPane;
+import bp.ui.scomp.BPTree.BPTreeModel;
+import bp.ui.tree.BPTreeCellRendererObject;
+import bp.ui.tree.BPTreeComponentBase;
+import bp.ui.tree.BPTreeFuncsObject;
+import bp.ui.util.UIUtil;
+import bp.util.JSONUtil;
+import bp.util.LogicUtil;
+
+public class BPJSONPanel extends BPCodePanel
+{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1019165525463664456L;
+
+	protected BPTreeComponentBase m_tree;
+	protected Consumer<BPEditorPane> m_changedhandler;
+	protected AtomicBoolean m_changed;
+	protected boolean m_canpreview;
+	protected JScrollPane m_scroll2;
+	protected JPanel m_sp;
+
+	public BPJSONPanel()
+	{
+	}
+
+	protected void init()
+	{
+		m_changed = new AtomicBoolean(false);
+		m_sp = new JPanel();
+		m_scroll2 = new JScrollPane();
+		m_tree = new BPTreeComponentBase();
+		m_scroll = new JScrollPane();
+		m_txt = createTextPane();
+		m_changedhandler = this::onTextChanged;
+
+		m_tree.setRootVisible(false);
+		m_tree.setTreeFont();
+		m_tree.setCellRenderer(new BPTreeCellRendererObject());
+		m_scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
+		m_txt.setOnPosChanged(this::onPosChanged);
+		m_scroll2.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
+
+		setLayout(new BorderLayout());
+		m_scroll.setViewportView(m_txt);
+		m_scroll2.setViewportView(m_tree);
+		m_sp.setLayout(new GridLayout(1, 2, 0, 0));
+		m_sp.add(m_scroll);
+		m_sp.add(m_scroll2);
+		add(m_sp, BorderLayout.CENTER);
+
+		m_txt.setChangedHandler(m_changedhandler);
+
+		initActions();
+
+		m_canpreview = true;
+
+		preview(m_txt);
+	}
+
+	protected void setTextContainerValue(String text)
+	{
+		super.setTextContainerValue(text);
+		preview(m_txt);
+	}
+
+	protected void preview(BPEditorPane txt)
+	{
+		m_changed.set(true);
+		UIUtil.laterUI(() ->
+		{
+			if (m_changed.compareAndSet(true, false))
+			{
+				Object jsonobj = JSONUtil.decode(txt.getText());
+				m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(jsonobj)));
+			}
+		});
+	}
+
+	protected void onTextChanged(BPEditorPane txt)
+	{
+		if (m_canpreview)
+		{
+			m_changed.set(true);
+			UIUtil.laterUI(() ->
+			{
+				if (m_changed.compareAndSet(true, false))
+				{
+					Object jsonobj = JSONUtil.decode(txt.getText());
+					m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(jsonobj)));
+				}
+			});
+		}
+	}
+
+	public void toggleRightPanel()
+	{
+		boolean canpreview = !m_canpreview;
+		m_canpreview = canpreview;
+		if (canpreview)
+		{
+			m_sp.add(m_scroll2);
+			onTextChanged(m_txt);
+		}
+		else
+		{
+			m_sp.remove(m_scroll2);
+		}
+		m_sp.validate();
+	}
+
+	public static class BPEditorFactoryJSON implements BPEditorFactory
+	{
+		public String[] getFormats()
+		{
+			return new String[] { BPFormatJSON.FORMAT_JSON };
+		}
+
+		public BPEditor<?> createEditor(BPFormat format, BPResource res, BPConfig options, Object... params)
+		{
+			return new BPJSONPanel();
+		}
+
+		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
+		{
+			BPJSONPanel pnl = (BPJSONPanel) editor;
+			BPTextContainerBase con = new BPTextContainerBase();
+			if (options != null)
+				LogicUtil.IFVU(options.get("encoding"), con::setEncoding);
+			con.bind(res);
+			pnl.bind(con);
+		}
+
+		public String getName()
+		{
+			return "JSON Editor";
+		}
+
+		public boolean handleFormat(String formatkey)
+		{
+			return true;
+		}
+
+		public BPSetting getSetting(String formatkey)
+		{
+			BPSettingBase rc = new BPSettingBase();
+			rc.addItem(BPSettingItem.create("encoding", "Encoding", BPSettingItem.ITEM_TYPE_TEXT, null));
+			return rc;
+		}
+	}
+}
