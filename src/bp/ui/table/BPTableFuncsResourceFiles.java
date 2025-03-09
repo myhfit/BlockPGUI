@@ -92,6 +92,11 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 		m_base = new WeakReference<BPResource>(res);
 	}
 
+	public BPResource getBaseResource()
+	{
+		return m_base.get();
+	}
+
 	public List<Action> getActions(BPTable<BPResource> table, List<BPResource> datas, int[] rows, int r, int c)
 	{
 		List<Action> rc = new ArrayList<Action>();

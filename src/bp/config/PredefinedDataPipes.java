@@ -7,22 +7,20 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import bp.BPCore;
-import bp.BPGUICore;
 import bp.config.BPConfigAdv.BPConfigAdvBase;
 import bp.res.BPResourceIO;
-import bp.ui.shortcut.BPShortCutManager;
 import bp.util.IOUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
 
-public class ShortCuts extends BPConfigAdvBase
+public class PredefinedDataPipes extends BPConfigAdvBase
 {
 	protected Consumer<? extends BPConfigAdv> m_loader = this::loadConfig;
 	protected Consumer<? extends BPConfigAdv> m_persister = this::saveConfig;
 
-	private final static String CFG_FILENAME = ".bpscs";
+	private final static String CFG_FILENAME = ".bppdps";
 
-	protected static List<String[]> S_SCS = new ArrayList<String[]>();
+	protected static List<String[]> S_PDPS = new ArrayList<String[]>();
 
 	public boolean canUserConfig()
 	{
@@ -58,7 +56,6 @@ public class ShortCuts extends BPConfigAdvBase
 
 	protected void loadConfig(BPConfigAdv config)
 	{
-		BPShortCutManager.init();
 		byte[] bs = IOUtil.read(BPCore.getWorkspaceContext().getConfigRes(CFG_FILENAME));
 		Map<String, String> pmap = new LinkedHashMap<String, String>();
 		if (bs != null)
@@ -70,29 +67,6 @@ public class ShortCuts extends BPConfigAdvBase
 		m_map.putAll(pmap);
 
 		setPMap(pmap);
-	}
-
-	protected void setPMap(Map<String, ?> pmap)
-	{
-		List<String[]> scs = new ArrayList<String[]>();
-		for (String key : pmap.keySet())
-		{
-			String v = (String) pmap.get(key);
-			if (v != null)
-			{
-				v = v.trim();
-				if (v.length() > 0)
-				{
-					String[] vs = TextUtil.splitEscapePlainText(v);
-					String[] sc = new String[vs.length + 1];
-					sc[0] = key;
-					System.arraycopy(vs, 0, sc, 1, vs.length);
-					scs.add(sc);
-				}
-			}
-		}
-		S_SCS.clear();
-		S_SCS.addAll(scs);
 	}
 
 	protected void saveConfig(BPConfigAdv config)
@@ -108,17 +82,10 @@ public class ShortCuts extends BPConfigAdvBase
 			cfgres = BPCore.getWorkspaceContext().getConfigRes(CFG_FILENAME, false);
 		}
 		Map<String, String> tm = new LinkedHashMap<String, String>();
-		List<String[]> scs = new ArrayList<String[]>(S_SCS);
-		for (String[] sc : scs)
+		List<String[]> pdps = new ArrayList<String[]>(S_PDPS);
+		for (String[] pdp : pdps)
 		{
-			StringBuilder sb = new StringBuilder();
-			for (int i = 1; i < sc.length; i++)
-			{
-				if (i > 1)
-					sb.append(",");
-				sb.append(sc[i]);
-			}
-			tm.put(sc[0], sb.toString());
+			tm.put(pdp[0], pdp[1]);
 		}
 		byte[] bs = TextUtil.fromString(TextUtil.fromPlainMap(ObjUtil.toPlainMap(tm, true), null), "utf-8");
 		if (bs != null)
@@ -131,7 +98,25 @@ public class ShortCuts extends BPConfigAdvBase
 	{
 		super.setMappedData(data);
 		setPMap(data);
-		BPGUICore.runOnMainFrame(mf -> mf.refreshShortCuts());
+	}
+
+	protected void setPMap(Map<String, ?> pmap)
+	{
+		List<String[]> pdps = new ArrayList<String[]>();
+		for (String key : pmap.keySet())
+		{
+			String v = (String) pmap.get(key);
+			if (v != null)
+			{
+				v = v.trim();
+				if (v.length() > 0)
+				{
+					pdps.add(new String[] { key, v });
+				}
+			}
+		}
+		S_PDPS.clear();
+		S_PDPS.addAll(pdps);
 	}
 
 	public Map<String, Object> getMappedData()
@@ -139,19 +124,8 @@ public class ShortCuts extends BPConfigAdvBase
 		return new LinkedHashMap<String, Object>(m_map);
 	}
 
-	public static List<String[]> getShortCuts()
+	public static List<String[]> getDataPipes()
 	{
-		return new ArrayList<String[]>(S_SCS);
-	}
-
-	public static String[] getShortCut(String name)
-	{
-		List<String[]> scs = new ArrayList<String[]>(S_SCS);
-		for (String[] sc : scs)
-		{
-			if (name.equals(sc[0]))
-				return sc;
-		}
-		return null;
+		return new ArrayList<String[]>(S_PDPS);
 	}
 }

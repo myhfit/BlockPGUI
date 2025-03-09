@@ -23,6 +23,7 @@ public class BPConsolePanel extends BPCodePanel
 		initActions();
 		setLayout(new BorderLayout());
 		add(m_scroll, BorderLayout.CENTER);
+		initListeners();
 	}
 
 	public void setTextPane(BPConsolePane cp)

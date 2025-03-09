@@ -19,8 +19,15 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 		showTool();
 	}
 
+	protected boolean checkRequirement()
+	{
+		return true;
+	}
+
 	public void showTool(Object... params)
 	{
+		if (!checkRequirement())
+			return;
 		BPFrameTool f = buildFrame();
 		f.setLayout(new BorderLayout());
 		BPToolGUIContext context = createToolContext();

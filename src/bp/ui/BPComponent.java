@@ -37,8 +37,13 @@ public interface BPComponent<C extends Component>
 	{
 
 	}
-	
+
 	default boolean isRoutable()
+	{
+		return false;
+	}
+
+	default boolean isRoutableContainer()
 	{
 		return false;
 	}

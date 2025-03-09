@@ -1,13 +1,11 @@
 package bp.ui.scomp;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
@@ -24,17 +22,17 @@ public class BPGUIInfoPanel extends JPanel
 	 */
 	private static final long serialVersionUID = -8042041062193934411L;
 
-	protected JLabel m_lbleditor;
-	protected JLabel m_lbleditord;
-	protected JLabel m_pgvm;
+	protected BPLabel m_lbleditor;
+	protected BPLabel m_lbleditord;
+	protected BPLabel m_pgvm;
 	protected Timer m_timer;
 
-	public BPGUIInfoPanel()
+	public BPGUIInfoPanel(boolean needvminfo)
 	{
-		m_lbleditor = new JLabel();
-		m_lbleditor.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
-		m_lbleditord = new JLabel();
-		m_lbleditord.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
+		m_lbleditor = new BPLabel();
+		m_lbleditord = new BPLabel();
+		m_lbleditor.setLabelFont();
+		m_lbleditord.setLabelFont();
 		m_lbleditord.setBorder(new EmptyBorder(0, 2, 0, 2));
 		m_lbleditor.setBorder(new EmptyBorder(0, 2, 0, 2));
 		setLayout(new BorderLayout());
@@ -45,11 +43,11 @@ public class BPGUIInfoPanel extends JPanel
 		p.add(m_lbleditor, BorderLayout.EAST);
 		add(p, BorderLayout.CENTER);
 
-		if (UIConfigs.SHOW_VMINFO() && checkModule())
+		if (needvminfo && UIConfigs.SHOW_VMINFO() && checkModule())
 		{
-			m_pgvm = new JLabel();
+			m_pgvm = new BPLabel();
 			m_pgvm.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
-			m_pgvm.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
+			m_pgvm.setLabelFont();
 			m_pgvm.addMouseListener(new UIUtil.BPMouseListener(null, this::onGC, null, null, null));
 			add(m_pgvm, BorderLayout.EAST);
 

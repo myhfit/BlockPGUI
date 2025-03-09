@@ -2,8 +2,10 @@ package bp.ui.container;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import javax.swing.Icon;
 
@@ -26,6 +28,7 @@ import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
 import bp.ui.editor.BPTextEditor;
+import bp.ui.frame.BPFrameComponent;
 import bp.ui.scomp.BPTabBar;
 import bp.ui.scomp.BPTabBar.Tab;
 import bp.ui.util.CommonUIOperations;
@@ -168,7 +171,7 @@ public class BPEditors extends BPTabbedContainerBase
 			if (res.isRoutable() && editor.isRoutable())
 			{
 				BPComponent<?> cur = getCurrent();
-				if (routecontainerid != null && cur != null && cur.isRoutable() && routecontainerid.equals(((BPRoutableContainer<?>) cur).getID()))
+				if (routecontainerid != null && cur != null && cur.isRoutableContainer() && routecontainerid.equals(((BPRoutableContainer<?>) cur).getID()))
 				{
 					BPRoutableContainer<?> par = (BPRoutableContainer<?>) cur;
 					par.addRoute(id, res.getName(), editor);
@@ -226,7 +229,12 @@ public class BPEditors extends BPTabbedContainerBase
 				if (res == null || res.isFileSystem() && ((BPResourceFileSystem) res).getTempID() != null)
 					saveAs();
 				else
+				{
 					editor.save();
+					BPResource respar = res.getParentResource();
+					CommonUIOperations.refreshPathTree(respar, false);
+					CommonUIOperations.refreshResourceCache(respar);
+				}
 			}
 		}
 	}
@@ -380,7 +388,33 @@ public class BPEditors extends BPTabbedContainerBase
 
 	protected void initTab(Tab tab)
 	{
-		tab.pan.setMenu(new String[][] { new String[] { "Close", "close" }, new String[] { "Close All", "closeall" }, new String[] { "Close Others", "closeother" } }, m_mnucb);
+		tab.pan.setMenu(new Object[][] { new Object[] { "Close", "close" }, new Object[] { "Close All", "closeall" }, new Object[] { "Close Others", "closeother" }, new Object[] { "-", null, (Predicate<String>) this::canSplit },
+				new Object[] { "New Window", "split", (Predicate<String>) this::canSplit } }, m_mnucb);
+	}
+
+	protected boolean canSplit(String id)
+	{
+		BPComponent<?> comp = m_compmap.get(id);
+		if (comp != null)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	protected void splitEditor(String id)
+	{
+		Map<String, BPComponent<?>> cm = getComponentMap();
+		BPComponent<?> comp = (BPComponent<?>) cm.remove(id);
+		doRemoveTab(id);
+		if (comp.isRoutableContainer())
+		{
+			BPRoutableContainer<?> rcomp = (BPRoutableContainer<?>) comp;
+			comp = rcomp.getCurrent();
+		}
+		BPFrameComponent fe = new BPFrameComponent();
+		fe.setComponent(comp);
+		fe.setVisible(true);
 	}
 
 	protected void onMenuAction(String id, String key)
@@ -400,6 +434,11 @@ public class BPEditors extends BPTabbedContainerBase
 			case "closeother":
 			{
 				closeOther(id);
+				break;
+			}
+			case "split":
+			{
+				splitEditor(id);
 				break;
 			}
 		}

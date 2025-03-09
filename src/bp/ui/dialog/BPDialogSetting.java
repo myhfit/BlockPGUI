@@ -23,7 +23,7 @@ public class BPDialogSetting extends BPDialogCommon
 	public boolean doCallCommonAction(int command)
 	{
 		if (m_tbsetting != null)
-			m_tbsetting.editingStopped(null);
+			m_tbsetting.editingCanceled(null);
 		if (command == COMMAND_CANCEL)
 			m_setting = null;
 		return false;

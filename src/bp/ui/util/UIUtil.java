@@ -50,6 +50,7 @@ import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.scomp.BPCodeLinePanel;
 import bp.ui.scomp.BPEditorPane;
+import bp.ui.scomp.BPMenu;
 import bp.ui.scomp.BPMenuItem;
 import bp.util.LockUtil;
 import bp.util.Std;
@@ -114,7 +115,7 @@ public class UIUtil
 
 	public final static Font deltaFont(Font f, int delta)
 	{
-		return new Font(f.getName(), f.getStyle(), f.getSize() + delta);
+		return f.deriveFont((float) (f.getSize() + delta));
 	}
 
 	public final static Font monoFont(int style, int fontsize)
@@ -186,6 +187,26 @@ public class UIUtil
 				txt.setLinePanel(null);
 				scroll.setRowHeaderView(null);
 			}
+		}
+	}
+
+	public final static void rebuildMenu(JMenu par, Action[] actions, boolean autovis)
+	{
+		par.removeAll();
+		if (actions != null && actions.length > 0)
+		{
+			JComponent[] mnus = UIUtil.makeMenuItems(actions);
+			for (JComponent mnu : mnus)
+			{
+				par.add(mnu);
+			}
+			if (autovis && !par.isVisible())
+				par.setVisible(true);
+		}
+		else
+		{
+			if (autovis && par.isVisible())
+				par.setVisible(false);
 		}
 	}
 
@@ -295,6 +316,42 @@ public class UIUtil
 		{
 			if (mm != null)
 				mm.accept(e);
+		}
+	}
+
+	public final static class BPMouseListenerForPopup implements MouseListener
+	{
+		protected Consumer<MouseEvent> m_cb;
+
+		public BPMouseListenerForPopup(Consumer<MouseEvent> cb)
+		{
+			m_cb = cb;
+		}
+
+		public void mousePressed(MouseEvent e)
+		{
+			if (e.isPopupTrigger())
+				if (m_cb != null)
+					m_cb.accept(e);
+		}
+
+		public void mouseReleased(MouseEvent e)
+		{
+			if (e.isPopupTrigger())
+				if (m_cb != null)
+					m_cb.accept(e);
+		}
+
+		public void mouseClicked(MouseEvent e)
+		{
+		}
+
+		public void mouseEntered(MouseEvent e)
+		{
+		}
+
+		public void mouseExited(MouseEvent e)
+		{
 		}
 	}
 
@@ -426,6 +483,7 @@ public class UIUtil
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public final static JComponent[] makeMenuItems(Action[] acts)
 	{
 		JComponent[] rc = new JComponent[acts.length];
@@ -447,14 +505,23 @@ public class UIUtil
 			}
 			else
 			{
-				if (act.getValue(BPAction.IS_SEPARATOR) != null && (boolean) act.getValue(BPAction.IS_SEPARATOR))
+				Supplier<Action[]> subactsfunc = (Supplier<Action[]>) act.getValue(BPAction.SUB_ACTIONS_FUNC);
+				if (subactsfunc != null)
 				{
-					item = new JPopupMenu.Separator();
+					item = new BPMenu.BPMenuDynamic((String) act.getValue(Action.NAME), subactsfunc);
 				}
 				else
-					item = new BPMenuItem(act);
+				{
+					if (act.getValue(BPAction.IS_SEPARATOR) != null && (boolean) act.getValue(BPAction.IS_SEPARATOR))
+					{
+						item = new JPopupMenu.Separator();
+					}
+					else
+						item = new BPMenuItem(act);
+				}
 			}
-			rc[i] = item;
+			if (item != null)
+				rc[i] = item;
 		}
 		return rc;
 	}

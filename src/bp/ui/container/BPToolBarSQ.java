@@ -29,7 +29,10 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 
 	protected int m_barheight;
 
-	protected static boolean m_isvertical = false;
+	protected static boolean m_isvertical;
+
+	protected boolean m_btnsetsize;
+	protected int m_btnsetsizedelta;
 
 	protected Map<String, BPComponent<?>> m_compmap = new HashMap<String, BPComponent<?>>();
 
@@ -42,7 +45,14 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 
 	public BPToolBarSQ(boolean isvertical)
 	{
-		m_barheight = 24;
+		m_barheight = isvertical ? UIConfigs.BAR_HEIGHT_VICON() : UIConfigs.BAR_HEIGHT_VERTICAL();
+		m_btnsetsize = true;
+		m_btnsetsizedelta = 0;
+		setDirection(isvertical);
+	}
+
+	public void setDirection(boolean isvertical)
+	{
 		m_isvertical = isvertical;
 		if (isvertical)
 		{
@@ -58,6 +68,12 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 	public void setHasButtonBorder(boolean flag)
 	{
 		m_btnborder = flag;
+	}
+
+	public void setButtonSizePolicy(boolean setbtnsize, int delta)
+	{
+		m_btnsetsize = setbtnsize;
+		m_btnsetsizedelta = delta;
 	}
 
 	public void setBarHeight(int barheight)
@@ -112,6 +128,8 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 				if (act.getValue("VICON") != null)
 				{
 					BPToolVIconButton btn = (accparent == null ? new BPToolVIconButton(act) : new BPToolVIconButton(act, accparent));
+					if (m_btnsetsize)
+						btn.setButtonSize(m_barheight + m_btnsetsizedelta);
 					setButtonBorder(btn, m_btnborder);
 					add(btn);
 				}

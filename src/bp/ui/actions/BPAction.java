@@ -18,6 +18,7 @@ public class BPAction extends AbstractAction
 	private static final long serialVersionUID = 8358538446474229611L;
 
 	public final static String SUB_ACTIONS = "SubActions";
+	public final static String SUB_ACTIONS_FUNC = "SubActs_Func";
 	public final static String IS_SEPARATOR = "IsSeparator";
 
 	protected Consumer<ActionEvent> m_cb;

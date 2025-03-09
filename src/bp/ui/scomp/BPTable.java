@@ -44,10 +44,12 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 
+import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
 import bp.ui.dialog.BPDialogFindTable;
 import bp.ui.table.BPTableFuncs;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.NumberUtil;
 import bp.util.ObjUtil;
@@ -106,6 +108,7 @@ public class BPTable<T> extends JTable
 	{
 		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouseDown, null, null, null));
 		setupFindDlg();
+		setupInnerFilter();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -375,6 +378,40 @@ public class BPTable<T> extends JTable
 	{
 		getInputMap().put(KeyStroke.getKeyStroke("control F"), "find");
 		getActionMap().put("find", BPAction.build("find").callback(this::onFind).getAction());
+	}
+
+	public void setupInnerFilter()
+	{
+		getInputMap().put(KeyStroke.getKeyStroke("control shift F"), "filter");
+		getActionMap().put("filter", BPAction.build("filter").callback(this::onFilter).getAction());
+	}
+
+	@SuppressWarnings("unchecked")
+	public void onFilter(ActionEvent e)
+	{
+		TableRowSorter<BPTableModel<T>> sorter = initRowSorter();
+		BPRowFilter<T> filter = (BPRowFilter<T>) (RowFilter<?, ?>) sorter.getRowFilter();
+		String cur = null;
+		if (filter != null)
+		{
+			cur = filter.getFilterText();
+		}
+		String fstr = UIStd.input(cur == null ? "" : cur, "Filter:", BPGUICore.S_BP_TITLE + " - Filter Table");
+		if (fstr != null)
+		{
+			if (fstr != null && fstr.length() == 0)
+				fstr = null;
+			if (filter == null)
+			{
+				filter = new BPRowFilter<T>(fstr);
+				sorter.setRowFilter(filter);
+			}
+			else
+			{
+				filter.setFilterText(fstr);
+				sorter.sort();
+			}
+		}
 	}
 
 	public void onFind(ActionEvent e)
@@ -810,6 +847,11 @@ public class BPTable<T> extends JTable
 			m_str = str;
 		}
 
+		public String getFilterText()
+		{
+			return m_str;
+		}
+
 		public boolean include(Entry<? extends BPTableModel<T>, ? extends Integer> value)
 		{
 			int c = value.getModel().getColumnCount();
@@ -986,6 +1028,12 @@ public class BPTable<T> extends JTable
 			public ColumnBuilder setCellRenderer(TableCellRenderer cellrenderer)
 			{
 				m_col.setCellRenderer(cellrenderer);
+				return this;
+			}
+
+			public ColumnBuilder setCellEditor(TableCellEditor celleditor)
+			{
+				m_col.setCellEditor(celleditor);
 				return this;
 			}
 		}

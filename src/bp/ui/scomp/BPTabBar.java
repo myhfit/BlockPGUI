@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import javax.swing.Action;
 import javax.swing.BoxLayout;
@@ -52,7 +53,7 @@ public class BPTabBar extends JPanel
 	protected int m_barwidth = 150;
 	protected int m_bargap = 5;
 
-	protected int m_barheight = 24;
+	protected int m_barheight = UIConfigs.BAR_HEIGHT_VICON();
 
 	protected JPanel m_tabpnl;
 	protected BPToolVIconButton m_morebtn;
@@ -366,7 +367,7 @@ public class BPTabBar extends JPanel
 		protected JComponent m_comp;
 
 		protected WeakRefGo<BiConsumer<String, String>> m_mnuref = new WeakRefGo<BiConsumer<String, String>>();
-		protected String[][] m_mnus;
+		protected Object[][] m_mnus;
 
 		protected BPToolSQButton lbltitle;
 
@@ -412,29 +413,41 @@ public class BPTabBar extends JPanel
 			setMinimumSize(d);
 		}
 
-		public void setMenu(String[][] mnus, BiConsumer<String, String> callback)
+		public void setMenu(Object[][] mnus, BiConsumer<String, String> callback)
 		{
 			m_mnuref = new WeakRefGo<BiConsumer<String, String>>(callback);
 			m_mnus = mnus;
 		}
 
+		@SuppressWarnings("unchecked")
 		protected void onShowMenu(int x, int y)
 		{
-			String[][] mnus = m_mnus;
+			Object[][] mnus = m_mnus;
 			if (mnus != null)
 			{
 				JPopupMenu pmnu = new JPopupMenu();
-				for (String[] mnudata : mnus)
+				for (Object[] mnudata : mnus)
 				{
-					String name = mnudata[0];
-					String key = mnudata[1];
+					String name = (String) mnudata[0];
+					String key = (String) mnudata[1];
+					if (mnudata.length > 2)
+					{
+						Predicate<String> checker = (Predicate<String>) mnudata[2];
+						if (checker != null)
+							if (!checker.test(m_id))
+								continue;
+					}
 					Action act;
 					if (name.equals("-"))
-						act = BPAction.separator();
+					{
+						pmnu.add(new JPopupMenu.Separator());
+					}
 					else
+					{
 						act = BPAction.build(name).callback(e -> onMenuAction(key)).getAction();
-					BPMenuItem item = new BPMenuItem(act);
-					pmnu.add(item);
+						BPMenuItem item = new BPMenuItem(act);
+						pmnu.add(item);
+					}
 				}
 				pmnu.show(this, x, y);
 			}

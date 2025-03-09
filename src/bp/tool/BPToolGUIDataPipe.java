@@ -85,7 +85,6 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			Action actdelitem = BPAction.build("del").tooltip("Remove").vIcon(BPIconResV.DEL()).callback(this::onDelItem).getAction();
 
 			toolbar.setActions(new Action[] { actaddtf, actaddep, BPAction.separator(), actdelitem, BPAction.separator(), actup, actdown, BPAction.separator(), actconfig, actrun });
-			toolbar.setBarHeight(22);
 
 			m_lstpipes.setCellRenderer(new BPList.BPListRenderer(c -> ((BPDataConsumer<?>) c).getInfo()));
 			m_scrollsrc.setViewportView(m_txtsrc);
@@ -97,8 +96,8 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			sp.setBorder(new EmptyBorder(0, 0, 0, 0));
 			toolbar.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()));
 			psrc.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_STRONGBORDER()));
-			m_lbltype.setMinimumSize(new Dimension(0, UIUtil.scale(22)));
-			m_lbltype.setPreferredSize(new Dimension(0, UIUtil.scale(22)));
+			m_lbltype.setMinimumSize(new Dimension(0, UIUtil.scale(UIConfigs.BAR_HEIGHT_VICON())));
+			m_lbltype.setPreferredSize(new Dimension(0, UIUtil.scale(UIConfigs.BAR_HEIGHT_VICON())));
 
 			m_lbltype.setMonoFont();
 			m_txtsrc.setMonoFont();
@@ -141,7 +140,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 				{
 					setSource(p0, "byte[]", params.length > 1 ? (Boolean) params[1] : false);
 				}
-				else 
+				else
 				{
 					setSource(null, BPFormatText.FORMAT_TEXT);
 				}

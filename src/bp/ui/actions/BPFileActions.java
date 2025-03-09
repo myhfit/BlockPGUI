@@ -1,6 +1,9 @@
 package bp.ui.actions;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 import javax.swing.Action;
 
@@ -8,6 +11,7 @@ import bp.BPGUICore;
 import bp.res.BPResource;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.util.EventUtil;
+import bp.ui.util.SystemUIUtil;
 import bp.ui.util.UIUtil;
 
 public class BPFileActions
@@ -56,12 +60,26 @@ public class BPFileActions
 	public BPAction getOpenFileExternalAction(BPResource[] ress, int channelid)
 	{
 		BPAction rc = BPAction.build("Open External").getAction();
-		BPAction actopensys = BPAction.build("System Default").callback(e ->
+		List<Action> actchd = new ArrayList<Action>();
 		{
-			BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_OPENEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource())));
-		}).mnemonicKey(KeyEvent.VK_S).getAction();
-		Action[] actchd = new Action[] { actopensys };
-		rc.putValue(BPAction.SUB_ACTIONS, actchd);
+			BPAction actopensys = BPAction.build("System Default").callback(e ->
+			{
+				BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_OPENEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource())));
+			}).mnemonicKey(KeyEvent.VK_S).getAction();
+			actchd.add(actopensys);
+		}
+		if (ress.length == 1)
+		{
+			String ext = ress.length == 1 ? ress[0].getExt() : null;
+			Supplier<Action[]> faab = SystemUIUtil.getFileAssocActionBuilder(ext);
+			if (faab != null)
+			{
+				BPAction actopensysdyna = BPAction.build("System Assoc").getAction();
+				actopensysdyna.putValue(BPAction.SUB_ACTIONS_FUNC, faab);
+				actchd.add(actopensysdyna);
+			}
+		}
+		rc.putValue(BPAction.SUB_ACTIONS, actchd.toArray(new Action[actchd.size()]));
 		return rc;
 	}
 

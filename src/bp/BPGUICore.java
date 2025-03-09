@@ -13,6 +13,8 @@ import bp.BPCore.BPPlatform;
 import bp.config.EditorAssocs;
 import bp.config.FormConfigs;
 import bp.config.FormatAssocs;
+import bp.config.Hotkeys;
+import bp.config.PredefinedDataPipes;
 import bp.config.ShortCuts;
 import bp.config.UIConfigs;
 import bp.env.BPEnvs;
@@ -32,6 +34,8 @@ public class BPGUICore
 {
 	public final static UIConfigs CONFIGS_UI = new UIConfigs();
 	public final static ShortCuts CONFIGS_SC = new ShortCuts();
+	public final static Hotkeys CONFIGS_HK = new Hotkeys();
+	public final static PredefinedDataPipes CONFIGS_PDPS = new PredefinedDataPipes();
 	public final static FormConfigs CONFIGS_FORM = new FormConfigs();
 	public final static EditorAssocs BINDINGS_EDITOR = new EditorAssocs();
 	public final static BPEventBus EVENTS_UI = new BPEventBus();
@@ -47,11 +51,13 @@ public class BPGUICore
 		BPCore.setCommandLineArgs(cliargs);
 		BPCore.registerConfig(CONFIGS_UI);
 		BPCore.registerConfig(CONFIGS_SC);
+		BPCore.registerConfig(CONFIGS_HK);
 		BPCore.registerConfig(CONFIGS_FORM);
 		BPCore.registerConfig(new BPToolManager());
 		BPCore.registerConfig(new FormatAssocs());
 		BPCore.registerConfig(new BPEnvs());
 		BPCore.registerConfig(BINDINGS_EDITOR);
+		BPCore.registerConfig(CONFIGS_PDPS);
 		BPCore.start(cliargs.contextpath);
 		installTools();
 
@@ -85,6 +91,7 @@ public class BPGUICore
 			mainf.enterStandaloneMode();
 		}
 		S_MF.setTarget(mainf);
+		CONFIGS_HK.refreshHotkeys();
 		mainf.setVisible(true);
 
 		Runtime.getRuntime().addShutdownHook(new Thread()

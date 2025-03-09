@@ -2,9 +2,12 @@ package bp.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
@@ -27,6 +30,7 @@ import bp.ui.tree.BPTreeFuncsObject;
 import bp.ui.util.UIUtil;
 import bp.util.JSONUtil;
 import bp.util.LogicUtil;
+import bp.util.TextUtil;
 
 public class BPJSONPanel extends BPCodePanel
 {
@@ -74,10 +78,18 @@ public class BPJSONPanel extends BPCodePanel
 		m_txt.setChangedHandler(m_changedhandler);
 
 		initActions();
+		initListeners();
 
 		m_canpreview = true;
 
 		preview(m_txt);
+	}
+
+	protected void initActions()
+	{
+		super.initActions();
+		List<Action> acts = new CopyOnWriteArrayList<Action>(m_acts);
+		m_acts = acts.toArray(new Action[acts.size()]);
 	}
 
 	protected void setTextContainerValue(String text)
@@ -148,7 +160,9 @@ public class BPJSONPanel extends BPCodePanel
 			BPJSONPanel pnl = (BPJSONPanel) editor;
 			BPTextContainerBase con = new BPTextContainerBase();
 			if (options != null)
-				LogicUtil.IFVU(options.get("encoding"), con::setEncoding);
+			{
+				LogicUtil.VLF(((String) options.get("encoding")), TextUtil::checkNotEmpty, con::setEncoding);
+			}
 			con.bind(res);
 			pnl.bind(con);
 		}

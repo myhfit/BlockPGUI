@@ -73,6 +73,9 @@ public class UIConfigs extends BPConfigAdvBase
 	private static int S_DIVIDER_SIZE = 1;
 	private static boolean S_DOUBLE_BUFFER = false;
 
+	private static boolean S_SYSTRAY = false;
+	private static boolean S_MIN2TRAY = false;
+
 	protected Consumer<? extends BPConfigAdv> m_loader = this::loadConfig;
 	protected Consumer<? extends BPConfigAdv> m_persister = this::saveConfig;
 
@@ -104,7 +107,8 @@ public class UIConfigs extends BPConfigAdvBase
 		mif.mifnull("TABLE_FONT_NAME", v -> S_TABLE_FONT_NAME = ObjUtil.toString(v));
 		mif.mifnull("MENU_FONT_NAME", v -> S_MENU_FONT_NAME = ObjUtil.toString(v));
 		mif.mifnull("MONO_FONT_SIZEDELTA", v -> S_MONOFONT_SIZEDELTA = ObjUtil.toInt(v, 0));
-
+		mif.mifnull("SYSTEM_TRAY", v -> S_SYSTRAY = "true".equals(v));
+		mif.mifnull("MIN_TO_TRAY", v -> S_MIN2TRAY = "true".equals(v));
 		try
 		{
 			LookAndFeel laf = UIManager.getLookAndFeel();
@@ -232,6 +236,7 @@ public class UIConfigs extends BPConfigAdvBase
 
 		config.puts("_TAB_SIZE", 8, "_DIVIDER_SIZE", 1, "_SHOW_VMINFO", false, "_DOUBLE_BUFFER", false, "_LAF_CLASSNAME", "<AUTO>");
 		config.puts("_MONO_FONT_NAME", "monospaced", "_LABEL_FONT_NAME", "SansSerif", "_LIST_FONT_NAME", "SansSerif", "_TREE_FONT_NAME", "SansSerif", "_TABLE_FONT_NAME", "SansSerif", "_MENU_FONT_NAME", "SansSerif", "_MONO_FONT_SIZEDELTA", 0);
+		config.puts("_SYSTEM_TRAY", false, "_MIN_TO_TRAY", false);
 		config.putAll(pmap);
 	};
 
@@ -436,5 +441,30 @@ public class UIConfigs extends BPConfigAdvBase
 	public final static boolean DOUBLE_BUFFER()
 	{
 		return S_DOUBLE_BUFFER;
+	}
+
+	public final static boolean SYSTEM_TRAY()
+	{
+		return S_SYSTRAY;
+	}
+
+	public final static boolean MIN_TO_TRAY()
+	{
+		return S_MIN2TRAY;
+	}
+
+	public final static int BAR_HEIGHT_VICON()
+	{
+		return 20;
+	}
+
+	public final static int BAR_HEIGHT_COMBO()
+	{
+		return 24;
+	}
+
+	public final static int BAR_HEIGHT_VERTICAL()
+	{
+		return 20;
 	}
 }

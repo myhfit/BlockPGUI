@@ -69,7 +69,6 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 		m_tablefunc.setSchedulesUI(this);
 		m_tabschedules = new BPTable<BPSchedule>(m_tablefunc);
 		m_toolbar = new BPToolBarSQ(true);
-		m_toolbar.setBarHeight(22);
 		m_model = m_tabschedules.getBPTableModel();
 		JScrollPane sp = new JScrollPane();
 		sp.setViewportView(m_tabschedules);

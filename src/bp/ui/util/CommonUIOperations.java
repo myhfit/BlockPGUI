@@ -8,36 +8,35 @@ import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import bp.BPCore;
 import bp.BPGUICore;
+import bp.config.BPConfig;
+import bp.config.BPConfigSimple;
 import bp.context.BPFileContext;
 import bp.context.BPProjectsContext;
-import bp.data.BPMData;
-import bp.data.BPYData.BPYDataArrayList;
 import bp.event.BPEventCoreUI;
+import bp.format.BPFormat;
+import bp.format.BPFormatManager;
 import bp.project.BPProjectItemFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
+import bp.res.BPResourceDirLocal;
+import bp.res.BPResourceFileLocal;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
 import bp.schedule.BPSchedule;
 import bp.task.BPTask;
 import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
+import bp.ui.BPComponent;
+import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogCommonCategoryView;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogLocateCachedResource;
@@ -45,12 +44,20 @@ import bp.ui.dialog.BPDialogNewProject;
 import bp.ui.dialog.BPDialogNewSchedule;
 import bp.ui.dialog.BPDialogNewTask;
 import bp.ui.dialog.BPDialogSelectResource2;
+import bp.ui.editor.BPEditor;
+import bp.ui.editor.BPEditorFactory;
+import bp.ui.editor.BPEditorManager;
+import bp.ui.editor.BPTextEditor;
 import bp.ui.form.BPFormManager;
+import bp.ui.frame.BPFrameComponent;
 import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeComponent;
 import bp.util.ClassUtil;
+import bp.util.FileUtil;
+import bp.util.ObjUtil;
 import bp.util.ScheduleUtil;
 import bp.util.Std;
+import bp.util.SystemUtil;
 
 public class CommonUIOperations
 {
@@ -206,6 +213,189 @@ public class CommonUIOperations
 					}
 				}
 			}
+		}
+	}
+
+	public final static void openFileNewWindow(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params)
+	{
+		try
+		{
+			BPResourceFileSystem res = null;
+			String ext = null;
+			if (filename != null && filename.length() > 0)
+			{
+				if (FileUtil.isDir(filename))
+				{
+					res = new BPResourceDirLocal(filename);
+					ext = res.getExt();
+				}
+				else
+				{
+					res = new BPResourceFileLocal(filename);
+					ext = res.getExt();
+				}
+			}
+			BPEditorFactory fac = null;
+			BPFormat nformat = (format != null ? BPFormatManager.getFormatByName(format) : ext == null ? null : BPFormatManager.getFormatByExt(ext));
+			BPConfig options = optionsdata == null ? null : BPConfigSimple.fromData(optionsdata);
+			if (facname != null)
+				fac = BPEditorManager.getFactory(nformat == null ? null : nformat.getName(), facname);
+			else
+				fac = BPEditorManager.getFactory(nformat.getName());
+			if (fac != null)
+			{
+				if (res == null)
+				{
+					res = new BPResourceFileLocal("untitiled" + (ext == null ? "" : ext));
+					newResourceNewWindow(res, nformat, fac, null, options, params);
+					// m_editors.newEditorCustom(res, nformat, fac, null,
+					// options, params);
+				}
+				else
+				{
+					openResourceNewWindow(res, nformat, fac, null, options);
+					// m_editors.open(res, nformat, fac, null, options);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			UIStd.err(e);
+		}
+	}
+
+	public final static void showBPComponentInNewWindow(BPComponent<?> comp)
+	{
+		if (comp.isRoutableContainer())
+		{
+			BPRoutableContainer<?> rcomp = (BPRoutableContainer<?>) comp;
+			comp = rcomp.getCurrent();
+		}
+		BPFrameComponent fe = new BPFrameComponent();
+		fe.setComponent(comp);
+		fe.setVisible(true);
+	}
+
+	public final static void newResourceNewWindow(BPResourceFileSystem file, BPFormat _format, BPEditorFactory _fac, String routecontainerid, BPConfig options, Object... params)
+	{
+		String id = file.getTempID();
+		if (id == null)
+		{
+			id = BPCore.genID(BPCore.getFileContext());
+			file.setTempID(id);
+		}
+		BPComponent<?> comp = null;
+		// BPComponent<?> comp = m_compmap.get(id);
+		// if (comp == null)
+		{
+			String ext = file.getExt();
+			BPFormat format = _format == null ? BPFormatManager.getFormatByExt(ext) : _format;
+			BPEditorFactory fac = _fac == null ? BPEditorManager.getFactory(format.getName()) : _fac;
+			BPEditor<?> editor = fac.createEditor(format, file, options, params);
+			if (editor == null)
+				return;
+			// editor.setChannelID(m_channelid);
+			editor.setID(id);
+			// editor.setOnStateChanged(m_statecb);
+			// editor.setOnDynamicInfo(m_dynainfocb);
+			fac.initEditor(editor, format, file, options);
+			comp = editor;
+			// m_compmap.put(id, comp);
+			// if (comp instanceof BPViewer)
+			// {
+			// BPDataContainer con = ((BPViewer<?>) comp).getDataContainer();
+			// String title;
+			// if (con != null)
+			// {
+			// title = "*" + con.getTitle();
+			// }
+			// else
+			// {
+			// String editorname = editor.getEditorName();
+			// title = editorname == null ? "*" : editorname;
+			// }
+			// addTab(id, title, (Icon) null, editor.getComponent());
+			// }
+			// else
+			// {
+			// String editorname = editor.getEditorName();
+			// if (editorname == null)
+			// editorname = "New " + format.getName();
+			// addTab(id, editorname, (Icon) null, editor.getComponent());
+			// }
+
+			// switchTab(id);
+			editor.setNeedSave(true);
+			if (editor instanceof BPTextEditor)
+			{
+				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
+				teditor.getTextPanel().resizeDoc();
+			}
+			showBPComponentInNewWindow(comp);
+			// editor.focusEditor();
+		}
+	}
+
+	public final static void openResourceNewWindow(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig config)
+	{
+		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
+		{
+			String ext = res.getExt();
+			BPFormat format = (fformat != null ? fformat : BPFormatManager.getFormatByExt(ext));
+			BPEditorFactory fac = (ffac != null ? ffac : BPEditorManager.getFactory(format.getName()));
+			if (fac == null)
+			{
+				UIStd.info("No Editor for " + format.getName());
+				return;
+			}
+			BPEditor<?> editor = fac.createEditor(format, res, null);
+			if (editor == null)
+				return;
+			// editor.setChannelID(m_channelid);
+			editor.setID(id);
+			// editor.setOnStateChanged(m_statecb);
+			// editor.setOnDynamicInfo(m_dynainfocb);
+			fac.initEditor(editor, format, res, config);
+			// if (res.isRoutable() && editor.isRoutable())
+			// {
+			// BPComponent<?> cur = getCurrent();
+			// if (routecontainerid != null && cur != null && cur.isRoutable()
+			// && routecontainerid.equals(((BPRoutableContainer<?>)
+			// cur).getID()))
+			// {
+			// BPRoutableContainer<?> par = (BPRoutableContainer<?>) cur;
+			// par.addRoute(id, res.getName(), editor);
+			// }
+			// else
+			// {
+			// BPRoutableContainerBase par = new BPRoutableContainerBase();
+			// par.addRoute(id, res.getName(), editor);
+			// String parid = BPCore.genID(BPCore.getFileContext());
+			// par.setID(parid);
+			// m_compmap.put(parid, par);
+			// addTab(parid, res.getName(), (Icon) null, par.getComponent());
+			// switchTab(parid);
+			// }
+			// }
+			// else
+			// {
+			// comp = editor;
+			// m_compmap.put(id, comp);
+			// addTab(id, res.getName(), (Icon) null, editor.getComponent());
+			// switchTab(id);
+			// }
+			if (editor instanceof BPTextEditor)
+			{
+				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
+				teditor.getTextPanel().resizeDoc();
+			}
+			showBPComponentInNewWindow(editor);
+			// if (editor.needActiveOnStart())
+			// {
+			// editor.activeEditor();
+			// }
+			// editor.focusEditor();
+
 		}
 	}
 
@@ -371,69 +561,14 @@ public class CommonUIOperations
 
 	public final static void showSystemInfo()
 	{
-		List<String> cats = Arrays.asList("Properties", "Class Paths", "Class Paths(CL)", "Charsets");
+		List<String> cats = SystemUtil.getSystemInfoKeys();
 		Function<String, Object> ctt = (cat) ->
 		{
-			switch (cat)
-			{
-				case "Properties":
-				{
-					Properties props = System.getProperties();
-					Map<String, Object> mo = new TreeMap<String, Object>();
-					for (Object key : props.keySet())
-					{
-						mo.put((String) key, props.get(key));
-					}
-					return new BPMData.BPMDataWMap(mo);
-				}
-				case "Class Paths":
-				{
-					List<String> urlstrs = new ArrayList<String>();
-					String cpstr = System.getProperty("java.class.path");
-					if (cpstr != null)
-					{
-						String[] cps = cpstr.split(File.pathSeparator);
-						for (String cp : cps)
-						{
-							urlstrs.add(cp);
-						}
-					}
-					List<URL> urls = ClassUtil.getExtensionClassLoader().getAllURLs();
-					for (URL url : urls)
-					{
-						if ("file".equalsIgnoreCase(url.getProtocol()))
-							urlstrs.add(url.getPath());
-						else
-							urlstrs.add(url.toString());
-					}
-					return new BPYDataArrayList(urlstrs);
-				}
-				case "Class Paths(CL)":
-				{
-					List<URL> urls = ClassUtil.getClassPaths();
-					List<String> urlstrs = new ArrayList<String>();
-					for (URL url : urls)
-					{
-						if ("file".equalsIgnoreCase(url.getProtocol()))
-							urlstrs.add(url.getPath());
-						else
-							urlstrs.add(url.toString());
-					}
-					return new BPYDataArrayList(urlstrs);
-				}
-				case "Charsets":
-				{
-					SortedMap<String, Charset> charsetmap = Charset.availableCharsets();
-					List<String> charsetnames = new ArrayList<String>();
-					for (String name : charsetmap.keySet())
-					{
-						Charset ch = charsetmap.get(name);
-						charsetnames.add(ch.name() + "(" + ch.aliases().stream().collect(Collectors.joining(",")) + ")");
-					}
-					return new BPYDataArrayList(charsetnames);
-				}
-			}
-			return null;
+			Object sysinfo = SystemUtil.getSystemInfo(cat);
+			Object rc = null;
+			if (sysinfo != null)
+				rc = ObjUtil.wrapUIData(sysinfo);
+			return rc;
 		};
 		BPDialogCommonCategoryView<String, Object> dlg = new BPDialogCommonCategoryView<String, Object>();
 		dlg.setup(cats, null, ctt, false);

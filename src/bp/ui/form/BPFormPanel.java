@@ -291,11 +291,6 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 
 	}
 
-	protected final static boolean checkEmpty(String str)
-	{
-		return str.trim().length() == 0;
-	}
-
 	protected void setComponentValue(JComponent comp, Map<String, ?> data, String key, boolean editable)
 	{
 		setComponentValue(comp, data, key, editable, null);

@@ -34,6 +34,8 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 	protected BPTextField m_txtsplitsize;
 	protected BPCheckBox m_chkvminfo;
 	protected BPCheckBox m_chkdoublebuffer;
+	protected BPCheckBox m_chksystray;
+	protected BPCheckBox m_chkmin2tray;
 	protected BPTextFieldPane m_panlafclsname;
 	protected BPTextField m_txtlafclsname;
 	protected BPTextFieldPane m_panmonofontname;
@@ -65,6 +67,8 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		IFVU(m_txttablefontname.getNotEmptyText(), v -> rc.put("TABLE_FONT_NAME", v));
 		IFVU(m_txtmenufontname.getNotEmptyText(), v -> rc.put("MENU_FONT_NAME", v));
 		rc.put("MONO_FONT_SIZEDELTA", ObjUtil.toInt(m_txtmonofontsizedelta.getNotEmptyText(), null));
+		rc.put("SYSTEM_TRAY", m_chksystray.isSelected());
+		rc.put("MIN_TO_TRAY", m_chkmin2tray.isSelected());
 		return rc;
 	}
 
@@ -75,8 +79,12 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 
 		m_chkvminfo = new BPCheckBox();
 		m_chkdoublebuffer = new BPCheckBox();
+		m_chksystray = new BPCheckBox();
+		m_chkmin2tray = new BPCheckBox();
 		m_chkvminfo.setLabelFont();
 		m_chkdoublebuffer.setLabelFont();
+		m_chksystray.setLabelFont();
+		m_chkmin2tray.setLabelFont();
 
 		m_panlafclsname = makeSingleLineTextFieldPanel(this::onLAFFind);
 		m_txtlafclsname = m_panlafclsname.getTextComponent();
@@ -100,6 +108,8 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		addLine(new String[] { "Divider Size" }, new Component[] { m_txtsplitsize }, false, () -> m_txtsplitsize.isEmpty() || m_txtsplitsize.isInt());
 		addLine(new String[] { "LAF Class Name" }, new Component[] { m_panlafclsname });
 		addLine(new String[] { "Double Buffer" }, new Component[] { wrapSingleLineComponent(m_chkdoublebuffer) });
+		addLine(new String[] { "Show SysTray" }, new Component[] { wrapSingleLineComponent(m_chksystray) });
+		addLine(new String[] { "Minimize to Tray" }, new Component[] { wrapSingleLineComponent(m_chkmin2tray) });
 		addSeparator("Font Settings");
 		addLine(new String[] { "Mono Font Name" }, new Component[] { m_panmonofontname });
 		addLine(new String[] { "Label Font Name" }, new Component[] { m_panlabelfontname });
@@ -178,5 +188,7 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		setComponentValue(m_txttablefontname, data, "TABLE_FONT_NAME", editable);
 		setComponentValue(m_txtmenufontname, data, "MENU_FONT_NAME", editable);
 		setComponentValue(m_txtmonofontsizedelta, data, "MONO_FONT_SIZEDELTA", editable);
+		setComponentValue(m_chksystray, data, "SYSTEM_TRAY", editable);
+		setComponentValue(m_chkmin2tray, data, "MIN_TO_TRAY", editable);
 	}
 }

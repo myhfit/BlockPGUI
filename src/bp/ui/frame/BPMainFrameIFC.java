@@ -2,6 +2,8 @@ package bp.ui.frame;
 
 import java.util.Map;
 
+import javax.swing.Action;
+
 import bp.event.BPEventUI;
 import bp.format.BPFormat;
 import bp.res.BPResource;
@@ -21,8 +23,14 @@ public interface BPMainFrameIFC
 	public void toggleBottomPanel();
 
 	public void toggleRightPanel();
+	
+	public void toggleVisible();
 
 	public void enterStandaloneMode();
+
+	default void registerMenu(String key, String title, Action[] actions)
+	{
+	}
 
 	public void createEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params);
 

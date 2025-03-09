@@ -14,7 +14,7 @@ public interface BPRoutableContainer<C extends Container> extends BPContainer<C>
 
 	void closeCurrent();
 
-	default boolean isRoutable()
+	default boolean isRoutableContainer()
 	{
 		return true;
 	}

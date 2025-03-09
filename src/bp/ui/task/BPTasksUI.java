@@ -80,7 +80,6 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 	{
 		m_tabtasks = new BPTable<BPTask<?>>(new BPTableFuncsTask());
 		m_toolbar = new BPToolBarSQ(true);
-		m_toolbar.setBarHeight(22);
 		m_model = m_tabtasks.getBPTableModel();
 		JScrollPane sp = new JScrollPane();
 		sp.setViewportView(m_tabtasks);

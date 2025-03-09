@@ -192,7 +192,7 @@ public interface BPEditorFactory
 			{
 				BPTextContainer con = new BPTextContainerBase();
 				if (options != null)
-					LogicUtil.IFVU(options.get("encoding"), con::setEncoding);
+					LogicUtil.VLF(((String) options.get("encoding")), TextUtil::checkNotEmpty, con::setEncoding);
 				con.bind(res);
 				((BPCodePanel) editor).bind(con);
 			}
@@ -239,7 +239,9 @@ public interface BPEditorFactory
 			}
 			else if (options != null)
 			{
-				encoding = options.get("encoding");
+				String en = TextUtil.eds(options.get("encoding"));
+				if (en != null)
+					encoding = en;
 			}
 			BPConsolePanel rc = new BPConsolePanel();
 			BPConsolePane cc = new BPConsolePane();

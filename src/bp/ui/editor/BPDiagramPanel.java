@@ -71,7 +71,6 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 		m_scroll = new JScrollPane();
 		m_dcomp = new BPDiagramComponent();
 		m_toolbar = new BPToolBarSQ(true);
-		m_toolbar.setBarHeight(22);
 		m_actlayout = BPAction.build("Layout").callback(this::onShowLayout).tooltip("Layout").vIcon(BPIconResV.LAYOUT()).getAction();
 		m_actcreate = BPAction.build("Create").callback(this::onCreate).tooltip("Create").vIcon(BPIconResV.ADD()).getAction();
 		m_actdelete = BPAction.build("Delete").callback(this::onDelete).tooltip("Delete").vIcon(BPIconResV.DEL()).getAction();

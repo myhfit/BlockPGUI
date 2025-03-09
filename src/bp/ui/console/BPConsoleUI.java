@@ -47,7 +47,6 @@ public class BPConsoleUI extends BPPanelContainerBase
 		m_consoles = new ArrayList<BPConsolePanel>();
 
 		m_toolbar = new BPToolBarSQ(true);
-		m_toolbar.setBarHeight(22);
 		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
 		Action actsel = BPAction.build("sel").tooltip("Select").vIcon(BPIconResV.MORE()).getAction();
 		Action actnew = BPAction.build("new").tooltip("Create").vIcon(BPIconResV.ADD()).callback(this::onAdd).getAction();

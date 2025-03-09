@@ -54,7 +54,8 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 			if (vs.length > 0)
 			{
 				sckey = vs[0];
-				BPShortCut sc = BPShortCutManager.makeShortCut((name + "," + v).split(","));
+				String[] scparamarr = TextUtil.splitEscapePlainText((name + "," + v));
+				BPShortCut sc = BPShortCutManager.makeShortCut(scparamarr);
 				if (sc != null)
 				{
 					setting = sc.getSetting();

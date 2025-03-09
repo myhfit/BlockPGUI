@@ -106,6 +106,7 @@ public class UIStd
 		tf.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(200, UIConfigs.TEXTFIELD_HEIGHT())));
 		tf.setMonoFont();
 		tf.setText(text);
+		tf.selectAll();
 
 		panc.add(lbl, BorderLayout.WEST);
 		panc.add(tf, BorderLayout.CENTER);

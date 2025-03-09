@@ -107,7 +107,6 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_toolbar = new BPToolBarSQ(true);
 		m_lstcons = new BPList<BPDataConsumer<?>>();
 		m_lstcons.setCellRenderer(new BPList.BPListRenderer(obj -> ((BPDataConsumer<?>) obj).getInfo()));
-		m_toolbar.setBarHeight(22);
 		m_actrun = BPAction.build("run").tooltip("Run").vIcon(BPIconResV.START()).callback(this::onRunPipe).getAction();
 		m_actaddtf = BPAction.build("add tf").tooltip("Add Transformer").vIcon(BPIconResV.ADD()).callback(this::onCreateTransformer).getAction();
 		m_actaddep = BPAction.build("add ep").tooltip("Add Endpoint").vIcon(BPIconResV.ADD()).callback(this::onCreateEndpoint).getAction();
@@ -516,7 +515,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 	{
 		if (res != null && res.isFileSystem())
 		{
-			BPJSONContainerBase<BPDiagram> con = new BPJSONContainerBase<BPDiagram>();
+			BPJSONContainerBase<BPDataPipes> con = new BPJSONContainerBase<BPDataPipes>();
 			con.bind(res);
 			return con;
 		}

@@ -1,12 +1,17 @@
 package bp.ui.frame;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -81,6 +86,7 @@ import bp.ui.editor.BPEditorManager;
 import bp.ui.editor.BPTextPanel;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.event.BPResourceOperationCommonHandler;
+import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPCommandPane;
 import bp.ui.scomp.BPGUIInfoPanel;
 import bp.ui.scomp.BPMenu;
@@ -130,6 +136,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	protected boolean m_isfullscreen = false;
 	protected OriginWindowState m_fullscreendata = null;
+	protected TrayIcon m_trayicon;
 
 	protected Consumer<BPEventUIEditors> m_editorhandler;
 	protected Consumer<BPEventUIPathTree> m_pathtreehandler;
@@ -178,9 +185,15 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_mnushortcuts = new BPMenu("Shortcut");
 		JMenu mnuhelp = new BPMenu("Help");
 
+		mnufile.setName("file");
+		mnutool.setName("tool");
+		mnunav.setName("nav");
+
 		m_cmdpan = new BPCommandPane();
 		m_cmdpan.setVisible(false);
 		m_cmdpan.setBorder(new MatteBorder(0, 1, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		m_cmdpan.setMinimumSize(new Dimension(4000, 0));
+		m_cmdpan.setPreferredSize(new Dimension(4000, 0));
 
 		m_mnuactbar = new JPanel();
 		m_editors = new BPEditors();
@@ -188,7 +201,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_ptree.setEventChannelID(m_channelid);
 		m_editors.setEventChannelID(m_channelid);
 		m_bottomtab = new BPTabBottom();
-		m_editorinfo = new BPGUIInfoPanel();
+		m_editorinfo = new BPGUIInfoPanel(true);
 		m_editorinfo.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 		m_bottomtab.setInfoComp(m_editorinfo);
 
@@ -214,6 +227,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		mnuview.setMnemonic(KeyEvent.VK_V);
 		mnumainui.setMnemonic(KeyEvent.VK_M);
 		mnunav.setMnemonic(KeyEvent.VK_N);
+		mnuhelp.setMnemonic(KeyEvent.VK_H);
 
 		mnunew.add(m_actmain.filenewfile);
 		mnunew.add(m_actmain.filenewproject);
@@ -233,7 +247,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		mnufile.addSeparator();
 		mnufile.add(m_actmain.fileexit);
 
-		setEditorMenu(null);
+		UIUtil.rebuildMenu(m_mnuedit, null, true);
 
 		mnuview.add(mnumainui);
 		mnuview.add(m_actmain.viewfullscreen);
@@ -299,12 +313,71 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		setLayout(m_layout);
 		getContentPane().add(m_sp, BorderLayout.CENTER);
 
+		if (UIConfigs.SYSTEM_TRAY())
+		{
+			initSystemTray();
+		}
+
 		addWindowListener(this);
 
 		initActions();
 
 		validate();
 		invalidate();
+	}
+
+	protected void initSystemTray()
+	{
+		BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+		BPIconResV.BP().doDraw(img.getGraphics(), 0, 0, 16, 16);
+		TrayIcon ti = new TrayIcon(img, "BlockP", null);
+		UIStd.wrapSegE(() -> SystemTray.getSystemTray().add(ti));
+		ti.addMouseListener(new UIUtil.BPMouseListener(null, this::onSysTrayDown, null, null, null));
+		m_trayicon = ti;
+	}
+
+	protected void onSysTrayDown(MouseEvent e)
+	{
+		int btn = e.getButton();
+		switch (btn)
+		{
+			case MouseEvent.BUTTON1:
+			{
+				if (!isVisible())
+					setVisible(true);
+				if (this.getExtendedState() == ICONIFIED)
+					setState(NORMAL);
+				toFront();
+				break;
+			}
+			case MouseEvent.BUTTON3:
+			{
+				break;
+			}
+		}
+	}
+
+	protected void removeSystemTray()
+	{
+		try
+		{
+			TrayIcon ti = m_trayicon;
+			m_trayicon = null;
+			if (ti != null)
+			{
+				SystemTray.getSystemTray().remove(ti);
+			}
+		}
+		catch (Exception e)
+		{
+		}
+	}
+
+	public void toggleVisible()
+	{
+		setVisible(!isVisible());
+		if (isVisible())
+			setState(NORMAL);
 	}
 
 	public void refreshShortCuts()
@@ -371,7 +444,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		mnutool.add(BPAction.build("Extensions ...").callback((e) -> showExtensionManager()).getAction());
 		mnutool.add(BPAction.build("Modules ...").callback((e) -> showModuleManager()).getAction());
 
-		Map<String, List<BPTool>> toolmap=new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
+		Map<String, List<BPTool>> toolmap = new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
 		List<String> keys = new ArrayList<String>(toolmap.keySet());
 		keys.sort((a, b) ->
 		{
@@ -442,7 +515,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						m_editorinfo.setEditorInfo(((BPEditor<?>) comp).getEditorInfo());
 						BPEditor<?> editor = (BPEditor<?>) comp;
 						Action[] editmenuacts = editor.getEditMenuActions();
-						setEditorMenu(editmenuacts);
+						UIUtil.rebuildMenu(m_mnuedit, editmenuacts, true);
 						Action[] actbaracts = editor.getActBarActions();
 						setActBarActions(actbaracts);
 					}
@@ -457,7 +530,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			{
 				setTitle(BPGUICore.S_BP_TITLE);
 				m_editorinfo.setEditorInfo("");
-				setEditorMenu(null);
+				UIUtil.rebuildMenu(m_mnuedit, null, true);
 				setActBarActions(null);
 				break;
 			}
@@ -474,26 +547,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 					m_editorinfo.setEditorInfo(event.getTitle());
 				}
 			}
-		}
-	}
-
-	protected void setEditorMenu(Action[] actions)
-	{
-		m_mnuedit.removeAll();
-		if (actions != null && actions.length > 0)
-		{
-			JComponent[] mnus = UIUtil.makeMenuItems(actions);
-			for (JComponent mnu : mnus)
-			{
-				m_mnuedit.add(mnu);
-			}
-			if (!m_mnuedit.isVisible())
-				m_mnuedit.setVisible(true);
-		}
-		else
-		{
-			if (m_mnuedit.isVisible())
-				m_mnuedit.setVisible(false);
 		}
 	}
 
@@ -567,7 +620,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 							{
 								BPResourceFileSystem fres = ((BPResourceFileSystem) res);
 								if (fres.isFile())
-									openFile(fres.getFileFullName(), format, fac, false, rconid);
+									openFile(fres.getFileFullName(), format, fac, false, rconid, null);
 								else if (fres.isDirectory())
 									openDir(fres.getFileFullName(), format, fac, false, rconid);
 							}
@@ -603,7 +656,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 				BPResource res = event.getSelectedResource();
 				Object[] opennodeps = event.getOpenNodeParams();
 				if (res.isFileSystem() && ((BPResourceFileSystem) res).isFile())
-					openFile(((BPResourceFileLocal) res).getPathName(), (BPFormat) opennodeps[0], (BPEditorFactory) opennodeps[1], false, null);
+					openFile(((BPResourceFileLocal) res).getPathName(), (BPFormat) opennodeps[0], (BPEditorFactory) opennodeps[1], false, null, null);
 				else if (res.canOpen())
 				{
 					openResource(res, (BPFormat) opennodeps[0], (BPEditorFactory) opennodeps[1], false, null);
@@ -658,7 +711,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						{
 							BPResourceFileSystem fres = (BPResourceFileSystem) res;
 							if (fres.isFile())
-								openFile(((BPResourceFile) res).getFileFullName(), format, fac, false, null);
+								openFile(((BPResourceFile) res).getFileFullName(), format, fac, false, null, null);
 							else if (fres.isDirectory())
 								openDir(((BPResourceDir) res).getFileFullName(), format, fac, false, null);
 						}
@@ -870,6 +923,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			BPFormat format = null;
 			BPEditorFactory fac = null;
 			boolean isselected = false;
+			BPConfig options = null;
 			if (!defaulteditor)
 			{
 				BPDialogSelectFormatEditor dlg = new BPDialogSelectFormatEditor();
@@ -879,8 +933,9 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 				if (format == null && fac == null)
 					return;
 				isselected = true;
+				options = dlg.getEditorOptions();
 			}
-			openFile(f, format, fac, isselected, null);
+			openFile(f, format, fac, isselected, null, options);
 		}
 	}
 
@@ -949,6 +1004,36 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		if (ress == null)
 			return;
 		CommonUIOperations.openWithTool(ress);
+	}
+
+	public void registerMenu(String key, String title, Action[] actions)
+	{
+		Component[] subs = m_mnubar.getComponents();
+		BPMenu mnupar = null;
+		for (Component sub : subs)
+		{
+			if (sub instanceof JMenu)
+			{
+				JMenu mnu = (JMenu) sub;
+				String name = mnu.getName();
+				if (key.equals(name))
+				{
+					mnupar = (BPMenu) mnu;
+					break;
+				}
+			}
+		}
+		if (mnupar == null)
+		{
+			mnupar = new BPMenu(title);
+			mnupar.setName(key);
+			m_mnubar.add(mnupar, m_mnubar.getComponentIndex(m_cmdpan) - 1);
+		}
+		JComponent[] comps = UIUtil.makeMenuItems(actions);
+		for (JComponent comp : comps)
+		{
+			mnupar.add(comp);
+		}
 	}
 
 	public void createEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params)
@@ -1084,7 +1169,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_editors.open(file, nformat, nfac, rconid, options);
 	}
 
-	public void openFile(String f, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid)
+	public void openFile(String f, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid, BPConfig doptions)
 	{
 		if (f == null)
 			return;
@@ -1092,7 +1177,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		String ext = file.getExt();
 		BPFormat nformat = (format != null ? format : BPFormatManager.getFormatByExt(ext));
 		BPEditorFactory nfac = null;
-		BPConfig options = null;
+		BPConfig options = doptions;
 		boolean isna = false;
 		if (nformat != null && nformat.getName().equals(BPFormatUnknown.FORMAT_NA))
 			isna = true;
@@ -1296,6 +1381,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		if (!isVisible())
 		{
+			removeSystemTray();
 			m_editorinfo.clearResources();
 			ThreadGroup tg = ThreadUtil.exitCleanThreadGroup;
 			Thread[] ts = new Thread[tg.activeCount()];
@@ -1322,6 +1408,10 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	public void windowIconified(WindowEvent e)
 	{
+		if (m_trayicon != null && UIConfigs.MIN_TO_TRAY())
+		{
+			setVisible(false);
+		}
 	}
 
 	public void windowDeiconified(WindowEvent e)
@@ -1367,6 +1457,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		BPCore.FS_CACHE.clearTasks();
 		BPCore.FS_CACHE.clear();
 		BPCore.setLocalFileContext(BPCore.getFileContext().getRootDir().getFileFullName());
+		BPCore.getProjectsContext().initProjects();
 		BPCore.loadSchedules();
 		m_ptree.refreshContextPath();
 	}

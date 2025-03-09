@@ -1,8 +1,11 @@
 package bp.ui.editor;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +13,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.Caret;
 
 import bp.config.BPSetting;
 import bp.data.BPTextContainer;
@@ -27,6 +33,7 @@ import bp.ui.actions.BPAction;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogSetting;
 import bp.ui.scomp.BPTextPane;
+import bp.ui.util.UIUtil;
 import bp.util.TextUtil;
 
 public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextContainer>
@@ -65,6 +72,13 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 		initActions();
 		setLayout(new BorderLayout());
 		add(m_scroll, BorderLayout.CENTER);
+		initListeners();
+	}
+
+	protected void initListeners()
+	{
+		m_txt.addMouseListener(new UIUtil.BPMouseListenerForPopup(this::onContextMenu));
+		m_txt.addKeyListener(new UIUtil.BPKeyListener(null, this::onCommonKeyDown, null));
 	}
 
 	protected void initActions()
@@ -172,6 +186,48 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 		}
 	}
 
+	protected void onContextMenu(MouseEvent e)
+	{
+		JComponent source = (JComponent) e.getSource();
+		showContextMenu(source, e.getX(), e.getY());
+	}
+
+	protected void showContextMenu(Component c, int x, int y)
+	{
+		if (m_acts != null && m_acts.length > 0)
+		{
+			JPopupMenu pop = new JPopupMenu();
+			JComponent[] comps = UIUtil.makeMenuItems(m_acts);
+			for (JComponent comp : comps)
+			{
+				pop.add(comp);
+			}
+			pop.show(c, x, y);
+		}
+	}
+
+	protected void onCommonKeyDown(KeyEvent e)
+	{
+		int keycode = e.getKeyCode();
+		switch (keycode)
+		{
+			case KeyEvent.VK_CONTEXT_MENU:
+			{
+				Point pt = null;
+				{
+					Caret c = m_txt.getCaret();
+					if (c != null)
+						pt = c.getMagicCaretPosition();
+				}
+				if (pt != null)
+				{
+					showContextMenu(m_txt, pt.x, pt.y);
+				}
+				break;
+			}
+		}
+	}
+
 	public void reloadData()
 	{
 		m_con.open();
@@ -239,7 +295,20 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 
 	protected void callResourceProcessor(String pname)
 	{
-		BPResourceHolder src = new BPResourceByteArray(TextUtil.fromString(m_txt.getText(), "utf-8"), null, BPFormatText.FORMAT_TEXT, null, null, true);
+		String str;
+		boolean issel;
+		if (m_txt.getSelectionEnd() == 0)
+		{
+			str = m_txt.getText();
+			issel = false;
+		}
+		else
+		{
+			str = m_txt.getSelectedText();
+			issel = true;
+		}
+		BPResourceHolder src = new BPResourceByteArray(TextUtil.fromString(str, "utf-8"), null, BPFormatText.FORMAT_TEXT, null, null, true);
+		str = null;
 		BPResourceHolder out = new BPResourceHolder.BPResourceHolderW(null, null, BPFormatText.MIME_TEXT, null, null, true);
 		BPResourceProcessor<BPResource, BPResource> p = BPDataProcessorManager.getDataProcessorV(pname);
 		BPSetting setting = p.getSetting(null);
@@ -264,7 +333,14 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 		{
 			out = (BPResourceHolder) p.process(src, setting);
 			String newtxt = out.getData();
-			m_txt.setText(newtxt);
+			if (issel)
+			{
+				m_txt.replaceSelection(newtxt);
+			}
+			else
+			{
+				m_txt.setText(newtxt);
+			}
 		}
 		else
 			p.process(src, setting);

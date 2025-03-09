@@ -3,9 +3,13 @@ package bp.ui.editor;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
@@ -29,15 +33,22 @@ import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
+import bp.res.BPResourceHolder;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPFileActions;
 import bp.ui.container.BPToolBarSQ;
+import bp.ui.dialog.BPDialogSimple;
 import bp.ui.event.BPEventUIResourceOperation;
+import bp.ui.form.BPFormPanelMap;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTable;
 import bp.ui.table.BPTableFuncsResourceFiles;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
+import bp.util.FileUtil;
+import bp.util.SystemUtil;
+import bp.util.SystemUtil.SystemOS;
 
 public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainer>
 {
@@ -84,7 +95,8 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		scroll.setViewportView(m_table);
 
 		BPAction actrefresh = BPAction.build("Refresh").callback((e) -> refresh()).vIcon(BPIconResV.REFRESH()).tooltip("Refresh").getAction();
-		m_toolbar.setActions(new Action[] { BPAction.separator(), actrefresh }, this);
+		BPAction actstat = BPAction.build("Stat").callback((e) -> stat()).vIcon(BPIconResV.MORE()).tooltip("Statistics").getAction();
+		m_toolbar.setActions(new Action[] { BPAction.separator(), actrefresh, BPAction.separator(), actstat }, this);
 
 		add(scroll, BorderLayout.CENTER);
 		add(m_toolbar, BorderLayout.WEST);
@@ -121,6 +133,88 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	public void copy()
 	{
+	}
+
+	protected void stat()
+	{
+		List<String> cats = Arrays.asList("Filename Extension");
+		String cat = UIStd.select(cats, "Select Statistics Function", null);
+		switch (cat)
+		{
+			case "Filename Extension":
+			{
+				BPResource res = m_tablefuncs.getBaseResource();
+				if (res != null && res.isFileSystem())
+				{
+					BPResourceFileSystem fres = (BPResourceFileSystem) res;
+					Map<String, Long> cmap = null;
+					boolean extci = SystemUtil.getOS() == SystemOS.Windows;
+					if (fres.isDirectory() && fres.isDirectory())
+					{
+						Map<String, Long> countmap = new LinkedHashMap<String, Long>();
+						File f = new File(fres.getFileFullName());
+						FileUtil.forEachFile(f, true, (d, sf) ->
+						{
+							String ext = FileUtil.getExt(sf.getName());
+							if (extci)
+								ext = ext.toLowerCase();
+							long oldc = 0;
+							long olds = 0;
+							long s = sf.length();
+							if (countmap.containsKey(ext))
+							{
+								oldc = countmap.get(ext);
+								olds = countmap.get("[Size]" + ext);
+							}
+							oldc++;
+							olds += s;
+							countmap.put(ext, oldc);
+							countmap.put("[Size]" + ext, olds);
+							return true;
+						});
+						cmap = countmap;
+
+					}
+					else if (m_con instanceof BPDataContainerFileSystem)
+					{
+						Map<String, Long> countmap = new LinkedHashMap<String, Long>();
+						List<BPResource> chds = m_table.getBPTableModel().getDatas();
+						for (BPResource chd : chds)
+						{
+							String ext = FileUtil.getExt(chd.getName());
+							if (extci)
+								ext = ext.toLowerCase();
+							long oldc = 0;
+							long olds = 0;
+							long s = 0;
+							BPResourceHolder hres = (BPResourceHolder) chd;
+							byte[] bs = hres.getData();
+							if (bs != null)
+								s = bs.length;
+							else
+								continue;
+							if (countmap.containsKey(ext))
+							{
+								oldc = countmap.get(ext);
+								olds = countmap.get("[Size]" + ext);
+							}
+							oldc++;
+							olds += s;
+							countmap.put(ext, oldc);
+							countmap.put("[Size]" + ext, olds);
+						}
+						cmap = countmap;
+					}
+					if (cmap != null)
+					{
+						BPFormPanelMap p = new BPFormPanelMap();
+						p.showData(cmap, false);
+						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, BPGUICore.S_BP_TITLE +" - Statistics", this.getFocusCycleRootAncestor());
+					}
+				}
+				break;
+			}
+		}
 	}
 
 	protected void refresh()
@@ -279,7 +373,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		return m_id;
 	}
-	
+
 	public boolean isRoutable()
 	{
 		return true;
@@ -318,7 +412,8 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 			List<BPResource> ress = m_table.getSelectedDatas();
 			if (ress != null && ress.size() > 0)
 			{
-				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress.toArray(new BPResource[ress.size()]), BPFileActions.ACTION_OPEN, null }, UIUtil.getRouteContext(e.getSource())));
+				BPGUICore.EVENTS_UI.trigger(m_channelid,
+						new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress.toArray(new BPResource[ress.size()]), BPFileActions.ACTION_OPEN, null }, UIUtil.getRouteContext(e.getSource())));
 			}
 		}
 	}

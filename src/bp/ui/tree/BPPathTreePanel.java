@@ -53,8 +53,7 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 		scroll.setViewportView(m_tree);
 
 		m_toolbar = new BPToolBarSQ();
-		m_toolbar.setBarHeight(24);
-		m_toolbar.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 4, 0, 4)));
+		m_toolbar.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(1, 1, 1, 1)));
 		m_toolbar.setVisible(false);
 
 		add(m_toolbar, BorderLayout.NORTH);
@@ -71,7 +70,7 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 		}
 		m_toolbar.setVisible(vis);
 	}
-	
+
 	public void setToolBarVisible(boolean flag)
 	{
 		m_toolbar.setVisible(flag);
@@ -90,7 +89,7 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 			loadContext(context);
 		}
 	}
-	
+
 	public void refresh()
 	{
 		m_tree.reloadModel();

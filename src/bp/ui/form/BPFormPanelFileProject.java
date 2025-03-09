@@ -13,7 +13,7 @@ import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
 import bp.util.LogicUtil;
 
-public class BPFormPanelFileProject extends BPFormPanelFileSystem
+public class BPFormPanelFileProject extends BPFormPanelResourceBase
 {
 	/**
 	 * 

@@ -420,7 +420,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		return rc;
 	}
 
-	public BPResource[] getSelectedResoures()
+	public BPResource[] getSelectedResources()
 	{
 		return m_files;
 	}

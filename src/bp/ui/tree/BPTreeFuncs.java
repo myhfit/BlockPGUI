@@ -30,14 +30,19 @@ public interface BPTreeFuncs
 	{
 
 	}
-	
+
 	default void setTreeFilter(Predicate<?> filter)
 	{
-		
+
 	}
 
 	default List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)
 	{
 		return null;
+	}
+
+	default void setTreePathText(String str)
+	{
+
 	}
 }
