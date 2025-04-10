@@ -67,6 +67,11 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 	{
 		m_statushandler = this::onTaskStatusChanged;
 		m_changedhandler = this::onTaskChanged;
+		registerEventHandlers();
+	}
+
+	protected void registerEventHandlers()
+	{
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_CHANGETASKSTATUS, m_statushandler);
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_CHANGETASK, m_changedhandler);
 	}
@@ -174,9 +179,22 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 	protected void onDel(ActionEvent e)
 	{
 		List<BPTask<?>> tasks = m_tabtasks.getSelectedDatas();
+		stopTasks(tasks);
+		removeTasks(tasks);
+	}
+
+	protected void stopTasks(List<BPTask<?>> tasks)
+	{
 		for (BPTask<?> task : tasks)
 		{
 			task.stop();
+		}
+	}
+
+	protected void removeTasks(List<BPTask<?>> tasks)
+	{
+		for (BPTask<?> task : tasks)
+		{
 			BPCore.removeTask(task);
 		}
 	}
@@ -228,11 +246,16 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 				if (formdata != null)
 				{
 					task.setMappedData(formdata);
-					BPCore.saveTasks();
+					saveTask(task);
 					m_model.fireTableDataChanged();
 				}
 			}
 		}
+	}
+
+	protected void saveTask(BPTask<?> task)
+	{
+		BPCore.saveTasks();
 	}
 
 	public BPComponentType getComponentType()

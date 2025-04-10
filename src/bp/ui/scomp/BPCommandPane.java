@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 import bp.BPCore;
 import bp.data.BPCommand;
 import bp.data.BPCommandResult;
+import bp.remote.BPConnector;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 
@@ -27,6 +28,7 @@ public class BPCommandPane extends JPanel implements FocusListener
 	protected BPTextField m_txt;
 	protected List<String> m_cmdhis = new ArrayList<String>();
 	protected int m_cmdpos = 0;
+	protected volatile BPConnector m_conn;
 
 	public BPCommandPane()
 	{
@@ -79,6 +81,11 @@ public class BPCommandPane extends JPanel implements FocusListener
 		}
 	}
 
+	public void setConnector(BPConnector conn)
+	{
+		m_conn = conn;
+	}
+
 	protected void setCommandByHistory(boolean isup)
 	{
 		int delta = isup ? -1 : 1;
@@ -108,7 +115,8 @@ public class BPCommandPane extends JPanel implements FocusListener
 				m_cmdpos = m_cmdhis.size() + 1;
 			m_cmdhis.add(cmdtext);
 			m_txt.setText("");
-			BPCommandResult r = BPCore.callCommand(cmd);
+			BPConnector conn = m_conn;
+			BPCommandResult r = conn == null ? BPCore.callCommand(cmd) : conn.call(cmd);
 			if (r != null && r.success)
 			{
 				if (r.data != null)

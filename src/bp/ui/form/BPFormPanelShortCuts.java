@@ -2,10 +2,12 @@ package bp.ui.form;
 
 import java.awt.event.ActionEvent;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.Action;
 
 import bp.config.BPSetting;
+import bp.config.ShortCuts;
 import bp.ui.actions.BPAction;
 import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSetting;
@@ -14,6 +16,8 @@ import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.shortcut.BPShortCut;
 import bp.ui.shortcut.BPShortCutFactory;
 import bp.ui.shortcut.BPShortCutManager;
+import bp.util.JSONUtil;
+import bp.util.ObjUtil;
 import bp.util.TextUtil;
 
 public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
@@ -50,12 +54,11 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 				v = "";
 			BPSetting setting = null;
 			String sckey = null;
-			String[] vs = v.split(",");
-			if (vs.length > 0)
+			if (v.startsWith("{"))
 			{
-				sckey = vs[0];
-				String[] scparamarr = TextUtil.splitEscapePlainText((name + "," + v));
-				BPShortCut sc = BPShortCutManager.makeShortCut(scparamarr);
+				Map<String, Object> vmap = JSONUtil.decode(v);
+				sckey = (String) vmap.get("key");
+				BPShortCut sc = BPShortCutManager.makeShortCut(new ShortCuts.ShortCutData(name, vmap));
 				if (sc != null)
 				{
 					setting = sc.getSetting();
@@ -66,6 +69,39 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 					if (fac == null)
 					{
 						sckey = null;
+					}
+				}
+			}
+			else
+			{
+				String[] vs = v.split(",");
+				if (vs.length > 0)
+				{
+					sckey = vs[0];
+					String[] scparamarr = null;
+					if (v.startsWith("["))
+					{
+						List<String> nvobjs = JSONUtil.decode(v);
+						sckey = nvobjs.get(0);
+						nvobjs.add(0, name);
+						scparamarr = nvobjs.toArray(new String[nvobjs.size() + 1]);
+					}
+					else
+					{
+						scparamarr = TextUtil.splitEscapePlainText((name + "," + v));
+					}
+					BPShortCut sc = BPShortCutManager.makeShortCut(scparamarr);
+					if (sc != null)
+					{
+						setting = sc.getSetting();
+					}
+					else
+					{
+						BPShortCutFactory fac = BPShortCutManager.getFactory(sckey);
+						if (fac == null)
+						{
+							sckey = null;
+						}
 					}
 				}
 			}
@@ -90,16 +126,15 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 				BPDialogSetting dlg = new BPDialogSetting();
 				dlg.setSetting(setting);
 				dlg.setVisible(true);
-				setting = dlg.getSetting();
+				setting = dlg.getResult();
 				if (setting != null)
 				{
 					name = setting.get("name");
-					BPShortCut sc = BPShortCutManager.makeShortCut(new String[] { name, sckey });
+					BPShortCut sc = BPShortCutManager.makeShortCut(new ShortCuts.ShortCutData(name, ObjUtil.makeMap("key", sckey)));
 					sc.setSetting(setting);
-					String[] ps = sc.getParams();
+					Map<String, Object> ps = sc.getMappedDataWithKey();
 					kv.key = name;
-					kv.value = sckey + "," + TextUtil.join(ps, ",");
-
+					kv.value = JSONUtil.encode(ps);
 					m_tabkvs.getBPTableModel().fireTableDataChanged();
 				}
 			}
@@ -124,16 +159,16 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 			BPDialogSetting dlg = new BPDialogSetting();
 			dlg.setSetting(setting);
 			dlg.setVisible(true);
-			setting = dlg.getSetting();
+			setting = dlg.getResult();
 			if (setting != null)
 			{
 				String name = setting.get("name");
 				BPShortCut sc = BPShortCutManager.makeShortCut(new String[] { name, sckey });
 				sc.setSetting(setting);
-				String[] ps = sc.getParams();
+				Map<String, Object> ps = sc.getMappedDataWithKey();
 				KV kv = new KV();
 				kv.key = name;
-				kv.value = sckey + "," + TextUtil.join(ps, ",");
+				kv.value = JSONUtil.encode(ps);
 
 				m_tabkvs.getBPTableModel().getDatas().add(kv);
 				m_tabkvs.getBPTableModel().fireTableDataChanged();

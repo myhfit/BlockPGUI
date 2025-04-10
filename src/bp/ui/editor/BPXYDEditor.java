@@ -98,6 +98,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_txtfilter = new BPTextField();
 		JPanel toppnl = new JPanel();
 
+		m_toolbar.setBorder(new EmptyBorder(1, 1, 2, 1));
 		m_toolbar.setActions(m_acts.getActions());
 		m_txtfilter.setMonoFont();
 		m_txtfilter.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(150, 8)));

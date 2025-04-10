@@ -1,33 +1,42 @@
 package bp.ui.shortcut;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import bp.config.BPSetting;
 import bp.config.BPSettingBase;
 import bp.config.BPSettingItem;
-import bp.util.ProcessUtil;
+import bp.util.JSONUtil;
 import bp.util.SystemUtil;
+import bp.util.TextUtil;
 
 public class BPShortCutSimpleRun extends BPShortCutBase
 {
+	public final static String SCKEY_SIMPLERUN = "Run";
+
+	protected final static String SC_KEY_CMD = "cmd";
+	protected final static String SC_KEY_DIR = "dir";
+	protected final static String SC_KEY_ARGS = "args";
+
+	@SuppressWarnings("unchecked")
 	public boolean run()
 	{
-		String[] params = m_params;
-		String cmd = params[0];
-		String workdir = null;
+		String cmd = TextUtil.eds(getParam(SC_KEY_CMD));
+		String workdir = TextUtil.eds(getParam(SC_KEY_DIR));
 		String[] args = null;
-		if (params.length > 1)
+		Object argobj = getParam(SC_KEY_ARGS);
+		if (argobj != null)
 		{
-			workdir = params[1];
-			if (workdir != null && workdir.length() == 0)
-				workdir = null;
-		}
-		if (params.length > 2)
-		{
-			String argstr = params[2];
-			if (argstr != null && argstr.length() > 0)
+			if (argobj instanceof List)
 			{
-				if (argstr.startsWith("\"") && argstr.endsWith("\""))
-					argstr = argstr.substring(1, argstr.length() - 1);
-				args = ProcessUtil.fixCommandArgs(argstr);
+				List<String> arglist = (List<String>) argobj;
+				args = arglist.toArray(new String[arglist.size()]);
+			}
+			else
+			{
+				String argstr = (String) argobj;
+				args = argstr.split(" ");
 			}
 		}
 		SystemUtil.runSimpleProcess(cmd, workdir, args, true);
@@ -37,28 +46,55 @@ public class BPShortCutSimpleRun extends BPShortCutBase
 	public BPSetting getSetting()
 	{
 		BPSettingBase rc = (BPSettingBase) super.getSetting();
-		rc.addItem(BPSettingItem.create("cmd", "Command", BPSettingItem.ITEM_TYPE_TEXT, null));
-		rc.addItem(BPSettingItem.create("dir", "Work Dir", BPSettingItem.ITEM_TYPE_TEXT, null));
-		rc.addItem(BPSettingItem.create("args", "Arguments", BPSettingItem.ITEM_TYPE_TEXT, null));
+		rc.addItem(BPSettingItem.create(SC_KEY_CMD, "Command", BPSettingItem.ITEM_TYPE_TEXT, null));
+		rc.addItem(BPSettingItem.create(SC_KEY_DIR, "Work Dir", BPSettingItem.ITEM_TYPE_TEXT, null));
+		rc.addItem(BPSettingItem.create(SC_KEY_ARGS, "Arguments", BPSettingItem.ITEM_TYPE_TEXT, null));
 
-		rc.set("cmd", getParamValue(0));
-		rc.set("dir", getParamValue(1));
-		rc.set("args", getParamValue(2));
+		Map<String, Object> ps = new LinkedHashMap<String, Object>(m_params);
+		Object argobj = ps.get(SC_KEY_ARGS);
+		if (argobj != null)
+		{
+			if (argobj instanceof List)
+			{
+				ps.put(SC_KEY_ARGS, JSONUtil.encode(argobj));
+			}
+		}
+		rc.setAll(ps);
 		return rc;
 	}
 
 	public void setSetting(BPSetting setting)
 	{
 		super.setSetting(setting);
-		String cmd = setting.get("cmd");
-		if (cmd == null)
-			cmd = "";
-		String dir = setting.get("dir");
-		if (dir == null)
-			dir = "";
-		String args = setting.get("args");
-		if (args == null)
-			args = "";
-		m_params = new String[] { cmd, dir, args };
+		m_params = setParamsFromSetting(new LinkedHashMap<String, Object>(), setting, true, false, SC_KEY_CMD, SC_KEY_DIR);
+		Object argobj = setting.get(SC_KEY_ARGS);
+		if (argobj != null)
+		{
+			if (argobj instanceof String)
+			{
+				String argstr = TextUtil.eds((String) argobj);
+				if (argstr != null)
+				{
+					if (argstr.startsWith("["))
+						m_params.put(SC_KEY_ARGS, JSONUtil.decode(argstr));
+					else
+						m_params.put(SC_KEY_ARGS, argstr);
+				}
+			}
+			else
+			{
+				m_params.put(SC_KEY_ARGS, argobj);
+			}
+		}
+	}
+
+	public String getShortCutKey()
+	{
+		return SCKEY_SIMPLERUN;
+	}
+
+	protected String[] getParamKeys()
+	{
+		return new String[] { SC_KEY_CMD, SC_KEY_DIR, SC_KEY_ARGS };
 	}
 }

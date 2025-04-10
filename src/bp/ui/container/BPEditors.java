@@ -389,7 +389,7 @@ public class BPEditors extends BPTabbedContainerBase
 	protected void initTab(Tab tab)
 	{
 		tab.pan.setMenu(new Object[][] { new Object[] { "Close", "close" }, new Object[] { "Close All", "closeall" }, new Object[] { "Close Others", "closeother" }, new Object[] { "-", null, (Predicate<String>) this::canSplit },
-				new Object[] { "New Window", "split", (Predicate<String>) this::canSplit } }, m_mnucb);
+				new Object[] { "Split(New Window)", "split", (Predicate<String>) this::canSplit } }, m_mnucb);
 	}
 
 	protected boolean canSplit(String id)

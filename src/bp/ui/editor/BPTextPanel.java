@@ -77,8 +77,11 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 
 	protected void initListeners()
 	{
-		m_txt.addMouseListener(new UIUtil.BPMouseListenerForPopup(this::onContextMenu));
-		m_txt.addKeyListener(new UIUtil.BPKeyListener(null, this::onCommonKeyDown, null));
+		if (m_txt != null)
+		{
+			m_txt.addMouseListener(new UIUtil.BPMouseListenerForPopup(this::onContextMenu));
+			m_txt.addKeyListener(new UIUtil.BPKeyListener(null, this::onCommonKeyDown, null));
+		}
 	}
 
 	protected void initActions()
@@ -326,7 +329,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 				dlg.setVisible(true);
 				if (dlg.getActionResult() != BPDialogCommon.COMMAND_OK)
 					return;
-				setting = dlg.getSetting();
+				setting = dlg.getResult();
 			}
 		}
 		if (outtext)

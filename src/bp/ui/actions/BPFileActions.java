@@ -24,6 +24,8 @@ public class BPFileActions
 	public final static String ACTION_RENAME = "rename";
 	public final static String ACTION_PROPERTIES = "prop";
 	public final static String ACTION_OPENEXTERNAL_SYSTEM = "openextsys";
+	public final static String ACTION_EDITEXTERNAL_SYSTEM = "editextsys";
+	public final static String ACTION_PRINTEXTERNAL_SYSTEM = "printextsys";
 
 	public BPFileActions()
 	{
@@ -62,11 +64,21 @@ public class BPFileActions
 		BPAction rc = BPAction.build("Open External").getAction();
 		List<Action> actchd = new ArrayList<Action>();
 		{
-			BPAction actopensys = BPAction.build("System Default").callback(e ->
+			BPAction actopensys = BPAction.build("Open").callback(e ->
 			{
 				BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_OPENEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource())));
-			}).mnemonicKey(KeyEvent.VK_S).getAction();
+			}).mnemonicKey(KeyEvent.VK_O).getAction();
+			BPAction acteditsys = BPAction.build("Edit").callback(e ->
+			{
+				BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_EDITEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource())));
+			}).mnemonicKey(KeyEvent.VK_E).getAction();
+			BPAction actprintsys = BPAction.build("Print").callback(e ->
+			{
+				BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_PRINTEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource())));
+			}).mnemonicKey(KeyEvent.VK_P).getAction();
 			actchd.add(actopensys);
+			actchd.add(acteditsys);
+			actchd.add(actprintsys);
 		}
 		if (ress.length == 1)
 		{

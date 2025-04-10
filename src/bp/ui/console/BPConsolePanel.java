@@ -31,6 +31,7 @@ public class BPConsolePanel extends BPCodePanel
 		m_txt = cp;
 		m_txt.setOnPosChanged(this::onPosChanged);
 		m_scroll.setViewportView(cp);
+		initListeners();
 	}
 
 	public String getEditorName()

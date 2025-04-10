@@ -1,5 +1,6 @@
 package bp.ui.shortcut;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import bp.config.BPSetting;
@@ -12,6 +13,15 @@ public interface BPShortCutFactory
 
 	default BPShortCut makeShortCut(String name, String key, String[] params)
 	{
+		BPShortCut rc = createShortCut(key);
+		if (rc != null)
+			rc.setup(name, params);
+		return rc;
+	}
+
+	default BPShortCut makeShortCut(String name, Map<String, Object> params)
+	{
+		String key = (String) params.get("key");
 		BPShortCut rc = createShortCut(key);
 		if (rc != null)
 			rc.setup(name, params);

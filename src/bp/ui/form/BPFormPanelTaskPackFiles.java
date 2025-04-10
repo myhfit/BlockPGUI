@@ -87,15 +87,18 @@ public class BPFormPanelTaskPackFiles extends BPFormPanelTask
 		}
 		return rc;
 	}
-	
+
 	protected String onSelectDirList(String oldpath)
 	{
 		String rc = null;
 		List<BPResource> oldress = new ArrayList<BPResource>();
-		String[] ops = oldpath.split(";");
-		for (String op : ops)
+		if (oldpath.trim().length() > 0)
 		{
-			oldress.add(BPCore.getFileContext().getRes(op));
+			String[] ops = oldpath.split(";");
+			for (String op : ops)
+			{
+				oldress.add(BPCore.getFileContext().getRes(op));
+			}
 		}
 		BPDialogSelectResourceList dlg = new BPDialogSelectResourceList();
 		dlg.setResourceList(oldress);

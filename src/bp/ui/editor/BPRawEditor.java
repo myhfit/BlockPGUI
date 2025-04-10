@@ -9,6 +9,8 @@ import java.util.function.Consumer;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import bp.config.UIConfigs;
@@ -17,6 +19,7 @@ import bp.data.BPDataContainerRandomAccess;
 import bp.data.BPDataContainerRandomAccessBase.BPBlockCache;
 import bp.ui.BPViewer;
 import bp.ui.scomp.BPHexPane;
+import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPTextPane;
 import bp.util.Std;
 
@@ -45,22 +48,33 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 
 	public BPRawEditor()
 	{
-		setLayout(new BorderLayout());
 		m_txtp = new BPTextPane();
 		m_hexp = new BPHexPane();
 		m_scroll = new JScrollPane();
+		JPanel panright = new JPanel();
+		BPLabel lblrt = new BPLabel("PREVIEW");
+		lblrt.setMonoFont();
+		lblrt.setForeground(UIConfigs.COLOR_TEXTHALF());
+		lblrt.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 0)));
+		panright.setBackground(UIConfigs.COLOR_TEXTBG());
 		m_scroll.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
 		m_scroll.setViewportView(m_hexp);
 		m_txtp.setPreferredSize(new Dimension(300, 200));
+		m_txtp.setBorder(null);
 		m_txtp.setEditable(false);
 
 		int fontsize = UIConfigs.EDITORFONT_SIZE();
 		Font tfont = new Font(UIConfigs.MONO_FONT_NAME(), Font.PLAIN, fontsize);
 		m_hexp.setFont(tfont);
 		m_txtp.setFont(tfont);
+		lblrt.setFont(tfont);
 
+		setLayout(new BorderLayout());
+		panright.setLayout(new BorderLayout());
+		panright.add(lblrt, BorderLayout.NORTH);
+		panright.add(m_txtp, BorderLayout.CENTER);
 		add(m_scroll, BorderLayout.CENTER);
-		add(m_txtp, BorderLayout.EAST);
+		add(panright, BorderLayout.EAST);
 		m_readcb = this::onRead;
 		m_rawreadcb = this::onRawRead;
 		m_previewcb = this::onPreview;
@@ -79,13 +93,13 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public void bind(BPDataContainerRandomAccess con, boolean noread)
 	{
 		m_con = con;
-		if (!noread && m_con.canOpen())
+		if (!noread && con.canOpen())
 		{
-			m_con.open();
-			long len = m_con.length();
+			con.open();
+			long len = con.length();
 			m_cache = new BPBlockCache(4096, len, m_rawreadcb);
 			m_hexp.setup(m_readcb, len, m_previewcb);
-			m_con.close();
+			con.close();
 		}
 	}
 

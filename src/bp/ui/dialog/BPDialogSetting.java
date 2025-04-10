@@ -19,13 +19,14 @@ public class BPDialogSetting extends BPDialogCommon
 
 	protected BPSetting m_setting;
 	protected BPTableSetting m_tbsetting;
+	protected BPSetting m_result;
 
 	public boolean doCallCommonAction(int command)
 	{
 		if (m_tbsetting != null)
 			m_tbsetting.editingCanceled(null);
-		if (command == COMMAND_CANCEL)
-			m_setting = null;
+		if (command == COMMAND_OK)
+			m_result = m_setting;
 		return false;
 	}
 
@@ -65,5 +66,10 @@ public class BPDialogSetting extends BPDialogCommon
 	public BPSetting getSetting()
 	{
 		return m_setting;
+	}
+
+	public BPSetting getResult()
+	{
+		return m_result;
 	}
 }

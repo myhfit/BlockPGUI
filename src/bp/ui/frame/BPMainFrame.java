@@ -40,6 +40,7 @@ import bp.BPGUICore;
 import bp.config.BPConfig;
 import bp.config.BPConfigSimple;
 import bp.config.ShortCuts;
+import bp.config.ShortCuts.ShortCutData;
 import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
@@ -384,11 +385,12 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		JMenu mnushortcuts = m_mnushortcuts;
 		mnushortcuts.removeAll();
-		List<String[]> scs = ShortCuts.getShortCuts();
+		List<ShortCutData> scs = ShortCuts.getShortCuts();
 		Map<String, JMenu> mnumap = new HashMap<String, JMenu>();
-		for (String[] sc : scs)
+		for (ShortCutData sc : scs)
 		{
-			String scname = sc[0];
+			String scname = sc.name;
+			String mnuname = scname;
 			JMenu mnupar = mnushortcuts;
 			if (scname.indexOf(">") != -1)
 			{
@@ -410,14 +412,16 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 					}
 					mnupar = mnunode;
 				}
-				scname = strs[strs.length - 1];
+				mnuname = strs[strs.length - 1];
 			}
-			Action act = BPAction.build(scname).callback(e ->
+			Action act = BPAction.build(mnuname).callback(e ->
 			{
-				BPShortCut bsc = BPShortCutManager.makeShortCut(sc);
+				ShortCutData sc2 = ShortCuts.getShortCut(scname);
+				BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
 				if (bsc != null)
 					bsc.run();
 			}).getAction();
+			act.putValue("scname", scname);
 			mnupar.add(act);
 		}
 		mnushortcuts.addSeparator();
@@ -731,18 +735,36 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						break;
 					}
 					case BPPathTreeNodeActions.ACTION_OPENEXTERNAL_SYSTEM:
+					case BPPathTreeNodeActions.ACTION_EDITEXTERNAL_SYSTEM:
+					case BPPathTreeNodeActions.ACTION_PRINTEXTERNAL_SYSTEM:
 					{
 						BPResource res = event.getSelectedResource();
+						BPResourceFileSystemLocal fres = null;
 						if (res.isProjectResource())
 						{
 							if (res.isFileSystem() && res.isLocal())
 							{
-								openExternal((BPResourceFileSystemLocal) ((BPResourceProject) res).getDir());
+								fres = (BPResourceFileSystemLocal) ((BPResourceProject) res).getDir();
 							}
 						}
 						else if (res.isFileSystem() && res.isLocal())
 						{
-							openExternal(((BPResourceFileSystemLocal) res));
+							fres = (BPResourceFileSystemLocal) res;
+						}
+						if (fres != null)
+						{
+							switch (event.getActionName())
+							{
+								case BPPathTreeNodeActions.ACTION_OPENEXTERNAL_SYSTEM:
+									CommonUIOperations.openExternal(fres);
+									break;
+								case BPPathTreeNodeActions.ACTION_EDITEXTERNAL_SYSTEM:
+									CommonUIOperations.editExternal(fres);
+									break;
+								case BPPathTreeNodeActions.ACTION_PRINTEXTERNAL_SYSTEM:
+									CommonUIOperations.printExternal(fres);
+									break;
+							}
 						}
 						break;
 					}
@@ -990,13 +1012,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 				m_editors.open(res, format, fac, null, options);
 			}
 		}
-	}
-
-	public void openExternal(BPResourceFileSystemLocal f)
-	{
-		if (f == null)
-			return;
-		CommonUIOperations.openExternal(f);
 	}
 
 	public void openWithTool(BPResource[] ress)

@@ -40,7 +40,7 @@ public class BPGUILauncher
 			}
 			envs.put("java.home", System.getProperty("java.home"));
 			BPDialogGate frame = new BPDialogGate();
-			frame.setEnvs(envs);
+			frame.setupByEnvs(envs);
 			frame.setVisible(true);
 			envs = frame.getResult();
 			if (envs != null)

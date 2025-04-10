@@ -202,7 +202,8 @@ public class BPConsolePane extends BPCodePane
 	{
 		BPConsole console = m_console;
 		m_console = null;
-		console.stop();
+		if(console!=null)
+			console.stop();
 
 		super.clearResource();
 	}

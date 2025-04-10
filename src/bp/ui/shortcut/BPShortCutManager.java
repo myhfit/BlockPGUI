@@ -8,6 +8,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
 import bp.config.BPSetting;
+import bp.config.ShortCuts.ShortCutData;
 import bp.util.ClassUtil;
 
 public class BPShortCutManager
@@ -42,7 +43,7 @@ public class BPShortCutManager
 		return rc;
 	}
 
-	public final static boolean runShortCut(String[] sc)
+	public final static boolean runShortCut(ShortCutData sc)
 	{
 		BPShortCut bsc = makeShortCut(sc);
 		if (bsc != null)
@@ -55,17 +56,46 @@ public class BPShortCutManager
 	public final static BPShortCut makeShortCut(String[] sc)
 	{
 		String name = sc[0];
-		String fackey = sc[1];
-		BPShortCutFactory fac = S_FACS.get(fackey);
-		BPShortCut rc = null;
-		if (fac != null)
+		String[] vs = new String[sc.length - 1];
+		if (sc.length > 1)
 		{
-			String[] params = new String[sc.length - 2];
-			if (sc.length > 2)
+			System.arraycopy(sc, 1, vs, 0, sc.length - 1);
+		}
+		return makeShortCut(new ShortCutData(name, vs));
+	}
+
+	@SuppressWarnings("unchecked")
+	public final static BPShortCut makeShortCut(ShortCutData sc)
+	{
+		if (sc == null)
+			return null;
+		String name = sc.name;
+		Object v = sc.values;
+		BPShortCut rc = null;
+		if (v instanceof Map)
+		{
+			Map<String, Object> ps = (Map<String, Object>) v;
+			String fackey = (String) ps.get("key");
+			BPShortCutFactory fac = S_FACS.get(fackey);
+			if (fac != null)
 			{
-				System.arraycopy(sc, 2, params, 0, sc.length - 2);
+				rc = fac.makeShortCut(name, ps);
 			}
-			rc = fac.makeShortCut(name, fackey, params);
+		}
+		else
+		{
+			String[] vs = (String[]) v;
+			String fackey = vs[0];
+			BPShortCutFactory fac = S_FACS.get(fackey);
+			if (fac != null)
+			{
+				String[] params = new String[vs.length - 1];
+				if (vs.length > 1)
+				{
+					System.arraycopy(vs, 1, params, 0, vs.length - 1);
+				}
+				rc = fac.makeShortCut(name, fackey, params);
+			}
 		}
 		return rc;
 	}

@@ -6,7 +6,6 @@ import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.Window;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -248,13 +247,10 @@ public class CommonUIOperations
 				{
 					res = new BPResourceFileLocal("untitiled" + (ext == null ? "" : ext));
 					newResourceNewWindow(res, nformat, fac, null, options, params);
-					// m_editors.newEditorCustom(res, nformat, fac, null,
-					// options, params);
 				}
 				else
 				{
 					openResourceNewWindow(res, nformat, fac, null, options);
-					// m_editors.open(res, nformat, fac, null, options);
 				}
 			}
 		}
@@ -285,8 +281,6 @@ public class CommonUIOperations
 			file.setTempID(id);
 		}
 		BPComponent<?> comp = null;
-		// BPComponent<?> comp = m_compmap.get(id);
-		// if (comp == null)
 		{
 			String ext = file.getExt();
 			BPFormat format = _format == null ? BPFormatManager.getFormatByExt(ext) : _format;
@@ -294,37 +288,9 @@ public class CommonUIOperations
 			BPEditor<?> editor = fac.createEditor(format, file, options, params);
 			if (editor == null)
 				return;
-			// editor.setChannelID(m_channelid);
 			editor.setID(id);
-			// editor.setOnStateChanged(m_statecb);
-			// editor.setOnDynamicInfo(m_dynainfocb);
 			fac.initEditor(editor, format, file, options);
 			comp = editor;
-			// m_compmap.put(id, comp);
-			// if (comp instanceof BPViewer)
-			// {
-			// BPDataContainer con = ((BPViewer<?>) comp).getDataContainer();
-			// String title;
-			// if (con != null)
-			// {
-			// title = "*" + con.getTitle();
-			// }
-			// else
-			// {
-			// String editorname = editor.getEditorName();
-			// title = editorname == null ? "*" : editorname;
-			// }
-			// addTab(id, title, (Icon) null, editor.getComponent());
-			// }
-			// else
-			// {
-			// String editorname = editor.getEditorName();
-			// if (editorname == null)
-			// editorname = "New " + format.getName();
-			// addTab(id, editorname, (Icon) null, editor.getComponent());
-			// }
-
-			// switchTab(id);
 			editor.setNeedSave(true);
 			if (editor instanceof BPTextEditor)
 			{
@@ -332,7 +298,6 @@ public class CommonUIOperations
 				teditor.getTextPanel().resizeDoc();
 			}
 			showBPComponentInNewWindow(comp);
-			// editor.focusEditor();
 		}
 	}
 
@@ -351,50 +316,14 @@ public class CommonUIOperations
 			BPEditor<?> editor = fac.createEditor(format, res, null);
 			if (editor == null)
 				return;
-			// editor.setChannelID(m_channelid);
 			editor.setID(id);
-			// editor.setOnStateChanged(m_statecb);
-			// editor.setOnDynamicInfo(m_dynainfocb);
 			fac.initEditor(editor, format, res, config);
-			// if (res.isRoutable() && editor.isRoutable())
-			// {
-			// BPComponent<?> cur = getCurrent();
-			// if (routecontainerid != null && cur != null && cur.isRoutable()
-			// && routecontainerid.equals(((BPRoutableContainer<?>)
-			// cur).getID()))
-			// {
-			// BPRoutableContainer<?> par = (BPRoutableContainer<?>) cur;
-			// par.addRoute(id, res.getName(), editor);
-			// }
-			// else
-			// {
-			// BPRoutableContainerBase par = new BPRoutableContainerBase();
-			// par.addRoute(id, res.getName(), editor);
-			// String parid = BPCore.genID(BPCore.getFileContext());
-			// par.setID(parid);
-			// m_compmap.put(parid, par);
-			// addTab(parid, res.getName(), (Icon) null, par.getComponent());
-			// switchTab(parid);
-			// }
-			// }
-			// else
-			// {
-			// comp = editor;
-			// m_compmap.put(id, comp);
-			// addTab(id, res.getName(), (Icon) null, editor.getComponent());
-			// switchTab(id);
-			// }
 			if (editor instanceof BPTextEditor)
 			{
 				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
 				teditor.getTextPanel().resizeDoc();
 			}
 			showBPComponentInNewWindow(editor);
-			// if (editor.needActiveOnStart())
-			// {
-			// editor.activeEditor();
-			// }
-			// editor.focusEditor();
 
 		}
 	}
@@ -588,28 +517,22 @@ public class CommonUIOperations
 
 	public final static void openExternal(BPResourceFileSystemLocal res)
 	{
-		Desktop d = Desktop.getDesktop();
-		try
-		{
-			d.open(res.getFileObject());
-		}
-		catch (IOException e)
-		{
-			UIStd.err(e);
-		}
+		UIStd.wrapSegE(() -> Desktop.getDesktop().open(res.getFileObject()));
+	}
+
+	public final static void editExternal(BPResourceFileSystemLocal res)
+	{
+		UIStd.wrapSegE(() -> Desktop.getDesktop().edit(res.getFileObject()));
+	}
+
+	public final static void printExternal(BPResourceFileSystemLocal res)
+	{
+		UIStd.wrapSegE(() -> Desktop.getDesktop().print(res.getFileObject()));
 	}
 
 	public final static void openExternal(URI uri)
 	{
-		Desktop d = Desktop.getDesktop();
-		try
-		{
-			d.browse(uri);
-		}
-		catch (IOException e)
-		{
-			UIStd.err(e);
-		}
+		UIStd.wrapSegE(() -> Desktop.getDesktop().browse(uri));
 	}
 
 	public final static void openWithTool(BPResource[] ress)

@@ -110,12 +110,9 @@ public class BPDialogGate extends BPDialog
 
 	protected void initDatas()
 	{
+		if (m_envs == null)
+			return;
 		Map<String, String> envs = m_envs;
-		if (envs == null)
-		{
-			envs = new HashMap<String, String>();
-			m_envs = envs;
-		}
 		m_txtjavahome.setText(ObjUtil.toString(envs.get("java.home"), ""));
 		String rwstr = envs.get("recentworkspaces");
 		if (rwstr != null && rwstr.length() > 0)
@@ -171,8 +168,10 @@ public class BPDialogGate extends BPDialog
 		m_chks = chks.toArray(new BPCheckBox[chks.size()]);
 	}
 
-	public void setEnvs(Map<String, String> envs)
+	public void setupByEnvs(Map<String, String> envs)
 	{
+		if (envs == null)
+			envs = new HashMap<String, String>();
 		m_envs = envs;
 		initDatas();
 	}
@@ -200,6 +199,7 @@ public class BPDialogGate extends BPDialog
 
 	protected void onExtension(ActionEvent e)
 	{
+		m_scrollright.setPreferredSize(new Dimension(m_panright.getWidth(), 400));
 		m_scrollright.setVisible(!m_scrollright.isVisible());
 		pack();
 	}

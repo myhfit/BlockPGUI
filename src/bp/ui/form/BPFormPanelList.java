@@ -11,9 +11,7 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
-import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.res.icon.BPIconResV;
@@ -74,7 +72,7 @@ public class BPFormPanelList extends BPFormPanel
 		BPAction actadd = BPAction.build("add").callback(this::onAdd).vIcon(BPIconResV.ADD()).getAction();
 		BPAction actdel = BPAction.build("del").callback(this::onDel).vIcon(BPIconResV.DEL()).getAction();
 		tb.setActions(new Action[] { BPAction.separator(), actadd, actdel });
-		tb.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		tb.setBorderVertical(0);
 		m_tb = tb;
 
 		m_list.setMonoFont();

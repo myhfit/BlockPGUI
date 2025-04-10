@@ -16,16 +16,17 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.BPConfig;
-import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
 import bp.data.BPDataContainerArchive;
 import bp.data.BPDataContainerBase;
 import bp.data.BPDataContainerFileSystem;
+import bp.data.BPXData;
+import bp.data.BPXData.BPXDataArray;
+import bp.data.BPXYData.BPXYDataList;
 import bp.event.BPEventCoreUI;
 import bp.format.BPFormat;
 import bp.format.BPFormatDir;
@@ -40,13 +41,14 @@ import bp.ui.actions.BPFileActions;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.event.BPEventUIResourceOperation;
-import bp.ui.form.BPFormPanelMap;
+import bp.ui.form.BPFormPanelXYData;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTable;
 import bp.ui.table.BPTableFuncsResourceFiles;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.FileUtil;
+import bp.util.ObjUtil;
 import bp.util.SystemUtil;
 import bp.util.SystemUtil.SystemOS;
 
@@ -82,7 +84,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		setLayout(new BorderLayout());
 		m_toolbar = new BPToolBarSQ(true);
-		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		m_toolbar.setBorderVertical(0);
 		m_tablefuncs = new BPTableFuncsResourceFiles();
 		m_table = new BPTable<BPResource>(m_tablefuncs);
 		m_table.addMouseListener(new UIUtil.BPMouseListener(this::onTableClick, null, null, null, null));
@@ -135,6 +137,13 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 	}
 
+	protected static class FileStatItem
+	{
+		public long count;
+		public long size;
+		public String label;
+	}
+
 	protected void stat()
 	{
 		List<String> cats = Arrays.asList("Filename Extension");
@@ -147,45 +156,41 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				if (res != null && res.isFileSystem())
 				{
 					BPResourceFileSystem fres = (BPResourceFileSystem) res;
-					Map<String, Long> cmap = null;
+					List<FileStatItem> stats = new ArrayList<FileStatItem>();
 					boolean extci = SystemUtil.getOS() == SystemOS.Windows;
 					if (fres.isDirectory() && fres.isDirectory())
 					{
-						Map<String, Long> countmap = new LinkedHashMap<String, Long>();
+						Map<String, FileStatItem> countmap = new LinkedHashMap<String, FileStatItem>();
 						File f = new File(fres.getFileFullName());
 						FileUtil.forEachFile(f, true, (d, sf) ->
 						{
 							String ext = FileUtil.getExt(sf.getName());
 							if (extci)
 								ext = ext.toLowerCase();
-							long oldc = 0;
-							long olds = 0;
+							FileStatItem item = countmap.get(ext);
 							long s = sf.length();
-							if (countmap.containsKey(ext))
+							if (item == null)
 							{
-								oldc = countmap.get(ext);
-								olds = countmap.get("[Size]" + ext);
+								item = new FileStatItem();
+								item.label = ext;
+								countmap.put(ext, item);
+								stats.add(item);
 							}
-							oldc++;
-							olds += s;
-							countmap.put(ext, oldc);
-							countmap.put("[Size]" + ext, olds);
+							item.count++;
+							item.size += s;
 							return true;
 						});
-						cmap = countmap;
 
 					}
 					else if (m_con instanceof BPDataContainerFileSystem)
 					{
-						Map<String, Long> countmap = new LinkedHashMap<String, Long>();
+						Map<String, FileStatItem> countmap = new LinkedHashMap<String, FileStatItem>();
 						List<BPResource> chds = m_table.getBPTableModel().getDatas();
 						for (BPResource chd : chds)
 						{
 							String ext = FileUtil.getExt(chd.getName());
 							if (extci)
 								ext = ext.toLowerCase();
-							long oldc = 0;
-							long olds = 0;
 							long s = 0;
 							BPResourceHolder hres = (BPResourceHolder) chd;
 							byte[] bs = hres.getData();
@@ -193,23 +198,31 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 								s = bs.length;
 							else
 								continue;
-							if (countmap.containsKey(ext))
+
+							FileStatItem item = countmap.get(ext);
+							if (item == null)
 							{
-								oldc = countmap.get(ext);
-								olds = countmap.get("[Size]" + ext);
+								item = new FileStatItem();
+								item.label = ext;
+								countmap.put(ext, item);
+								stats.add(item);
 							}
-							oldc++;
-							olds += s;
-							countmap.put(ext, oldc);
-							countmap.put("[Size]" + ext, olds);
+							item.count++;
+							item.size += s;
 						}
-						cmap = countmap;
 					}
-					if (cmap != null)
+					if (stats != null)
 					{
-						BPFormPanelMap p = new BPFormPanelMap();
-						p.showData(cmap, false);
-						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, BPGUICore.S_BP_TITLE +" - Statistics", this.getFocusCycleRootAncestor());
+						BPFormPanelXYData p = new BPFormPanelXYData();
+						List<BPXData> newdatalist = new ArrayList<BPXData>();
+						for (FileStatItem item : stats)
+						{
+							BPXDataArray itemline = new BPXDataArray(new Object[] { item.label, item.count, item.size });
+							newdatalist.add(itemline);
+						}
+						BPXYDataList newdata = new BPXYDataList(new Class<?>[] { String.class, Long.class, Long.class }, new String[] { "Label", "Count", "Size" }, null, newdatalist, true);
+						p.showData(ObjUtil.makeMap("_xydata", newdata), false);
+						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, BPGUICore.S_BP_TITLE + " - Statistics", this.getFocusCycleRootAncestor());
 					}
 				}
 				break;

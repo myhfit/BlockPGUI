@@ -29,6 +29,8 @@ public class BPPathTreeNodeActions
 	public final static String ACTION_RENAME = "rename";
 	public final static String ACTION_PROPERTIES = "prop";
 	public final static String ACTION_OPENEXTERNAL_SYSTEM = "openextsys";
+	public final static String ACTION_EDITEXTERNAL_SYSTEM = "editextsys";
+	public final static String ACTION_PRINTEXTERNAL_SYSTEM = "printextsys";
 	public final static String ACTION_OPENWITHTOOL = "openwithtool";
 
 	public BPPathTreeNodeActions()
@@ -108,8 +110,10 @@ public class BPPathTreeNodeActions
 	public BPAction getOpenFileExternalAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
 		BPAction rc = BPAction.build("Open External").getAction();
-		BPAction actopensys = BPAction.build("System Default").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_S).getAction();
-		Action[] actchd = new Action[] { actopensys };
+		BPAction actopensys = BPAction.build("Open").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_O).getAction();
+		BPAction acteditsys = BPAction.build("Edit").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_EDITEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_E).getAction();
+		BPAction actprintsys = BPAction.build("Print").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_PRINTEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_P).getAction();
+		Action[] actchd = new Action[] { actopensys, acteditsys, actprintsys };
 		rc.putValue(BPAction.SUB_ACTIONS, actchd);
 		return rc;
 	}

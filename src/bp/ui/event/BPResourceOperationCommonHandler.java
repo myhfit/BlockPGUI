@@ -16,6 +16,15 @@ public class BPResourceOperationCommonHandler
 			{
 				switch (event.getActionName())
 				{
+					case BPFileActions.ACTION_OPEN:
+					{
+						BPResource[] ress = event.getSelectedResources();
+						for (BPResource res : ress)
+						{
+							CommonUIOperations.openResourceNewWindow(res, null, null, null, null);
+						}
+						break;
+					}
 					case BPFileActions.ACTION_PROPERTIES:
 					{
 						BPResource[] ress = event.getSelectedResources();
@@ -38,20 +47,38 @@ public class BPResourceOperationCommonHandler
 						break;
 					}
 					case BPFileActions.ACTION_OPENEXTERNAL_SYSTEM:
+					case BPFileActions.ACTION_EDITEXTERNAL_SYSTEM:
+					case BPFileActions.ACTION_PRINTEXTERNAL_SYSTEM:
 					{
 						BPResource[] ress = event.getSelectedResources();
 						for (BPResource res : ress)
 						{
+							BPResourceFileSystemLocal fres = null;
 							if (res.isProjectResource())
 							{
 								if (res.isFileSystem() && res.isLocal())
 								{
-									CommonUIOperations.openExternal((BPResourceFileSystemLocal) ((BPResourceProject) res).getDir());
+									fres = (BPResourceFileSystemLocal) ((BPResourceProject) res).getDir();
 								}
 							}
 							else if (res.isFileSystem() && res.isLocal())
 							{
-								CommonUIOperations.openExternal((BPResourceFileSystemLocal) res);
+								fres = (BPResourceFileSystemLocal) res;
+							}
+							if (fres != null)
+							{
+								switch (event.getActionName())
+								{
+									case BPFileActions.ACTION_OPENEXTERNAL_SYSTEM:
+										CommonUIOperations.openExternal(fres);
+										break;
+									case BPFileActions.ACTION_EDITEXTERNAL_SYSTEM:
+										CommonUIOperations.editExternal(fres);
+										break;
+									case BPFileActions.ACTION_PRINTEXTERNAL_SYSTEM:
+										CommonUIOperations.printExternal(fres);
+										break;
+								}
 							}
 						}
 						break;

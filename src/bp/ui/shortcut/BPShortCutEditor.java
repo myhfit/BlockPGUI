@@ -1,6 +1,7 @@
 package bp.ui.shortcut;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import bp.BPGUICore;
@@ -11,31 +12,28 @@ import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
+import bp.util.TextUtil;
 
 public class BPShortCutEditor extends BPShortCutBase
 {
+	public final static String SCKEY_EDITOR = "Editor";
+
+	protected final static String SC_KEY_EDITORNAME = "editorname";
+	protected final static String SC_KEY_FILENAME = "filename";
+	protected final static String SC_KEY_FORMAT = "format";
+
 	public boolean run()
 	{
-		String[] params = m_params;
-		String editorname = params[0];
-		String filename = null;
-		String format = null;
-		if (params.length > 1)
+		String editorname = TextUtil.eds(getParam(SC_KEY_EDITORNAME));
+		String filename = TextUtil.eds(getParam(SC_KEY_FILENAME));
+		String format = TextUtil.eds(getParam(SC_KEY_FORMAT));
+
+		if (editorname != null)
 		{
-			filename = params[1];
-			if (filename != null && filename.length() == 0)
-				filename = null;
+			BPGUICore.runOnMainFrame(mf -> mf.openEditorByFileSystem(filename, format, editorname, null));
+			return true;
 		}
-		if (params.length > 2)
-		{
-			format = params[2];
-			if (format != null && format.length() == 0)
-				format = null;
-		}
-		String pfilename = filename;
-		String pformat = format;
-		BPGUICore.runOnMainFrame(mf -> mf.openEditorByFileSystem(pfilename, pformat, editorname, null));
-		return true;
+		return false;
 	}
 
 	public BPSetting getSetting()
@@ -45,36 +43,35 @@ public class BPShortCutEditor extends BPShortCutBase
 		List<String> keys = new ArrayList<String>();
 		for (BPEditorFactory fac : facs)
 		{
-			String facname=fac.getName();
-			if(!keys.contains(facname))
+			String facname = fac.getName();
+			if (!keys.contains(facname))
 				keys.add(facname);
 		}
 		List<BPFormat> formats = BPFormatManager.getFormats();
 		List<String> formatstrs = new ArrayList<String>();
 		for (BPFormat format : formats)
 			formatstrs.add(format.getName());
-		rc.addItem(BPSettingItem.create("editorname", "Editor Name", BPSettingItem.ITEM_TYPE_SELECT, keys.toArray(new String[keys.size()])).setRequired(true));
-		rc.addItem(BPSettingItem.create("filename", "File", BPSettingItem.ITEM_TYPE_TEXT, null));
-		rc.addItem(BPSettingItem.create("format", "Format", BPSettingItem.ITEM_TYPE_SELECT, formatstrs.toArray(new String[formatstrs.size()])));
+		rc.addItem(BPSettingItem.create(SC_KEY_EDITORNAME, "Editor Name", BPSettingItem.ITEM_TYPE_SELECT, keys.toArray(new String[keys.size()])).setRequired(true));
+		rc.addItem(BPSettingItem.create(SC_KEY_FILENAME, "File", BPSettingItem.ITEM_TYPE_TEXT, null));
+		rc.addItem(BPSettingItem.create(SC_KEY_FORMAT, "Format", BPSettingItem.ITEM_TYPE_SELECT, formatstrs.toArray(new String[formatstrs.size()])));
 
-		rc.set("editorname", getParamValue(0));
-		rc.set("filename", getParamValue(1));
-		rc.set("format", getParamValue(2));
+		rc.setAll(m_params);
 		return rc;
 	}
 
 	public void setSetting(BPSetting setting)
 	{
 		super.setSetting(setting);
-		String editorname = setting.get("editorname");
-		if (editorname == null)
-			editorname = "";
-		String filename = setting.get("filename");
-		if (filename == null)
-			filename = "";
-		String format = setting.get("format");
-		if (format == null)
-			format = "";
-		m_params = new String[] { editorname, filename, format };
+		m_params = setParamsFromSetting(new LinkedHashMap<String, Object>(), setting, true, false, SC_KEY_EDITORNAME, SC_KEY_FILENAME, SC_KEY_FORMAT);
+	}
+
+	public String getShortCutKey()
+	{
+		return SCKEY_EDITOR;
+	}
+
+	protected String[] getParamKeys()
+	{
+		return new String[] { SC_KEY_EDITORNAME, SC_KEY_FILENAME, SC_KEY_FORMAT };
 	}
 }

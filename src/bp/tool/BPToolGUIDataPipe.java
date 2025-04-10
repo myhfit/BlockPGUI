@@ -94,7 +94,8 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			m_scrollsrc.setBorder(new EmptyBorder(0, 0, 0, 0));
 			m_scrollpipes.setBorder(new EmptyBorder(0, 0, 0, 0));
 			sp.setBorder(new EmptyBorder(0, 0, 0, 0));
-			toolbar.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()));
+			toolbar.setBorderHorizontal(0);
+//			toolbar.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()));
 			psrc.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_STRONGBORDER()));
 			m_lbltype.setMinimumSize(new Dimension(0, UIUtil.scale(UIConfigs.BAR_HEIGHT_VICON())));
 			m_lbltype.setPreferredSize(new Dimension(0, UIUtil.scale(UIConfigs.BAR_HEIGHT_VICON())));
@@ -364,7 +365,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 				BPDialogSetting dlg = new BPDialogSetting();
 				dlg.setSetting(setting);
 				dlg.setVisible(true);
-				setting = dlg.getSetting();
+				setting = dlg.getResult();
 				if (setting != null)
 					c.setSetting(setting);
 			}

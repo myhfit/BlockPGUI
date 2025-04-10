@@ -16,12 +16,10 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
 
 import bp.BPGUICore;
 import bp.config.BPSetting;
-import bp.config.UIConfigs;
 import bp.data.BPDataConsumer;
 import bp.data.BPDataContainer;
 import bp.data.BPDataContainerBase;
@@ -122,7 +120,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_sp.setWeakDividerBorder();
 
 		m_toolbar.setActions(new Action[] { BPAction.separator(), m_actaddtf, m_actaddep, m_actaddlink, m_actdel, BPAction.separator(), m_actconfig, m_actrun, m_actlayout });
-		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		m_toolbar.setBorderVertical(0);
 
 		setLayout(new BorderLayout());
 		m_sp.add(m_scroll);
@@ -283,7 +281,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			BPDialogSetting dlg = new BPDialogSetting();
 			dlg.setSetting(setting);
 			dlg.setVisible(true);
-			setting = dlg.getSetting();
+			setting = dlg.getResult();
 			if (setting != null)
 				c.setSetting(setting);
 			m_lstcons.updateUI();

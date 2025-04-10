@@ -6,13 +6,14 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import javax.swing.Action;
+import javax.swing.filechooser.FileSystemView;
 
 import bp.BPGUICore;
 import bp.context.BPFileContext;
 import bp.res.BPResource;
-import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceDirLocal;
 import bp.res.BPResourceFileLocal;
+import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPPathTreeNodeActions;
@@ -71,7 +72,7 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 	public List<?> getRoots()
 	{
 		List<BPResource> rc = new ArrayList<BPResource>();
-		File[] rootfs = File.listRoots();
+		File[] rootfs = FileSystemView.getFileSystemView().getRoots();
 		for (File rootf : rootfs)
 		{
 			BPResourceFileSystemLocal f = null;
@@ -118,7 +119,20 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 		{
 		}
 		if (rc != null)
+		{
+			FileSystemView fsv = FileSystemView.getFileSystemView();
+			for (BPResource f : rc)
+			{
+				if (!f.isLeaf() && f instanceof BPResourceDirLocal)
+				{
+					BPResourceDirLocal dir = ((BPResourceDirLocal) f);
+					File fobj = dir.getFileObject();
+					if (fobj.getClass().getSimpleName().contains("ShellFolder"))
+						dir.setDisplayName(fsv.getSystemDisplayName(fobj));
+				}
+			}
 			sort(rc);
+		}
 		return rc;
 	}
 

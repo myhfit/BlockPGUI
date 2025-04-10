@@ -14,9 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
-import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
 import bp.data.BPDataContainerBase;
 import bp.data.BPDiagram;
@@ -79,7 +77,7 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 		m_scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 
 		m_toolbar.setActions(new Action[] { BPAction.separator(), m_actcreate, m_actdelete, BPAction.separator(), m_actrectsel, BPAction.separator(), m_actlayout });
-		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		m_toolbar.setBorderVertical(0);
 
 		setLayout(new BorderLayout());
 		m_scroll.setViewportView(m_dcomp);

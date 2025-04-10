@@ -12,6 +12,7 @@ import bp.config.BPConfigAdv.BPConfigAdvBase;
 import bp.res.BPResourceIO;
 import bp.ui.shortcut.BPShortCutManager;
 import bp.util.IOUtil;
+import bp.util.JSONUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
 
@@ -22,7 +23,7 @@ public class ShortCuts extends BPConfigAdvBase
 
 	private final static String CFG_FILENAME = ".bpscs";
 
-	protected static List<String[]> S_SCS = new ArrayList<String[]>();
+	protected static List<ShortCutData> S_SCS = new ArrayList<ShortCutData>();
 
 	public boolean canUserConfig()
 	{
@@ -74,7 +75,7 @@ public class ShortCuts extends BPConfigAdvBase
 
 	protected void setPMap(Map<String, ?> pmap)
 	{
-		List<String[]> scs = new ArrayList<String[]>();
+		List<ShortCutData> scs = new ArrayList<ShortCutData>();
 		for (String key : pmap.keySet())
 		{
 			String v = (String) pmap.get(key);
@@ -83,10 +84,33 @@ public class ShortCuts extends BPConfigAdvBase
 				v = v.trim();
 				if (v.length() > 0)
 				{
-					String[] vs = TextUtil.splitEscapePlainText(v);
-					String[] sc = new String[vs.length + 1];
-					sc[0] = key;
-					System.arraycopy(vs, 0, sc, 1, vs.length);
+					Object vs = null;
+					if (v.startsWith("["))
+					{
+						List<String> strs = JSONUtil.decode(v);
+						vs = strs.toArray(new String[strs.size()]);
+					}
+					else if (v.startsWith("{"))
+					{
+						Map<String, Object> newvs = new LinkedHashMap<String, Object>();
+						Map<String, Object> newps = JSONUtil.decode(v);
+						newvs.put("key", newps.get("key"));
+						for (String pkey : newps.keySet())
+						{
+							if (!("key".equals(pkey)))
+							{
+								newvs.put(pkey, newps.get(pkey));
+							}
+						}
+						vs = newvs;
+					}
+					else
+					{
+						vs = TextUtil.splitEscapePlainText(v);
+					}
+					ShortCutData sc = new ShortCutData();
+					sc.name = key;
+					sc.values = vs;
 					scs.add(sc);
 				}
 			}
@@ -108,18 +132,9 @@ public class ShortCuts extends BPConfigAdvBase
 			cfgres = BPCore.getWorkspaceContext().getConfigRes(CFG_FILENAME, false);
 		}
 		Map<String, String> tm = new LinkedHashMap<String, String>();
-		List<String[]> scs = new ArrayList<String[]>(S_SCS);
-		for (String[] sc : scs)
-		{
-			StringBuilder sb = new StringBuilder();
-			for (int i = 1; i < sc.length; i++)
-			{
-				if (i > 1)
-					sb.append(",");
-				sb.append(sc[i]);
-			}
-			tm.put(sc[0], sb.toString());
-		}
+		List<ShortCutData> scs = new ArrayList<ShortCutData>(S_SCS);
+		for (ShortCutData sc : scs)
+			tm.put(sc.name, JSONUtil.encode(sc.values));
 		byte[] bs = TextUtil.fromString(TextUtil.fromPlainMap(ObjUtil.toPlainMap(tm, true), null), "utf-8");
 		if (bs != null)
 		{
@@ -139,19 +154,36 @@ public class ShortCuts extends BPConfigAdvBase
 		return new LinkedHashMap<String, Object>(m_map);
 	}
 
-	public static List<String[]> getShortCuts()
+	public static List<ShortCutData> getShortCuts()
 	{
-		return new ArrayList<String[]>(S_SCS);
+		return new ArrayList<ShortCutData>(S_SCS);
 	}
 
-	public static String[] getShortCut(String name)
+	public static ShortCutData getShortCut(String name)
 	{
-		List<String[]> scs = new ArrayList<String[]>(S_SCS);
-		for (String[] sc : scs)
+		List<ShortCutData> scs = new ArrayList<ShortCutData>(S_SCS);
+		for (ShortCutData sc : scs)
 		{
-			if (name.equals(sc[0]))
+			if (name.equals(sc.name))
 				return sc;
 		}
 		return null;
+	}
+
+	public static class ShortCutData
+	{
+		public String name;
+		public Object values;
+
+		public ShortCutData()
+		{
+
+		}
+
+		public ShortCutData(String name, Object values)
+		{
+			this.name = name;
+			this.values = values;
+		}
 	}
 }

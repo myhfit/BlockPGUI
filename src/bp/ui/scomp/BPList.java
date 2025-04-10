@@ -12,6 +12,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 
 import bp.config.UIConfigs;
@@ -91,6 +92,7 @@ public class BPList<T> extends JList<T>
 		int delta = isforward ? 1 : -1;
 		int i = si + delta;
 		int c = getModel().getSize();
+		Function<Object, ?> br = getRendererTransFunction();
 		if (isforward)
 		{
 			if (i >= c)
@@ -127,12 +129,15 @@ public class BPList<T> extends JList<T>
 				if (i < 0)
 					i = 0;
 			}
-			String t = ObjUtil.toString(model.getElementAt(i));
-			// int c2 = model.getColumnCount();
-			// int r = convertRowIndexToModel(i);
-			// for (int j = 0; j < c2; j++)
-			// {
-			// String t = ObjUtil.toString(model.getValueAt(r, j));
+			
+			String t = null;
+			{
+				Object ele = model.getElementAt(i);
+				if (br != null)
+					ele = br.apply(ele);
+				t = ObjUtil.toString(ele);
+			}
+			
 			if (TextUtil.containsText(t, target, wholeword, !casesensitive))
 			{
 				ListSelectionModel selmodel = getSelectionModel();
@@ -141,10 +146,20 @@ public class BPList<T> extends JList<T>
 				scrollTo(i);
 				return true;
 			}
-			// }
 			techc++;
 		}
 		return false;
+	}
+
+	protected Function<Object, ?> getRendererTransFunction()
+	{
+		ListCellRenderer<? super T> r = getCellRenderer();
+		if (r != null && r instanceof BPListRenderer)
+		{
+			BPListRenderer br = (BPListRenderer) r;
+			return br.getTransFunction();
+		}
+		return null;
 	}
 
 	public void scrollTo(int row)
@@ -208,6 +223,11 @@ public class BPList<T> extends JList<T>
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			return super.getListCellRendererComponent(list, m_transfunc == null ? value : m_transfunc.apply(value), index, isSelected, cellHasFocus);
+		}
+
+		public Function<Object, ?> getTransFunction()
+		{
+			return m_transfunc;
 		}
 	}
 }

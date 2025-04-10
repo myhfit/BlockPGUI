@@ -47,7 +47,7 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 	{
 		m_barheight = isvertical ? UIConfigs.BAR_HEIGHT_VICON() : UIConfigs.BAR_HEIGHT_VERTICAL();
 		m_btnsetsize = true;
-		m_btnsetsizedelta = 0;
+		m_btnsetsizedelta = isvertical ? -2 : -2;
 		setDirection(isvertical);
 	}
 
@@ -96,6 +96,26 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 	public int getBarHeight()
 	{
 		return m_barheight;
+	}
+
+	public void setBorderVertical(int top, int left, int bottom, int right)
+	{
+		setBorder(new CompoundBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(top, left, bottom, right)));
+	}
+
+	public void setBorderVertical(int top)
+	{
+		setBorderVertical(top, 1, 0, 1);
+	}
+
+	public void setBorderHorizontal(int top, int left, int bottom, int right)
+	{
+		setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(top, left, bottom, right)));
+	}
+
+	public void setBorderHorizontal(int left)
+	{
+		setBorderHorizontal(1, left, 1, 0);
 	}
 
 	public JPanel getComponent()

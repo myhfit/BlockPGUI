@@ -136,7 +136,6 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		fl.setAlignment(FlowLayout.CENTER);
 		fl.setVgap(0);
 		toollst.setBorder(new MatteBorder(1, 0, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
-		toollst.setBarHeight(18);
 		toollst.setLayout(fl);
 		toollst.setActions(new Action[] { actdelete });
 		JScrollPane scrollleft = new JScrollPane();

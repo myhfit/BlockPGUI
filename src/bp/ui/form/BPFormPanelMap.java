@@ -12,10 +12,8 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 import javax.swing.table.TableCellEditor;
 
-import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.res.icon.BPIconResV;
@@ -107,7 +105,7 @@ public class BPFormPanelMap extends BPFormPanel
 		JPanel pnl = new JPanel();
 		BPToolBarSQ tb = new BPToolBarSQ(true);
 		tb.setActions(makeToolBarActions().toArray(new Action[0]));
-		tb.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		tb.setBorderVertical(0);
 		m_tb = tb;
 
 		m_tabkvs.setMonoFont();

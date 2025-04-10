@@ -6,10 +6,10 @@ public class BPShortCutFactoryCommon implements BPShortCutFactory
 {
 	public void register(BiConsumer<String, BPShortCutFactory> regfunc)
 	{
-		regfunc.accept("Editor", this);
-		regfunc.accept("Editor(window)", this);
-		regfunc.accept("Console", this);
-		regfunc.accept("Run", this);
+		regfunc.accept(BPShortCutEditor.SCKEY_EDITOR, this);
+		regfunc.accept(BPShortCutEditorNewWindow.SCKEY_EDITORNW, this);
+		regfunc.accept(BPShortCutConsole.SCKEY_CONSOLE, this);
+		regfunc.accept(BPShortCutSimpleRun.SCKEY_SIMPLERUN, this);
 	}
 
 	public BPShortCut createShortCut(String key)
@@ -17,22 +17,22 @@ public class BPShortCutFactoryCommon implements BPShortCutFactory
 		BPShortCut rc = null;
 		switch (key)
 		{
-			case "Editor":
+			case BPShortCutEditor.SCKEY_EDITOR:
 			{
 				rc = new BPShortCutEditor();
 				break;
 			}
-			case "Editor(window)":
+			case BPShortCutEditorNewWindow.SCKEY_EDITORNW:
 			{
 				rc = new BPShortCutEditorNewWindow();
 				break;
 			}
-			case "Console":
+			case BPShortCutConsole.SCKEY_CONSOLE:
 			{
 				rc = new BPShortCutConsole();
 				break;
 			}
-			case "Run":
+			case BPShortCutSimpleRun.SCKEY_SIMPLERUN:
 			{
 				rc = new BPShortCutSimpleRun();
 				break;

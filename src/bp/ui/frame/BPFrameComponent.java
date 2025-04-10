@@ -63,6 +63,7 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 	protected JPanel m_mnuactbar;
 
 	protected BPMenu m_mnuedit;
+	protected BPAction m_actsave;
 
 	public BPFrameComponent()
 	{
@@ -88,7 +89,7 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 		m_mnuactbar = new JPanel();
 
 		mnufile.setMnemonic(KeyEvent.VK_F);
-		BPAction actsave = BPAction.build("Save").callback(e -> save()).mnemonicKey(KeyEvent.VK_S).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)).getAction();
+		m_actsave = BPAction.build("Save").callback(e -> save()).mnemonicKey(KeyEvent.VK_S).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)).getAction();
 		BPAction actclose = BPAction.build("Close").callback(e -> dispose()).mnemonicKey(KeyEvent.VK_X).getAction();
 
 		FlowLayout fl = new FlowLayout(FlowLayout.RIGHT);
@@ -99,7 +100,7 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 		m_mnuactbar.setOpaque(false);
 		m_mnuactbar.setLayout(fl);
 
-		mnufile.add(actsave);
+		mnufile.add(m_actsave);
 		mnufile.addSeparator();
 		mnufile.add(actclose);
 
@@ -149,14 +150,43 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 			editor.setChannelID(m_channelid);
 
 			m_mnubar.setVisible(true);
+			m_actsave.setEnabled(false);
+
+			if (comp instanceof BPViewer)
+			{
+				BPViewer<? extends BPDataContainer> viewer = (BPViewer<?>) comp;
+				BPDataContainer con = viewer.getDataContainer();
+				String title;
+				if (con != null)
+				{
+					BPResource res = con.getResource();
+					if (res != null)
+						m_actsave.setEnabled(res.isIO());
+					title = con.getTitle();
+					if (res.isFileSystem() && ((BPResourceFileSystem) res).getTempID() != null)
+						title = "*" + title;
+				}
+				else
+				{
+					String editorname = editor.getEditorName();
+					title = editorname == null ? "*" : editorname;
+				}
+				setTitle(BPGUICore.S_BP_TITLE + " - " + title);
+			}
+			else
+			{
+				String editorname = editor.getEditorName();
+				if (editorname != null)
+					setTitle(BPGUICore.S_BP_TITLE + " - " + editorname);
+			}
+
 			validate();
-			
+
 			Action[] editmenuacts = editor.getEditMenuActions();
 			UIUtil.rebuildMenu(m_mnuedit, editmenuacts, true);
 			Action[] actbaracts = editor.getActBarActions();
 			setActBarActions(actbaracts);
 
-			setTitle(BPGUICore.S_BP_TITLE + " - " + editor.getID());
 			m_paninfo.setEditorInfo(editor.getEditorInfo());
 			editor.setOnStateChanged(m_statecb);
 			editor.setOnDynamicInfo(m_dinfocb);

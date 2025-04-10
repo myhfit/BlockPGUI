@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.BPConfigAdv.BPConfigAdvBase;
+import bp.config.ShortCuts.ShortCutData;
 import bp.res.BPResourceIO;
 import bp.task.BPTask;
 import bp.ui.shortcut.BPShortCutManager;
@@ -136,7 +137,7 @@ public class Hotkeys extends BPConfigAdvBase
 			}
 			case "shortcut":
 			{
-				String[] sc = ShortCuts.getShortCut(v);
+				ShortCutData sc = ShortCuts.getShortCut(v);
 				if (sc != null)
 					BPShortCutManager.runShortCut(sc);
 				break;
