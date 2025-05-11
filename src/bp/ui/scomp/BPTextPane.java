@@ -1,6 +1,5 @@
 package bp.ui.scomp;
 
-import java.awt.Font;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
@@ -306,7 +305,6 @@ public class BPTextPane extends BPEditorPane
 
 	static class TextView extends PlainView
 	{
-		protected Font font;
 		protected Element longLine;
 		
 		public TextView(Element elem)

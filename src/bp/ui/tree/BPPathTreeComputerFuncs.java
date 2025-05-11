@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 
 import javax.swing.Action;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.tree.TreePath;
 
 import bp.BPGUICore;
 import bp.context.BPFileContext;
@@ -18,6 +19,7 @@ import bp.res.BPResourceFileSystemLocal;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPPathTreeNodeActions;
 import bp.ui.scomp.BPTree;
+import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.scomp.BPTree.BPTreeNode;
 import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
 
@@ -203,6 +205,88 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 			{
 				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_OPEN, res));
 			}
+		}
+	}
+
+	public boolean canLocatePath()
+	{
+		return true;
+	}
+
+	public void locatePath(BPTreeComponentBase tree, String path)
+	{
+		List<File> fs = new ArrayList<File>();
+		File fp = new File(path);
+		FileSystemView fsv = FileSystemView.getFileSystemView();
+		if (!fp.exists())
+			return;
+		{
+			File f;
+			do
+			{
+				f = fp;
+				fs.add(0, f);
+				fp = fsv.getParentDirectory(f);
+			} while (fp != null);
+		}
+		BPTreeModel m = (BPTreeModel) tree.getModel();
+		BPTreeNode rootnode = null;
+		int si = 0;
+		for (int i = fs.size() - 1; i >= 0; i--)
+		{
+			File f = fs.get(i);
+			BPResourceFileSystem r = f.isDirectory() ? new BPResourceDirLocal(f) : new BPResourceFileLocal(f);
+			rootnode = m.findTreeNode(r);
+			if (rootnode != null)
+			{
+				si = i;
+				break;
+			}
+		}
+		if (rootnode == null)
+		{
+			rootnode = (BPTreeNode) m.getRoot();
+			si = 0;
+		}
+		BPTreeNode node = rootnode;
+		List<Object> tps = new ArrayList<Object>();
+		{
+			do
+			{
+				tps.add(0, node);
+				node = (BPTreeNode) node.getParent();
+			} while (node != null);
+		}
+		node = rootnode;
+		for (int i = si + 1; i < fs.size(); i++)
+		{
+			tree.expandPath(new TreePath(tps.toArray()));
+
+			File f = fs.get(i);
+			BPResourceFileSystemLocal r = f.isDirectory() ? new BPResourceDirLocal(f) : new BPResourceFileLocal(f);
+
+			BPTreeNode subnode = null;
+			for (BPTreeNode tn : node.getChildrenList())
+			{
+				if (r.equals(tn.getUserObject()))
+				{
+					subnode = tn;
+					break;
+				}
+			}
+			if (subnode != null)
+			{
+				tps.add(subnode);
+			}
+			else
+				break;
+			node = subnode;
+		}
+		if (tps.size() > 0)
+		{
+			TreePath tp2 = new TreePath(tps.toArray());
+			tree.setSelectionPath(tp2);
+			tree.scrollPathToVisible(tp2);
 		}
 	}
 

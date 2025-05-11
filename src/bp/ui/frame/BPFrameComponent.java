@@ -7,12 +7,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
@@ -25,6 +25,7 @@ import bp.data.BPDataContainer;
 import bp.data.BPTextContainer;
 import bp.data.BPTextContainerBase;
 import bp.event.BPEventChannelUI;
+import bp.format.BPFormat;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.ui.BPComponent;
@@ -33,6 +34,7 @@ import bp.ui.actions.BPAction;
 import bp.ui.container.BPEditors.BPEventUIEditors;
 import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.editor.BPEditor;
+import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPTextEditor;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.event.BPResourceOperationCommonHandler;
@@ -44,7 +46,7 @@ import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil;
 
-public class BPFrameComponent extends BPFrame implements WindowListener
+public class BPFrameComponent extends BPFrame implements WindowListener, BPFrameHostIFC
 {
 	/**
 	 * 
@@ -84,13 +86,16 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 		pbtn.setPreferredSize(new Dimension(10, UIUtil.scale(18)));
 
 		m_mnubar = new JMenuBar();
-		JMenu mnufile = new BPMenu("File");
+		BPMenu mnufile = new BPMenu("File");
 		m_mnuedit = new BPMenu("Edit");
+		BPMenu mnuview = new BPMenu("View");
 		m_mnuactbar = new JPanel();
 
 		mnufile.setMnemonic(KeyEvent.VK_F);
 		m_actsave = BPAction.build("Save").callback(e -> save()).mnemonicKey(KeyEvent.VK_S).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)).getAction();
 		BPAction actclose = BPAction.build("Close").callback(e -> dispose()).mnemonicKey(KeyEvent.VK_X).getAction();
+		BPAction acttogglerightpan = BPAction.build("Toggle Right Panel").callback(e -> toggleRightPanel()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_DOWN_MASK)).getAction();
+		BPAction actfullscreen = BPAction.build("FullScreen").callback(e -> fullScreen()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0)).getAction();
 
 		FlowLayout fl = new FlowLayout(FlowLayout.RIGHT);
 		fl.setVgap(0);
@@ -104,8 +109,12 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 		mnufile.addSeparator();
 		mnufile.add(actclose);
 
+		mnuview.add(acttogglerightpan);
+		mnuview.add(actfullscreen);
+
 		m_mnubar.add(mnufile);
 		m_mnubar.add(m_mnuedit);
+		m_mnubar.add(mnuview);
 		m_mnubar.add(m_mnuactbar);
 		m_mnubar.setVisible(false);
 
@@ -163,7 +172,7 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 					if (res != null)
 						m_actsave.setEnabled(res.isIO());
 					title = con.getTitle();
-					if (res.isFileSystem() && ((BPResourceFileSystem) res).getTempID() != null)
+					if (res != null && res.isFileSystem() && ((BPResourceFileSystem) res).getTempID() != null)
 						title = "*" + title;
 				}
 				else
@@ -339,10 +348,13 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 
 	public void windowClosed(WindowEvent e)
 	{
-		BPComponent<?> comp = m_comp;
-		m_comp = null;
-		if (comp != null)
-			comp.clearResource();
+		if (!isVisible())
+		{
+			BPComponent<?> comp = m_comp;
+			m_comp = null;
+			if (comp != null)
+				comp.clearResource();
+		}
 	}
 
 	public void windowIconified(WindowEvent e)
@@ -359,5 +371,29 @@ public class BPFrameComponent extends BPFrame implements WindowListener
 
 	public void windowDeactivated(WindowEvent e)
 	{
+	}
+
+	public void createEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params)
+	{
+		CommonUIOperations.openFileNewWindow(filename, format, facname, optionsdata, params);
+	}
+
+	public void openEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params)
+	{
+		CommonUIOperations.openFileNewWindow(filename, format, facname, optionsdata, params);
+	}
+
+	public void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid)
+	{
+		CommonUIOperations.openResourceNewWindow(res, format, fac, rconid, null);
+	}
+
+	public void toggleRightPanel()
+	{
+		if (m_comp instanceof BPEditor)
+		{
+			BPEditor<?> editor = (BPEditor<?>) m_comp;
+			editor.toggleRightPanel();
+		}
 	}
 }

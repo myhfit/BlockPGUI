@@ -8,10 +8,12 @@ import java.util.function.Consumer;
 import javax.swing.Action;
 
 import bp.BPCore;
+import bp.BPGUICore;
 import bp.data.BPTextContainer;
 import bp.data.BPTextContainerBase;
 import bp.data.BPXYData;
 import bp.event.BPEventCoreUI;
+import bp.format.BPFormatXYData;
 import bp.project.BPResourceProjectMemory;
 import bp.res.BPResourceFile;
 import bp.res.BPResourceHolder;
@@ -35,8 +37,9 @@ public interface BPDataActionFactory
 				if (data instanceof BPXYData && ACTIONNAME_CLONEDATA.equals(actionname))
 				{
 					Action actclonetemp = BPAction.build("Temp").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYData, loaddatafunc)).getAction();
+					Action actclonewin = BPAction.build("New Editor").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYDataToNewEditor, loaddatafunc)).getAction();
 					Action actclonejson = BPAction.build("JSON").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYDataToJSON, loaddatafunc)).getAction();
-					rc = new Action[] { actclonetemp, actclonejson };
+					rc = new Action[] { actclonetemp, actclonewin, actclonejson };
 				}
 			}
 			return rc;
@@ -50,6 +53,13 @@ public interface BPDataActionFactory
 			prj.addChild(holder);
 			BPCore.EVENTS_CORE.trigger(BPCore.getCoreUIChannelID(), BPEventCoreUI.refreshProjectTree(null, prj));
 			UIStd.info("Cloned to " + prj.toString() + "/temp" + id);
+		}
+
+		private final static void cloneXYDataToNewEditor(BPXYData xydata, ActionEvent event)
+		{
+			String id = BPCore.genID(null);
+			BPResourceHolder holder = new BPResourceHolder(xydata, null, BPXYData.EXT_XYDATA, BPXYData.EXT_XYDATA + ":temp" + id, "temp" + id, true);
+			BPGUICore.runOnCurrentFrame(f -> f.openResource(holder, new BPFormatXYData(), null, false, null));
 		}
 
 		private final static void cloneXYDataToJSON(BPXYData xydata, ActionEvent event)

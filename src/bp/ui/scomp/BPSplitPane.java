@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 import javax.swing.JComponent;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
@@ -65,6 +66,18 @@ public class BPSplitPane extends JSplitPane implements ComponentListener
 		}
 	}
 
+	public void setDividerBorderColor(Color c1, Color c2)
+	{
+		SplitPaneUI spui = getUI();
+		int ori = getOrientation();
+		if (spui != null && spui instanceof BasicSplitPaneUI)
+		{
+			BasicSplitPaneDivider d = ((BasicSplitPaneUI) ui).getDivider();
+			if (d != null)
+				d.setBorder(new CompoundBorder(new MatteBorder(ori == HORIZONTAL_SPLIT ? 0 : 1, ori == HORIZONTAL_SPLIT ? 1 : 0, 0, 0, c1), new MatteBorder(0, 0, ori == HORIZONTAL_SPLIT ? 0 : 1, ori == HORIZONTAL_SPLIT ? 1 : 0, c2)));
+		}
+	}
+
 	public void setReservedSize(int v)
 	{
 		m_reservedsize = v;
@@ -101,7 +114,7 @@ public class BPSplitPane extends JSplitPane implements ComponentListener
 			if (m_mode == 0)
 			{
 				m_lastpos = getDividerLocation();
-				setDividerLocation(getHeight() - getDividerSize() - m_reservedsize);
+				setDividerLocation((getOrientation() == VERTICAL_SPLIT ? getHeight() : getWidth()) - getDividerSize() - m_reservedsize);
 				m_mode = 2;
 				m_lastdsize = getDividerSize();
 				if (m_reservedsize == 0)

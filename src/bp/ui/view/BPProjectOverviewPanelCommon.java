@@ -94,7 +94,7 @@ public class BPProjectOverviewPanelCommon extends JPanel implements BPProjectOve
 
 	protected void openResource(BPResource res)
 	{
-		BPGUICore.runOnMainFrame(mf -> mf.openResource(res, null, null, false, UIUtil.getRoutableContainerID(this)));
+		BPGUICore.runOnCurrentFrame(mf -> mf.openResource(res, null, null, false, UIUtil.getRoutableContainerID(this)));
 	}
 
 	protected JPanel makeFLine(String label, Component... comps)

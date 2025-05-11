@@ -59,7 +59,7 @@ public class BPMainFrameActions
 		fileneweditor = BPAction.build("Editor...").callback((e) -> m_mf.showNewEditor()).mnemonicKey(KeyEvent.VK_E).getAction();
 		fileopen = BPAction.build("Open File...").callback((e) -> m_mf.showOpenFile(true)).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK)).mnemonicKey(KeyEvent.VK_O).getAction();
 		fileopenas = BPAction.build("Open File As...").callback((e) -> m_mf.showOpenFile(false)).mnemonicKey(KeyEvent.VK_A).getAction();
-		fileopenfolder = BPAction.build("Open Folder...").callback((e) -> m_mf.showOpenFolder()).getAction();
+		fileopenfolder = BPAction.build("Open Workspace...").callback((e) -> m_mf.showOpenWorkspace()).getAction();
 		filesave = BPAction.build("Save").callback((e) -> m_mf.save()).mnemonicKey(KeyEvent.VK_S).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)).getAction();
 		filesaveas = BPAction.build("Save as...").callback((e) -> m_mf.saveAs()).getAction();
 		filecfgs = BPAction.build("Configs...").callback((e) -> m_mf.showConfigs()).getAction();

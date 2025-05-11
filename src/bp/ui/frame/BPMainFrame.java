@@ -91,6 +91,8 @@ import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPCommandPane;
 import bp.ui.scomp.BPGUIInfoPanel;
 import bp.ui.scomp.BPMenu;
+import bp.ui.scomp.BPMenuItem.BPMenuItemInTray;
+import bp.ui.scomp.BPPopupMenuTray;
 import bp.ui.scomp.BPSplitPane;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.scomp.BPToolVIconButton;
@@ -130,13 +132,13 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	protected JPanel m_mnuactbar;
 	protected BPMenu m_mnushortcuts;
 	protected BPTabBottom m_bottomtab;
+	protected JMenu m_mnupopscs;
+	protected BPPopupMenuTray m_mnutray;
 
 	protected BPCommandPane m_cmdpan;
 
 	protected BPGUIInfoPanel m_editorinfo;
 
-	protected boolean m_isfullscreen = false;
-	protected OriginWindowState m_fullscreendata = null;
 	protected TrayIcon m_trayicon;
 
 	protected Consumer<BPEventUIEditors> m_editorhandler;
@@ -265,7 +267,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		mnunav.add(m_actmain.navoverview);
 
 		m_mnushortcuts.setMnemonic('S');
-		refreshShortCuts();
 
 		mnutool.setMnemonic('T');
 		initToolMenu(mnutool);
@@ -319,6 +320,8 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			initSystemTray();
 		}
 
+		refreshShortCuts();
+
 		addWindowListener(this);
 
 		initActions();
@@ -329,11 +332,25 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	protected void initSystemTray()
 	{
+		if (!SystemTray.isSupported())
+			return;
 		BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 		BPIconResV.BP().doDraw(img.getGraphics(), 0, 0, 16, 16);
+		BPPopupMenuTray mnutray = new BPPopupMenuTray();
+		{
+			m_mnupopscs = new BPMenu("Shortcut");
+			mnutray.add(m_mnupopscs);
+		}
+		m_mnutray = mnutray;
+		mnutray.addSeparator();
+		{
+			BPMenuItemInTray mnuexit = new BPMenuItemInTray("Exit");
+			mnuexit.addActionListener(e -> exit());
+			mnutray.add(mnuexit);
+		}
 		TrayIcon ti = new TrayIcon(img, "BlockP", null);
 		UIStd.wrapSegE(() -> SystemTray.getSystemTray().add(ti));
-		ti.addMouseListener(new UIUtil.BPMouseListener(null, this::onSysTrayDown, null, null, null));
+		ti.addMouseListener(new UIUtil.BPMouseListener(null, this::onSysTrayDown, this::onSysTrayUp, null, null));
 		m_trayicon = ti;
 	}
 
@@ -351,15 +368,34 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 				toFront();
 				break;
 			}
+		}
+	}
+
+	protected void onSysTrayUp(MouseEvent e)
+	{
+		if (!e.isPopupTrigger())
+			return;
+		int btn = e.getButton();
+		switch (btn)
+		{
 			case MouseEvent.BUTTON3:
 			{
+				Point pt = e.getLocationOnScreen();
+				UIUtil.laterUI(() -> m_mnutray.showTray(pt.x, pt.y));
 				break;
 			}
 		}
 	}
 
+	protected void closeTrayPopupWindow()
+	{
+
+	}
+
 	protected void removeSystemTray()
 	{
+		if (!SystemTray.isSupported())
+			return;
 		try
 		{
 			TrayIcon ti = m_trayicon;
@@ -440,6 +476,56 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			}
 		}).getAction();
 		mnushortcuts.add(actsetting);
+
+		refreshTrayMenus();
+	}
+
+	protected void refreshTrayMenus()
+	{
+		JMenu mnuscs = m_mnupopscs;
+		if (mnuscs == null)
+			return;
+		mnuscs.removeAll();
+
+		List<ShortCutData> scs = ShortCuts.getShortCuts();
+		Map<String, JMenu> mnumap = new HashMap<String, JMenu>();
+		for (ShortCutData sc : scs)
+		{
+			String scname = sc.name;
+			String mnuname = scname;
+			JMenu mnupar = mnuscs;
+			if (scname.indexOf(">") != -1)
+			{
+				String[] strs = scname.split(">");
+				String pathstr = null;
+				for (int i = 0; i < strs.length - 1; i++)
+				{
+					String s = strs[i];
+					if (pathstr == null)
+						pathstr = s;
+					else
+						pathstr += ">" + s;
+					JMenu mnunode = mnumap.get(pathstr);
+					if (mnunode == null)
+					{
+						mnunode = new BPMenu(s);
+						mnupar.add(mnunode);
+						mnumap.put(pathstr, mnunode);
+					}
+					mnupar = mnunode;
+				}
+				mnuname = strs[strs.length - 1];
+			}
+			BPMenuItemInTray newmnu = new BPMenuItemInTray(mnuname);
+			newmnu.addActionListener(e ->
+			{
+				ShortCutData sc2 = ShortCuts.getShortCut(scname);
+				BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+				if (bsc != null)
+					bsc.run();
+			});
+			mnupar.add(newmnu);
+		}
 	}
 
 	protected void initToolMenu(JMenu mnutool)
@@ -514,15 +600,16 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						int[] pos = txt.getPos(txt.getCaretPosition());
 						setEditorDynamicInfo(pos[0] + ":" + pos[1]);
 					}
+					Action[] actbaracts = null;
 					if (comp instanceof BPEditor)
 					{
 						m_editorinfo.setEditorInfo(((BPEditor<?>) comp).getEditorInfo());
 						BPEditor<?> editor = (BPEditor<?>) comp;
 						Action[] editmenuacts = editor.getEditMenuActions();
 						UIUtil.rebuildMenu(m_mnuedit, editmenuacts, true);
-						Action[] actbaracts = editor.getActBarActions();
-						setActBarActions(actbaracts);
+						actbaracts = editor.getActBarActions();
 					}
+					setActBarActions(actbaracts);
 				}
 				else
 				{
@@ -550,6 +637,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 				{
 					m_editorinfo.setEditorInfo(event.getTitle());
 				}
+				break;
 			}
 		}
 	}
@@ -594,7 +682,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			if (event.datas != null && event.datas.length > 0)
 				refreshPathTree((BPResource) event.datas[0]);
 			else
-				refreshProjectTree();
+				refreshProjectTree(BPCore.getProjectsContext().getProject(event.subkey));
 		}
 	}
 
@@ -856,22 +944,23 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_editors.switchTab(delta);
 	}
 
-	public void refreshProjectTree()
+	public void refreshProjectTree(BPResourceProject prj)
 	{
 		if (m_ptree != null && m_ptree.getPathTreeFuncs() instanceof BPProjectsTreeFuncs)
-			m_ptree.refreshContextPath();
+		{
+			if (prj == null)
+				UIUtil.inUI(() -> m_ptree.refreshContextPath());
+			else
+				UIUtil.inUI(() -> m_ptree.refreshSubTree(prj));
+		}
 	}
 
 	public void refreshPathTree(BPResource res)
 	{
 		if (res != null)
-		{
 			UIUtil.inUI(() -> m_ptree.refreshTree(res, true));
-		}
 		else
-		{
 			UIUtil.inUI(() -> m_ptree.refreshContextPath());
-		}
 	}
 
 	public void switchPathTreeFunc(int func)
@@ -1188,7 +1277,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		if (f == null)
 			return;
-		BPResourceFileLocal file = new BPResourceFileLocal(f);
+		BPResourceFileSystemLocal file = FileUtil.isDir(f) ? new BPResourceDirLocal(f) : new BPResourceFileLocal(f);
 		String ext = file.getExt();
 		BPFormat nformat = (format != null ? format : BPFormatManager.getFormatByExt(ext));
 		BPEditorFactory nfac = null;
@@ -1266,7 +1355,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		CommonUIOperations.showNewDirectory(res, m_ptree.getTreeComponent());
 	}
 
-	public void showOpenFolder()
+	public void showOpenWorkspace()
 	{
 		JFileChooser f = new JFileChooser();
 		f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1475,56 +1564,5 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		BPCore.getProjectsContext().initProjects();
 		BPCore.loadSchedules();
 		m_ptree.refreshContextPath();
-	}
-
-	public void fullScreen()
-	{
-		if (m_isfullscreen)
-		{
-			m_fullscreendata.restore(this);
-			setVisible(false);
-			dispose();
-			setUndecorated(m_fullscreendata.originundecorated);
-			setVisible(true);
-			validate();
-			m_isfullscreen = false;
-		}
-		else
-		{
-			m_fullscreendata = new OriginWindowState(this);
-			setExtendedState(MAXIMIZED_BOTH);
-			m_mnubar.setPreferredSize(new Dimension(0, 0));
-			setVisible(false);
-			dispose();
-			setUndecorated(true);
-			setVisible(true);
-			m_isfullscreen = true;
-		}
-	}
-
-	protected final static class OriginWindowState
-	{
-		public int originextendedstate;
-		public Dimension lastsize;
-		public Point lastpos;
-		public Dimension lastmnusize;
-		public boolean originundecorated;
-
-		public OriginWindowState(BPMainFrame mf)
-		{
-			originextendedstate = mf.getExtendedState();
-			lastsize = mf.getSize();
-			lastpos = mf.getLocation();
-			lastmnusize = mf.m_mnubar.getPreferredSize();
-			originundecorated = mf.isUndecorated();
-		}
-
-		public void restore(BPMainFrame mf)
-		{
-			mf.setExtendedState(originextendedstate);
-			mf.setSize(lastsize);
-			mf.setLocation(lastpos);
-			mf.m_mnubar.setPreferredSize(lastmnusize);
-		}
 	}
 }

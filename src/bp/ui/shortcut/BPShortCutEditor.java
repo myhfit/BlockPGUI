@@ -12,6 +12,7 @@ import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
+import bp.ui.util.CommonUIOperations;
 import bp.util.TextUtil;
 
 public class BPShortCutEditor extends BPShortCutBase
@@ -30,7 +31,10 @@ public class BPShortCutEditor extends BPShortCutBase
 
 		if (editorname != null)
 		{
-			BPGUICore.runOnMainFrame(mf -> mf.openEditorByFileSystem(filename, format, editorname, null));
+			if (!BPGUICore.execOnMainFrame(mf -> mf.isVisible()))
+				CommonUIOperations.openFileNewWindow(filename, format, editorname, null);
+			else
+				BPGUICore.runOnMainFrame(mf -> mf.openEditorByFileSystem(filename, format, editorname, null));
 			return true;
 		}
 		return false;

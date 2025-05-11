@@ -90,18 +90,6 @@ public class CommonUIOperations
 			rc = fres.getFileFullName();
 		}
 		return rc;
-		// FileDialog fd = null;
-		// if (par instanceof Frame)
-		// fd = new FileDialog((Frame) par, filename, FileDialog.LOAD);
-		// else if (par instanceof Dialog)
-		// fd = new FileDialog((Frame) par, filename, FileDialog.LOAD);
-		// fd.setVisible(true);
-		// String dir = fd.getDirectory();
-		// dir = dir == null ? "" : dir;
-		// String f = fd.getFile();
-		// if (f != null && f.length() > 0)
-		// return dir + f;
-		// return null;
 	}
 
 	public final static String[] showOpenFilesDialog(Window par)
@@ -250,7 +238,7 @@ public class CommonUIOperations
 				}
 				else
 				{
-					openResourceNewWindow(res, nformat, fac, null, options);
+					openResourceNewWindow(res, nformat, fac, null, options, params);
 				}
 			}
 		}
@@ -301,7 +289,7 @@ public class CommonUIOperations
 		}
 	}
 
-	public final static void openResourceNewWindow(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig config)
+	public final static void openResourceNewWindow(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig options, Object... params)
 	{
 		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
 		{
@@ -313,25 +301,24 @@ public class CommonUIOperations
 				UIStd.info("No Editor for " + format.getName());
 				return;
 			}
-			BPEditor<?> editor = fac.createEditor(format, res, null);
+			BPEditor<?> editor = fac.createEditor(format, res, options, params);
 			if (editor == null)
 				return;
 			editor.setID(id);
-			fac.initEditor(editor, format, res, config);
+			fac.initEditor(editor, format, res, options);
 			if (editor instanceof BPTextEditor)
 			{
 				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
 				teditor.getTextPanel().resizeDoc();
 			}
 			showBPComponentInNewWindow(editor);
-
 		}
 	}
 
 	public final static BPResource selectResource(Window par)
 	{
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setVisible(true);
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2(par);
+		dlg.showOpen();
 		return dlg.getSelectedResource();
 	}
 

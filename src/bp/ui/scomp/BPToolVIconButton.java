@@ -130,6 +130,10 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 			int y0 = (h - w) / 2;
 			m_icon.draw(g, 0, y0, w - 1, w - 1, m_issel);
 			g2d.setTransform(f);
+			if (!isEnabled())
+			{
+				m_icon.drawDisable(g, 0, y0, w - 1, w - 1);
+			}
 		}
 		else
 		{
@@ -139,15 +143,25 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 			int x0 = (w > h ? ((w - h) / 2) : 0);
 			int y0 = (w < h ? ((h - w) / 2) : 0);
 			m_icon.draw(g, x0, y0, s, s, m_issel);
+			if (!isEnabled())
+			{
+				m_icon.drawDisable(g, x0, y0, s, s);
+			}
 		}
 	}
 
 	private void onPropChanged(PropertyChangeEvent e)
 	{
-		if (Action.SELECTED_KEY.equals(e.getPropertyName()))
+		String pname = e.getPropertyName();
+		if (Action.SELECTED_KEY.equals(pname))
 		{
 			Boolean v = (Boolean) e.getNewValue();
 			setSelected((v == null) ? false : v);
+		}
+		if ("enabled".equals(pname))
+		{
+			Boolean v = (Boolean) e.getNewValue();
+			setEnabled((v == null) ? false : v);
 		}
 	}
 }

@@ -148,6 +148,8 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		List<String> cats = Arrays.asList("Filename Extension");
 		String cat = UIStd.select(cats, "Select Statistics Function", null);
+		if (cat == null)
+			return;
 		switch (cat)
 		{
 			case "Filename Extension":

@@ -7,6 +7,7 @@ import bp.BPCore;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.ui.dialog.BPDialogSelectResource2;
+import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
 
@@ -59,7 +60,8 @@ public class BPFormPanelTaskReadTextFile extends BPFormPanelTask
 	{
 		String rc = null;
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setVisible(true);
+		dlg.setSelectType(SELECTTYPE.FILE);
+		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
 		{

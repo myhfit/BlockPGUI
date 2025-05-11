@@ -59,6 +59,10 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 						BPResourceFile f = (BPResourceFile) fres;
 						return f.getSize();
 					}
+					else
+					{
+						return null;
+					}
 				}
 				else if (res.isVirtual() && res instanceof BPResourceHolder)
 				{
@@ -67,6 +71,10 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 					if (bs != null)
 					{
 						return bs.length;
+					}
+					else
+					{
+						return null;
 					}
 				}
 				break;

@@ -100,6 +100,36 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 		((BPTreeModel) m_tree.getModel()).reloadByUserData(res, recursive);
 	}
 
+	public void refreshSubTree(BPResource res)
+	{
+		if (res == null)
+			return;
+		BPTreeModel m = (BPTreeModel) m_tree.getModel();
+		refreshFSNode(m, res, 2);
+	}
+
+	protected void refreshFSNode(BPTreeModel m, BPResource res, int level)
+	{
+		if (level > 0)
+		{
+			BPResource[] chds = res.listResources();
+			if (chds != null)
+			{
+				for (BPResource r : res.listResources())
+				{
+					if (r.isFileSystem())
+					{
+						refreshFSNode(m, r, level--);
+					}
+					else
+					{
+						m.reloadByUserData(res, true);
+					}
+				}
+			}
+		}
+	}
+
 	public void loadContext(BPFileContext context)
 	{
 		BPPathTreeFuncs funcs = (BPPathTreeFuncs) m_tree.getTreeFuncs();

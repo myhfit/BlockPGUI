@@ -142,6 +142,12 @@ public class Hotkeys extends BPConfigAdvBase
 					BPShortCutManager.runShortCut(sc);
 				break;
 			}
+			case "frame":
+			{
+				if (v != null)
+					BPGUICore.runOnCurrentFrame(f -> f.runFrameFunction(v));
+				break;
+			}
 		}
 	}
 

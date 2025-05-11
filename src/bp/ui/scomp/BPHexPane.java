@@ -357,6 +357,8 @@ public class BPHexPane extends JPanel
 				py = 0;
 			int tx = x - xgap + 2;
 			int px = tx / (chw + chw + 4);
+			if (px >= m_linesize)
+				px = m_linesize - 1;
 			rc = pos + (py * m_linesize) + px;
 		}
 		return rc;

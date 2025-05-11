@@ -1,5 +1,6 @@
 package bp;
 
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import bp.ext.BPExtensionManager;
 import bp.tool.BPTool;
 import bp.tool.BPToolFactory;
 import bp.tool.BPToolManager;
+import bp.ui.frame.BPFrameHostIFC;
 import bp.ui.frame.BPMainFrame;
 import bp.ui.frame.BPMainFrameIFC;
 import bp.util.CommandLineArgs;
@@ -137,5 +139,34 @@ public class BPGUICore
 	public final static void runOnMainFrame(Consumer<BPMainFrameIFC> seg)
 	{
 		S_MF.run(seg);
+	}
+
+	public final static <V> V execOnCurrentFrame(Function<BPFrameHostIFC, V> seg)
+	{
+		Frame f0 = getCurrentFrame();
+		if (f0 != null && f0 instanceof BPFrameHostIFC)
+			return seg.apply((BPFrameHostIFC) f0);
+		return null;
+	}
+
+	public final static void runOnCurrentFrame(Consumer<BPFrameHostIFC> seg)
+	{
+		Frame f0 = getCurrentFrame();
+		if (f0 != null && f0 instanceof BPFrameHostIFC)
+			seg.accept((BPFrameHostIFC) f0);
+	}
+
+	protected final static Frame getCurrentFrame()
+	{
+		Frame[] fs = Frame.getFrames();
+		if (fs != null && fs.length > 0)
+		{
+			for (Frame f : fs)
+			{
+				if (f.isActive())
+					return f;
+			}
+		}
+		return null;
 	}
 }

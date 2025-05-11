@@ -3,12 +3,15 @@ package bp.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Window;
+import java.awt.event.KeyEvent;
 import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -61,6 +64,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 	protected BPAction m_actfileres;
 	protected BPAction m_actcfileres;
 	protected BPAction m_actspres;
+	protected BPAction m_actlocate;
 	protected CHECKEXITFLAG m_checkexist;
 	protected String[] m_exts;
 
@@ -69,6 +73,11 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 	public BPDialogSelectResource2()
 	{
+	}
+
+	public BPDialogSelectResource2(Window owner)
+	{
+		super(owner);
 	}
 
 	protected void initBPEvents()
@@ -115,7 +124,11 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 				return cb.test(res);
 			}
 		}
-		return res.isLeaf();
+		if (m_selecttype == SELECTTYPE.DIR)
+			return !res.isLeaf();
+		else if (m_selecttype == SELECTTYPE.FILE)
+			return res.isLeaf();
+		return true;
 	}
 
 	protected void initUIComponents()
@@ -133,11 +146,13 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 		m_actprjres = BPAction.build("Project Tree").callback(e -> switchPathTreeFunc(2)).tooltip("Project Tree").vIcon(BPIconResV.PRJSTREE()).getAction();
 		m_actfileres = BPAction.build("Path Tree").callback(e -> switchPathTreeFunc(1)).tooltip("Path Tree").vIcon(BPIconResV.PATHTREE()).getAction();
-		m_actcfileres = BPAction.build("Computer").callback(e -> switchPathTreeFunc(3)).tooltip("Computer").vIcon(BPIconResV.PATHTREE_COMPUTER()).getAction();
+		m_actcfileres = BPAction.build("Computer Tree").callback(e -> switchPathTreeFunc(3)).tooltip("Computer Path Tree").vIcon(BPIconResV.PATHTREE_COMPUTER()).getAction();
 		m_actspres = BPAction.build("Special").callback(e -> switchPathTreeFunc(4)).tooltip("Special").vIcon(BPIconResV.PATHTREE_SPECIAL()).getAction();
-		m_acts = new Action[] { m_actprjres, m_actfileres, m_actcfileres, m_actspres };
+		m_actlocate = BPAction.build("Goto").callback(e -> showLocate()).tooltip("Goto(F6)").vIcon(BPIconResV.TORIGHT()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)).getAction();
+		m_acts = new Action[] { m_actprjres, m_actfileres, m_actcfileres, m_actspres, null, m_actlocate };
 		m_ptree.setToolBarActions(m_acts);
 		m_actprjres.putValue(Action.SELECTED_KEY, true);
+		m_actlocate.setEnabled(treefuncs.canLocatePath());
 
 		m_filebox.setMonoFont();
 		lblfilename.setLabelFont();
@@ -181,6 +196,16 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 	protected void initDatas()
 	{
+	}
+
+	protected void showLocate()
+	{
+		String p = UIStd.input("", "Path:", "Input path");
+		if (p != null)
+		{
+			BPPathTreeFuncs funcs = (BPPathTreeFuncs) m_ptree.getPathTreeFuncs();
+			funcs.locatePath(m_ptree.getTreeComponent(), p);
+		}
 	}
 
 	public void switchPathTreeFunc(int func)
@@ -233,6 +258,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 				break;
 			}
 		}
+		m_actlocate.setEnabled(funcs != null ? funcs.canLocatePath() : false);
 		WeakReference<Predicate<BPResource>> filterref = m_filterref;
 		if (filterref != null)
 		{
@@ -254,26 +280,41 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		{
 			case WORKSPACE:
 			{
+				m_actprjres.setEnabled(false);
+				m_actfileres.setEnabled(true);
+				m_actcfileres.setEnabled(false);
+				m_actspres.setEnabled(false);
 				switchPathTreeFunc(1);
 				break;
 			}
 			case PROJECT:
 			{
+				m_actprjres.setEnabled(true);
+				m_actfileres.setEnabled(false);
+				m_actcfileres.setEnabled(false);
+				m_actspres.setEnabled(false);
 				switchPathTreeFunc(2);
 				break;
 			}
 			case COMPUTER:
 			{
+				m_actprjres.setEnabled(false);
+				m_actfileres.setEnabled(false);
+				m_actcfileres.setEnabled(true);
+				m_actspres.setEnabled(false);
 				switchPathTreeFunc(3);
 				break;
 			}
 			case SPECIAL:
 			{
+				m_actprjres.setEnabled(false);
+				m_actfileres.setEnabled(false);
+				m_actcfileres.setEnabled(false);
+				m_actspres.setEnabled(true);
 				switchPathTreeFunc(4);
 				break;
 			}
 		}
-		m_ptree.setToolBarVisible(false);
 		m_ptree.refreshContextPath();
 	}
 
@@ -307,6 +348,11 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		m_checkexist = CHECKEXITFLAG.BLOCKNOTEXIST;
 		m_filenamep.setVisible(false);
 		setVisible(true);
+	}
+
+	public void setVisible(boolean flag)
+	{
+		super.setVisible(flag);
 	}
 
 	public void setCheckExist(CHECKEXITFLAG flag)

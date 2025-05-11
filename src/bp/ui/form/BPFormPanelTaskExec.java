@@ -71,7 +71,8 @@ public class BPFormPanelTaskExec extends BPFormPanelTask
 	{
 		String rc = null;
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setVisible(true);
+		dlg.setSelectType(SELECTTYPE.FILE);
+		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
 		{
@@ -85,7 +86,7 @@ public class BPFormPanelTaskExec extends BPFormPanelTask
 		String rc = null;
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
 		dlg.setSelectType(SELECTTYPE.DIR);
-		dlg.setVisible(true);
+		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
 		{

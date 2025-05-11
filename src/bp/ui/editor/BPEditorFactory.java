@@ -104,6 +104,7 @@ public interface BPEditorFactory
 					BPXYData data = ((BPResourceHolder) res).getData();
 					BPXYHolder holder = new BPXYHolder();
 					holder.setData(data);
+					holder.setTitle("tempxy");
 					con = holder;
 				}
 				((BPXYDEditor<BPXYContainer>) editor).bind(con);

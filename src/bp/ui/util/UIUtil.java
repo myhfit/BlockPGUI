@@ -226,7 +226,8 @@ public class UIUtil
 
 		public void accept(ActionEvent e)
 		{
-			act.actionPerformed(e);
+			if(act.isEnabled())
+				act.actionPerformed(e);
 		}
 	}
 

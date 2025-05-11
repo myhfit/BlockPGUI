@@ -120,7 +120,7 @@ public class BPCommandPane extends JPanel implements FocusListener
 			if (r != null && r.success)
 			{
 				if (r.data != null)
-					UIStd.info(r.data + "");
+					UIStd.showData(r.data);
 			}
 		}
 	}

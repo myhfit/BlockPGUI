@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,7 +27,10 @@ import bp.event.BPEventCoreUI;
 import bp.task.BPTask;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
+import bp.ui.dialog.BPDialogCommonCategoryView;
 import bp.ui.dialog.BPDialogSimple;
+import bp.ui.form.BPForm;
+import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPHTMLEditorKit;
 import bp.ui.scomp.BPKVTable;
 import bp.ui.scomp.BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable;
@@ -37,6 +41,7 @@ import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIUtil.BPMouseListener;
+import bp.util.ClassUtil;
 import bp.util.LogicUtil.WeakRefGo;
 
 public class UIStd
@@ -89,6 +94,40 @@ public class UIStd
 	public final static void info(String title, String message)
 	{
 		textarea(message, "BlockP - " + (title == null ? "info" : title), false);
+	}
+
+	public final static void showData(Object data)
+	{
+		if (data == null)
+			info(null);
+		if (data instanceof Collection)
+		{
+			List<Object> lst = new ArrayList<Object>((Collection<?>) data);
+			boolean hasform = false;
+			if (lst.size() > 0)
+			{
+				Object obj0 = lst.get(0);
+				BPForm<?> form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), obj0.getClass(), Object.class);
+				hasform = form != null;
+			}
+			if (hasform)
+			{
+				Function<Object, Object> ctt = (cat) -> cat;
+				BPDialogCommonCategoryView<Object, Object> dlg = new BPDialogCommonCategoryView<Object, Object>();
+				dlg.setup(lst, null, ctt, false);
+				dlg.setCommandBarMode(BPDialogCommonCategoryView.COMMANDBAR_OKESCAPE);
+				dlg.setTitle("BlockP - Show Data");
+				dlg.setVisible(true);
+			}
+			else
+			{
+				viewList(lst, null, null);
+			}
+		}
+		else
+		{
+			info(data.toString());
+		}
 	}
 
 	public final static String input(String text, String prompt, String title)

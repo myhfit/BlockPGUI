@@ -48,7 +48,7 @@ public class BPProjectBlockViewComp extends JPanel
 		BPResourceProject prj = m_prjref.get();
 		if (prj == null)
 			return;
-		BPGUICore.runOnMainFrame(mf -> mf.openResource(prj, new BPFormatProject(), null, false, UIUtil.getRoutableContainerID(this)));
+		BPGUICore.runOnCurrentFrame(mf -> mf.openResource(prj, new BPFormatProject(), null, false, UIUtil.getRoutableContainerID(this)));
 	}
 
 	@SuppressWarnings("unchecked")
