@@ -200,7 +200,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 	protected void showLocate()
 	{
-		String p = UIStd.input("", "Path:", "Input path");
+		String p = UIStd.inputPath("", "Path:", "Input path");
 		if (p != null)
 		{
 			BPPathTreeFuncs funcs = (BPPathTreeFuncs) m_ptree.getPathTreeFuncs();

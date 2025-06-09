@@ -26,6 +26,7 @@ import bp.ui.form.BPFormPanelSchedule;
 import bp.ui.form.BPFormPanelScheduleFileSystem;
 import bp.ui.form.BPFormPanelScript;
 import bp.ui.form.BPFormPanelShortCuts;
+import bp.ui.form.BPFormPanelString;
 import bp.ui.form.BPFormPanelTask;
 import bp.ui.form.BPFormPanelTaskCopyFiles;
 import bp.ui.form.BPFormPanelTaskExec;
@@ -111,6 +112,7 @@ public class FormConfigs extends BPConfigAdvBase
 			regfunc.accept("bp.data.BPYData$BPYDataList", BPFormPanelList.class);
 			regfunc.accept("bp.schedule.BPScheduleBase", BPFormPanelSchedule.class);
 			regfunc.accept("bp.schedule.BPScheduleFileSystem", BPFormPanelScheduleFileSystem.class);
+			regfunc.accept("java.lang.String", BPFormPanelString.class);
 		}
 	}
 }

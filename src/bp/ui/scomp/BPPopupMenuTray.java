@@ -1,6 +1,7 @@
 package bp.ui.scomp;
 
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 
@@ -8,6 +9,7 @@ import javax.swing.JDialog;
 import javax.swing.JPopupMenu;
 
 import bp.config.UIConfigs;
+import bp.ui.util.SwingUtil;
 
 public class BPPopupMenuTray extends JPopupMenu implements WindowFocusListener
 {
@@ -56,13 +58,19 @@ public class BPPopupMenuTray extends JPopupMenu implements WindowFocusListener
 			m_w = null;
 		}
 		if (w != null)
+		{
+			w.removeWindowFocusListener(this);
 			w.dispose();
+		}
 	}
 
 	protected void firePopupMenuWillBecomeInvisible()
 	{
 		super.firePopupMenuWillBecomeInvisible();
+		setInvoker(null);
 		closeTrayDialog();
+
+		SwingUtil.refreshDisplay(GraphicsEnvironment.getLocalGraphicsEnvironment());
 	}
 
 	public void windowGainedFocus(WindowEvent e)

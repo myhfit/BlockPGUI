@@ -20,6 +20,7 @@ import bp.ui.form.BPFormResultable;
 import bp.ui.scomp.BPList;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
+import bp.util.ObjUtil;
 import bp.util.LogicUtil.WeakRefGoConsumer;
 import bp.util.LogicUtil.WeakRefGoFunction;
 
@@ -129,6 +130,10 @@ public class BPDialogCommonCategoryView<T, V> extends BPDialogCommon
 				else if (value instanceof BPYData)
 				{
 					form.showData(((BPYData) value).getMappedData(), m_editable);
+				}
+				else
+				{
+					form.showData(ObjUtil.makeMap("_value", value), m_editable);
 				}
 			}
 			validate();

@@ -111,4 +111,29 @@ public abstract class BPDialog extends JDialog implements BPRootContainer<JDialo
 	{
 		dispose();
 	}
+
+	public static class BPDialogPopupPar extends BPDialog
+	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 438779220243175807L;
+
+		protected void initUIComponents()
+		{
+		}
+
+		protected void initUIConfigs()
+		{
+			((JPanel) getContentPane()).setDoubleBuffered(false);
+		}
+		
+		protected void setPrefers()
+		{
+		}
+
+		protected void initDatas()
+		{
+		}
+	}
 }

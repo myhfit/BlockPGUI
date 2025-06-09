@@ -334,8 +334,10 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		if (!SystemTray.isSupported())
 			return;
-		BufferedImage img = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-		BPIconResV.BP().doDraw(img.getGraphics(), 0, 0, 16, 16);
+		Dimension d = SystemTray.getSystemTray().getTrayIconSize();
+		int dx = Math.max(d.width, d.height);
+		BufferedImage img = new BufferedImage(dx, dx, BufferedImage.TYPE_INT_ARGB);
+		BPIconResV.BP().doDraw(img.getGraphics(), 0, 0, dx, dx);
 		BPPopupMenuTray mnutray = new BPPopupMenuTray();
 		{
 			m_mnupopscs = new BPMenu("Shortcut");
@@ -350,7 +352,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		}
 		TrayIcon ti = new TrayIcon(img, "BlockP", null);
 		UIStd.wrapSegE(() -> SystemTray.getSystemTray().add(ti));
-		ti.addMouseListener(new UIUtil.BPMouseListener(null, this::onSysTrayDown, this::onSysTrayUp, null, null));
+		ti.addMouseListener(new UIUtil.BPMouseListener(null, this::onSysTrayDown, null, null, null));
 		m_trayicon = ti;
 	}
 
@@ -361,35 +363,22 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		{
 			case MouseEvent.BUTTON1:
 			{
+				e.consume();
 				if (!isVisible())
 					setVisible(true);
-				if (this.getExtendedState() == ICONIFIED)
+				if (getExtendedState() == ICONIFIED)
 					setState(NORMAL);
 				toFront();
 				break;
 			}
-		}
-	}
-
-	protected void onSysTrayUp(MouseEvent e)
-	{
-		if (!e.isPopupTrigger())
-			return;
-		int btn = e.getButton();
-		switch (btn)
-		{
 			case MouseEvent.BUTTON3:
 			{
+				e.consume();
 				Point pt = e.getLocationOnScreen();
-				UIUtil.laterUI(() -> m_mnutray.showTray(pt.x, pt.y));
+				m_mnutray.showTray(pt.x, pt.y);
 				break;
 			}
 		}
-	}
-
-	protected void closeTrayPopupWindow()
-	{
-
 	}
 
 	protected void removeSystemTray()
@@ -1314,6 +1303,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	public void exit()
 	{
+		BPGUICore.closeSubWindows();
 		dispose();
 	}
 
@@ -1338,6 +1328,11 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	public BPEditors getEditors()
 	{
 		return m_editors;
+	}
+
+	public List<BPComponent<?>> getEditorList()
+	{
+		return m_editors.getEditorList();
 	}
 
 	public BPResource getSelectedResource()
@@ -1479,6 +1474,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	public void windowClosing(WindowEvent e)
 	{
+		BPGUICore.closeSubWindows();
 	}
 
 	public void windowClosed(WindowEvent e)

@@ -248,6 +248,51 @@ public class CommonUIOperations
 		}
 	}
 
+	public final static void createFileNewWindow(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params)
+	{
+		try
+		{
+			BPResourceFileSystem res = null;
+			String ext = null;
+			if (filename != null && filename.length() > 0)
+			{
+				if (FileUtil.isDir(filename))
+				{
+					res = new BPResourceDirLocal(filename);
+					ext = res.getExt();
+				}
+				else
+				{
+					res = new BPResourceFileLocal(filename);
+					ext = res.getExt();
+				}
+			}
+			BPEditorFactory fac = null;
+			BPFormat nformat = (format != null ? BPFormatManager.getFormatByName(format) : ext == null ? null : BPFormatManager.getFormatByExt(ext));
+			BPConfig options = optionsdata == null ? null : BPConfigSimple.fromData(optionsdata);
+			if (facname != null)
+				fac = BPEditorManager.getFactory(nformat == null ? null : nformat.getName(), facname);
+			else
+				fac = BPEditorManager.getFactory(nformat.getName());
+			if (fac != null)
+			{
+				if (res == null)
+				{
+					res = new BPResourceFileLocal("untitiled" + (ext == null ? "" : ext));
+					newResourceNewWindow(res, nformat, fac, null, options, params);
+				}
+				else
+				{
+					newResourceNewWindow(res, nformat, fac, null, options, params);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			UIStd.err(e);
+		}
+	}
+
 	public final static void showBPComponentInNewWindow(BPComponent<?> comp)
 	{
 		if (comp.isRoutableContainer())

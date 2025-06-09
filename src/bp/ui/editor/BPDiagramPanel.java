@@ -134,18 +134,19 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	{
 		m_con = con;
 
-		BPDiagram d = null;
+		BPDiagram d = m_dcomp.getDiagram();
 		if (!noread && m_con.canOpen())
 		{
 			m_con.open();
 			d = m_con.readMData(false);
+			m_dcomp.bindDiagram(d);
 		}
 		if (d == null)
 		{
 			d = new BPDiagram();
 			DiagramUtil.initSimpleDiagram(d);
+			m_dcomp.bindDiagram(d);
 		}
-		m_dcomp.bindDiagram(d);
 	}
 
 	public void unbind()

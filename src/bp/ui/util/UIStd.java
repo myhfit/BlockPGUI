@@ -31,6 +31,7 @@ import bp.ui.dialog.BPDialogCommonCategoryView;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
+import bp.ui.scomp.BPFileField;
 import bp.ui.scomp.BPHTMLEditorKit;
 import bp.ui.scomp.BPKVTable;
 import bp.ui.scomp.BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable;
@@ -167,6 +168,43 @@ public class UIStd
 		return rc[0];
 	}
 
+	public final static String inputPath(String text, String prompt, String title)
+	{
+		final String[] rc = new String[1];
+		JPanel panc = new JPanel();
+		panc.setLayout(new BorderLayout());
+		panc.setBackground(UIConfigs.COLOR_TEXTBG());
+		BPLabel lbl = new BPLabel(prompt);
+		BPTextField tf = new BPFileField();
+		lbl.setLabelFont();
+		lbl.setOpaque(true);
+		lbl.setBackground(UIUtil.mix(UIConfigs.COLOR_WEAKBORDER(), UIConfigs.COLOR_WEAKBORDER().getAlpha() / 2));
+		lbl.setBorder(new CompoundBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 2)));
+		tf.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(200, UIConfigs.TEXTFIELD_HEIGHT())));
+		tf.setMonoFont();
+		tf.setText(text);
+		tf.selectAll();
+
+		panc.add(lbl, BorderLayout.WEST);
+		panc.add(tf, BorderLayout.CENTER);
+		int cb = (int) (UIConfigs.UI_SCALE() * 4f);
+		panc.setBorder(new CompoundBorder(new EmptyBorder(cb, cb, cb, cb), new MatteBorder(1, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER())));
+		Function<Integer, Boolean> dlgcallback = (t) ->
+		{
+			if (t == BPDialogCommon.COMMAND_OK)
+				rc[0] = tf.getText();
+			return false;
+		};
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(panc, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, dlgcallback);
+		dlg.setTitle(title);
+		dlg.pack();
+		dlg.setLocationRelativeTo(null);
+		dlg.setModal(true);
+		dlg.setVisible(true);
+		dlg.dispose();
+		return rc[0];
+	}
+
 	public final static String textarea(String text, String title)
 	{
 		return textarea(text, title, false, false);
@@ -180,6 +218,7 @@ public class UIStd
 	public final static String textarea(String text, String title, boolean editable, boolean html)
 	{
 		final String[] rc = new String[1];
+		JPanel pnl = new JPanel();
 		JScrollPane scroll = new JScrollPane();
 		final BPTextPane ta = new BPTextPane();
 		if (html)
@@ -196,7 +235,10 @@ public class UIStd
 				rc[0] = ta.getText();
 			return false;
 		};
-		BPDialogSimple dlg = BPDialogSimple.createWithComponent(scroll, editable ? BPDialogCommon.COMMANDBAR_OK_CANCEL : BPDialogCommon.COMMANDBAR_OKESCAPE, cb);
+		pnl.setBorder(new CompoundBorder(new EmptyBorder(2, 2, 2, 2), new MatteBorder(1, 1, 1, 1, UIConfigs.COLOR_WEAKBORDER())));
+		pnl.setLayout(new BorderLayout());
+		pnl.add(scroll, BorderLayout.CENTER);
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(pnl, editable ? BPDialogCommon.COMMANDBAR_OK_CANCEL : BPDialogCommon.COMMANDBAR_OKESCAPE, cb);
 		dlg.setTitle(title);
 		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(800, 600)));
 		dlg.pack();

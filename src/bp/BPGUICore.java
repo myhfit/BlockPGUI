@@ -1,6 +1,7 @@
 package bp;
 
 import java.awt.Frame;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import javax.swing.JDialog;
 
 import bp.BPCore.BPPlatform;
 import bp.config.EditorAssocs;
@@ -154,6 +157,31 @@ public class BPGUICore
 		Frame f0 = getCurrentFrame();
 		if (f0 != null && f0 instanceof BPFrameHostIFC)
 			seg.accept((BPFrameHostIFC) f0);
+	}
+
+	public final static boolean closeSubWindows()
+	{
+		Window[] ws = Window.getWindows();
+		for (Window w : ws)
+		{
+			if (w instanceof JDialog)
+			{
+				w.dispose();
+			}
+		}
+		for (Window w : ws)
+		{
+			if (!(w instanceof BPFrameHostIFC))
+				w.dispose();
+		}
+		for (Window w : ws)
+		{
+			if (w instanceof BPFrameHostIFC && !((BPFrameHostIFC) w).isMainFrame())
+			{
+				w.dispose();
+			}
+		}
+		return true;
 	}
 
 	protected final static Frame getCurrentFrame()

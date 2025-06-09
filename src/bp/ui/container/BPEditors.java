@@ -1,6 +1,7 @@
 package bp.ui.container;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -415,6 +416,19 @@ public class BPEditors extends BPTabbedContainerBase
 		BPFrameComponent fe = new BPFrameComponent();
 		fe.setComponent(comp);
 		fe.setVisible(true);
+	}
+
+	public List<BPComponent<?>> getEditorList()
+	{
+		List<BPComponent<?>> rc = new ArrayList<BPComponent<?>>();
+		List<Tab> tabs = m_tabbar.getTabs();
+		for (Tab t : tabs)
+		{
+			String id = t.id;
+			if (id != null)
+				rc.add(m_compmap.get(t.id));
+		}
+		return rc;
 	}
 
 	protected void onMenuAction(String id, String key)

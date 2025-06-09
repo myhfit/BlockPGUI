@@ -7,6 +7,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -395,5 +397,12 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 			BPEditor<?> editor = (BPEditor<?>) m_comp;
 			editor.toggleRightPanel();
 		}
+	}
+
+	public List<BPComponent<?>> getEditorList()
+	{
+		List<BPComponent<?>> rc = new ArrayList<BPComponent<?>>();
+		rc.add(m_comp);
+		return rc;
 	}
 }

@@ -2,7 +2,6 @@ package bp.ui.scomp;
 
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.List;
@@ -143,7 +142,7 @@ public class BPList<T> extends JList<T>
 				ListSelectionModel selmodel = getSelectionModel();
 				selmodel.clearSelection();
 				selmodel.setSelectionInterval(i, i);
-				scrollTo(i);
+				ensureIndexIsVisible(i);
 				return true;
 			}
 			techc++;
@@ -160,12 +159,6 @@ public class BPList<T> extends JList<T>
 			return br.getTransFunction();
 		}
 		return null;
-	}
-
-	public void scrollTo(int row)
-	{
-		Rectangle rect = getCellBounds(row, row + 1);
-		scrollRectToVisible(rect);
 	}
 
 	public static class BPListModel<T> extends AbstractListModel<T>

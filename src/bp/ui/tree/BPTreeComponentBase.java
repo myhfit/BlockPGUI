@@ -167,6 +167,11 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 		BPTreeNode node = getSelectedNode();
 		switch (keycode)
 		{
+			case KeyEvent.VK_ENTER:
+			{
+				getTreeFuncs().onOpen(this, getSelectedNode());
+				break;
+			}
 			case KeyEvent.VK_CONTEXT_MENU:
 			{
 				if (node != null)

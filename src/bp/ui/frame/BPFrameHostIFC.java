@@ -1,9 +1,11 @@
 package bp.ui.frame;
 
+import java.util.List;
 import java.util.Map;
 
 import bp.format.BPFormat;
 import bp.res.BPResource;
+import bp.ui.BPComponent;
 import bp.ui.editor.BPEditorFactory;
 
 public interface BPFrameHostIFC
@@ -22,6 +24,8 @@ public interface BPFrameHostIFC
 	void toggleRightPanel();
 
 	void fullScreen();
+
+	List<BPComponent<?>> getEditorList();
 
 	default void runFrameFunction(String f)
 	{
