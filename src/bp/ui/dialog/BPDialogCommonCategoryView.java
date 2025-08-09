@@ -12,6 +12,8 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
 
 import bp.config.UIConfigs;
+import bp.data.BPData;
+import bp.data.BPDataStructure;
 import bp.data.BPMData;
 import bp.data.BPYData;
 import bp.ui.form.BPForm;
@@ -123,13 +125,16 @@ public class BPDialogCommonCategoryView<T, V> extends BPDialogCommon
 					initformcb.accept(form);
 				add(form.getComponent(), BorderLayout.CENTER);
 				m_form = form;
-				if (value instanceof BPMData)
+				if (value instanceof BPData)
 				{
-					form.showData(((BPMData) value).getMappedData(), m_editable);
-				}
-				else if (value instanceof BPYData)
-				{
-					form.showData(((BPYData) value).getMappedData(), m_editable);
+					BPData bd = (BPData) value;
+					BPDataStructure st = bd.getDataStruture();
+					if (st == BPDataStructure.M)
+						form.showData(((BPMData) value).getMappedData(), m_editable);
+					else if (st == BPDataStructure.Y)
+						form.showData(((BPYData) value).getMappedData(), m_editable);
+					else
+						form.showData(ObjUtil.makeMap("_value", value), m_editable);
 				}
 				else
 				{

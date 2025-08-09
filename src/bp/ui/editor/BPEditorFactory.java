@@ -8,23 +8,29 @@ import bp.config.BPSetting;
 import bp.config.BPSettingBase;
 import bp.config.BPSettingItem;
 import bp.console.BPConsoleCLI;
+import bp.data.BPDataContainerFactory;
 import bp.data.BPDataContainerRandomAccess;
 import bp.data.BPDataContainerRandomAccessBase;
+import bp.data.BPDataHolder;
 import bp.data.BPDataPipes;
 import bp.data.BPDiagram;
 import bp.data.BPJSONContainerBase;
 import bp.data.BPMHolder;
 import bp.data.BPTextContainer;
 import bp.data.BPTextContainerBase;
+import bp.data.BPTreeDataContainer;
 import bp.data.BPXYContainer;
 import bp.data.BPXYData;
 import bp.data.BPXYData.BPXYDataList;
 import bp.data.BPXYHolder;
 import bp.format.BPFormat;
 import bp.format.BPFormatCSV;
+import bp.format.BPFormatFeature;
 import bp.format.BPFormatJSON;
+import bp.format.BPFormatManager;
 import bp.format.BPFormatTSV;
 import bp.format.BPFormatText;
+import bp.format.BPFormatTreeData;
 import bp.format.BPFormatUnknown;
 import bp.format.BPFormatXYData;
 import bp.res.BPResource;
@@ -36,6 +42,7 @@ import bp.ui.console.BPConsolePanel;
 import bp.ui.scomp.BPConsolePane;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
+import bp.util.ClassUtil;
 import bp.util.IOUtil;
 import bp.util.JSONUtil;
 import bp.util.LogicUtil;
@@ -140,13 +147,6 @@ public interface BPEditorFactory
 			if (res != null)
 			{
 				BPXYContainer con = null;
-				// if (res instanceof BPResourceHolder)
-				// {
-				// List<> data = ((BPResourceHolder) res).getData();
-				// BPXYHolder holder = new BPXYHolder();
-				// holder.setData(data);
-				// con = holder;
-				// }
 				if (res instanceof BPResourceIO)
 				{
 					List<Map<String, Object>> datas = null;
@@ -380,6 +380,69 @@ public interface BPEditorFactory
 		public String getName()
 		{
 			return "Raw Editor";
+		}
+	}
+
+	public static class BPEditorFactoryTreeEditor implements BPEditorFactory
+	{
+		public String[] getFormats()
+		{
+			List<BPFormat> fs = BPFormatManager.getFormatsByFeature(BPFormatFeature.OBJTREE);
+			String[] fnames = new String[fs.size()];
+			for (int i = 0; i < fs.size(); i++)
+				fnames[i] = fs.get(i).getName();
+			return fnames;
+		}
+
+		@SuppressWarnings("rawtypes")
+		public BPEditor<?> createEditor(BPFormat format, BPResource res, BPConfig options, Object... params)
+		{
+			return new BPTreeDataEditor();
+		}
+
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
+		{
+			BPTreeDataEditor pnl = (BPTreeDataEditor) editor;
+
+			if (format == null || format instanceof BPFormatTreeData)
+			{
+				if (res != null && res.canOpen())
+					format = BPFormatManager.getFormatByExt(res.getExt());
+			}
+			BPFormat f2 = format;
+
+			BPDataContainerFactory fac = ClassUtil.findService(BPDataContainerFactory.class, f -> f.canHandle(f2.getName()));
+			BPTreeDataContainer con = fac.createContainer(null);
+			if (options != null)
+			{
+				LogicUtil.VLF(((String) options.get("encoding")), TextUtil::checkNotEmpty, e ->
+				{
+					if (con instanceof BPTextContainer)
+						((BPTextContainer) con).setEncoding(e);
+				});
+			}
+			if (con instanceof BPDataHolder)
+				((BPDataHolder) con).setTitle("temptree");
+			con.bind(res);
+			pnl.bind(con);
+		}
+
+		public String getName()
+		{
+			return "TreeData Editor";
+		}
+
+		public boolean handleFormat(String formatkey)
+		{
+			return BPFormatTreeData.FORMAT_TREEDATA.equals(formatkey);
+		}
+
+		public BPSetting getSetting(String formatkey)
+		{
+			BPSettingBase rc = new BPSettingBase();
+			rc.addItem(BPSettingItem.create("encoding", "Encoding", BPSettingItem.ITEM_TYPE_TEXT, null));
+			return rc;
 		}
 	}
 

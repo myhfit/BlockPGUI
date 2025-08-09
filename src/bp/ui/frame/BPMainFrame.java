@@ -195,7 +195,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_cmdpan = new BPCommandPane();
 		m_cmdpan.setVisible(false);
 		m_cmdpan.setBorder(new MatteBorder(0, 1, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
-		m_cmdpan.setMinimumSize(new Dimension(4000, 0));
+//		m_cmdpan.setMinimumSize(new Dimension(4000, 0));
 		m_cmdpan.setPreferredSize(new Dimension(4000, 0));
 
 		m_mnuactbar = new JPanel();
@@ -299,12 +299,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_sp2.setTopComponent(m_editors);
 		m_sp2.setBottomComponent(m_bottomtab);
 		double uiscale = UIConfigs.UI_SCALE();
-		double gcscale = UIConfigs.GC_SCALE();
-		if (gcscale > 1)
-			m_sp2.setReservedSize((int) (18f * uiscale * gcscale) - 2);
-		else
-			m_sp2.setReservedSize((int) (18f * uiscale * gcscale) - 1);
-		// m_sp2.setReservedSize((int) (18f * UIConfigs.UI_SCALE()) - 1);
+		m_sp2.setReservedSize((int) (18f * uiscale) - 1);
 		if (UIConfigs.DIVIDER_SIZE() == 1)
 			m_sp2.setDividerBorderColor(UIConfigs.COLOR_TEXTHALF(), true);
 

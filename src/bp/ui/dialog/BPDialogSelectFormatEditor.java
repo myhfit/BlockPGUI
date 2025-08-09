@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -25,7 +27,9 @@ import bp.ui.editor.BPEditorManager;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
+import bp.ui.scomp.BPPopupComboList;
 import bp.ui.scomp.BPTableSetting;
+import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
 
 public class BPDialogSelectFormatEditor extends BPDialogCommon
@@ -43,7 +47,13 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 	protected BPTableSetting m_tbsetting;
 	protected JScrollPane m_rbpan;
 	protected JPanel m_rpan;
+	protected BPTextField m_txtfilter;
+	protected Function<Object, String> m_etextfunc;
+	protected Function<String, List<?>> m_listeditorfunc;
+	protected Consumer<BPEditorFactory> m_filtersubmitcb;
+	protected BPPopupComboList m_popupfilter;
 	protected boolean m_iscreate;
+	protected List<BPEditorFactory> m_allfacs;
 
 	public boolean doCallCommonAction(int command)
 	{
@@ -68,9 +78,13 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 	protected void initUIComponents()
 	{
 		setLayout(new BorderLayout());
+		m_listeditorfunc = this::listEditors;
+		m_filtersubmitcb = this::submitEditor;
+		m_etextfunc = this::getEditorText;
 		JPanel pmain = new JPanel();
 		JScrollPane scroll = new JScrollPane();
 		JScrollPane scroll2 = new JScrollPane();
+		m_txtfilter = new BPTextField();
 		m_lstformat = new BPList<BPFormat>();
 		m_lsteditorfac = new BPList<BPEditorFactory>();
 		m_tbsetting = new BPTableSetting();
@@ -82,6 +96,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		m_rbpan.setVisible(false);
 		m_rbpan.setViewportView(m_tbsetting);
 
+		m_txtfilter.setMonoFont();
 		lbl.setLabelFont();
 		lbl2.setLabelFont();
 		m_lstformat.setListFont();
@@ -89,11 +104,16 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		m_lstformat.setCellRenderer(new BPList.BPListRenderer((format) -> ((BPFormat) format).getName()));
 		m_lsteditorfac.setCellRenderer(new BPList.BPListRenderer((fac) -> ((BPEditorFactory) fac).getName()));
 
+		m_popupfilter = new BPPopupComboList();
+		m_popupfilter.bind(m_txtfilter, m_listeditorfunc, m_etextfunc);
+		m_popupfilter.setSubmitCB(m_filtersubmitcb);
+
 		m_lstformat.addMouseListener(new UIUtil.BPMouseListener(this::onFormatClick, null, null, null, null));
 		m_lsteditorfac.addMouseListener(new UIUtil.BPMouseListener(this::onEditorClick, null, null, null, null));
 		m_lstformat.addListSelectionListener(this::onFormatChange);
 		m_lsteditorfac.addListSelectionListener(this::onEditorChange);
 
+		m_txtfilter.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_TEXTQUARTER()));
 		scroll.setBorder(new MatteBorder(1, 0, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 		scroll2.setBorder(new MatteBorder(1, 0, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 		m_rpan.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_STRONGBORDER()));
@@ -112,10 +132,16 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		pmain.add(lpan);
 		pmain.add(m_rpan);
 
+		add(m_txtfilter, BorderLayout.NORTH);
 		add(pmain, BorderLayout.CENTER);
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
 		setTitle("Select Format And Editor");
 		setModal(true);
+	}
+
+	protected String getEditorText(Object fac)
+	{
+		return ((BPEditorFactory) fac).getName();
 	}
 
 	public BPFormat getSelectedFormat()
@@ -126,6 +152,30 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 	public BPEditorFactory getSelectedEditorFactory()
 	{
 		return m_editorfac;
+	}
+
+	protected List<?> listEditors(String txt)
+	{
+		List<Object> rc = new ArrayList<>();
+		for (BPEditorFactory fac : m_allfacs)
+		{
+			String fname = fac.getName();
+			if (txt == null || txt.length() == 0 || fname.toLowerCase().contains(txt.toLowerCase()))
+				rc.add(fac);
+		}
+		return rc;
+	}
+
+	protected void submitEditor(BPEditorFactory fac)
+	{
+		m_editorfac = fac;
+		String[] fs = fac.getFormats();
+		if (fs != null && fs.length > 0)
+			m_format = BPFormatManager.getFormatByName(fs[0]);
+		else
+			m_format = null;
+		m_actionresult = COMMAND_OK;
+		close();
 	}
 
 	protected void onFormatClick(MouseEvent e)
@@ -152,6 +202,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 
 	protected void initDatas()
 	{
+		m_allfacs = BPEditorManager.getAllFactories();
 		BPList.BPListModel<BPFormat> modelf = new BPList.BPListModel<BPFormat>();
 		BPList.BPListModel<BPEditorFactory> modele = new BPList.BPListModel<BPEditorFactory>();
 		List<BPFormat> formats = new ArrayList<BPFormat>();

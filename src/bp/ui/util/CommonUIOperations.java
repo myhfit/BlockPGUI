@@ -362,8 +362,16 @@ public class CommonUIOperations
 
 	public final static BPResource selectResource(Window par)
 	{
+		return selectResource(par, false);
+	}
+
+	public final static BPResource selectResource(Window par, boolean issave)
+	{
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2(par);
-		dlg.showOpen();
+		if (issave)
+			dlg.showSave();
+		else
+			dlg.showOpen();
 		return dlg.getSelectedResource();
 	}
 

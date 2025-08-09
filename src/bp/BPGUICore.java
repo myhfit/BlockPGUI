@@ -24,6 +24,7 @@ import bp.config.UIConfigs;
 import bp.env.BPEnvs;
 import bp.event.BPEventBus;
 import bp.ext.BPExtensionLoader;
+import bp.ext.BPExtensionLoaderGUI;
 import bp.ext.BPExtensionLoaderGUISwing;
 import bp.ext.BPExtensionManager;
 import bp.tool.BPTool;
@@ -50,6 +51,7 @@ public class BPGUICore
 
 	protected final static WeakRefGo<BPMainFrameIFC> S_MF = new WeakRefGo<BPMainFrameIFC>();
 
+	@SuppressWarnings("unchecked")
 	public final static void start(CommandLineArgs cliargs)
 	{
 		BPCore.setPlatform(BPPlatform.GUI_SWING);
@@ -66,13 +68,14 @@ public class BPGUICore
 		BPCore.start(cliargs.contextpath);
 		installTools();
 
+		BPCore.S_ELIST.add(BPGUICore::safeExit);
 		BPMainFrame mainf = new BPMainFrame();
 		BPExtensionLoader[] loaders = BPExtensionManager.getExtensionLoaders();
 		for (BPExtensionLoader loader : loaders)
 		{
 			if (loader.isUI() && BPExtensionLoaderGUISwing.UITYPE_SWING.equals(loader.getUIType()))
 			{
-				((BPExtensionLoaderGUISwing) loader).setup(mainf);
+				((BPExtensionLoaderGUI<BPMainFrameIFC>) loader).setup(mainf);
 			}
 		}
 		String editor = cliargs.params.get("openeditor");
@@ -182,6 +185,12 @@ public class BPGUICore
 			}
 		}
 		return true;
+	}
+
+	public final static void safeExit()
+	{
+		closeSubWindows();
+		runOnMainFrame(mf -> mf.dispose());
 	}
 
 	protected final static Frame getCurrentFrame()

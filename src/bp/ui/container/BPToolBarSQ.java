@@ -149,7 +149,7 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 				{
 					BPToolVIconButton btn = (accparent == null ? new BPToolVIconButton(act) : new BPToolVIconButton(act, accparent));
 					if (m_btnsetsize)
-						btn.setButtonSize(m_barheight + m_btnsetsizedelta);
+						btn.setButtonSize((int)(UIConfigs.UI_FIX_SCALE() * m_barheight) + m_btnsetsizedelta);
 					setButtonBorder(btn, m_btnborder);
 					add(btn);
 				}

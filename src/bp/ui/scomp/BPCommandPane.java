@@ -6,11 +6,14 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import bp.BPCore;
+import bp.core.BPCommandHandler;
+import bp.core.BPCommandHandlerCore;
 import bp.data.BPCommand;
 import bp.data.BPCommandResult;
 import bp.remote.BPConnector;
@@ -29,6 +32,8 @@ public class BPCommandPane extends JPanel implements FocusListener
 	protected List<String> m_cmdhis = new ArrayList<String>();
 	protected int m_cmdpos = 0;
 	protected volatile BPConnector m_conn;
+	protected BPPopupComboList m_popup;
+	protected Function<String, List<?>> m_listfunc;
 
 	public BPCommandPane()
 	{
@@ -43,6 +48,10 @@ public class BPCommandPane extends JPanel implements FocusListener
 		m_txt.setMonoFont();
 		m_lbl.setFont(UIUtil.deltaFont(m_txt.getFont(), 1));
 
+		m_listfunc = this::listCommands;
+		m_popup = new BPPopupComboList();
+		m_popup.bind(m_txt, m_listfunc, null);
+
 		setBackground(m_txt.getBackground());
 		setLayout(new BorderLayout());
 
@@ -51,6 +60,40 @@ public class BPCommandPane extends JPanel implements FocusListener
 
 		m_txt.addFocusListener(this);
 		m_txt.addKeyListener(new UIUtil.BPKeyListener(null, this::onKeyTyped, null));
+	}
+
+	@SuppressWarnings("unchecked")
+	protected List<?> listCommands(String txt)
+	{
+		txt = txt.toUpperCase();
+		List<String> cmds = null;
+		if (m_conn == null)
+		{
+			BPCommandHandler h = BPCore.getCommandHandler();
+			cmds = h.getCommandNames();
+		}
+		else
+		{
+			BPCommandResult r = m_conn.call(BPCommand.fromText(BPCommandHandlerCore.CN_CMDNAME_LIST));
+			if (r != null)
+				cmds = (List<String>) r.data;
+		}
+		
+		List<String> rc = new ArrayList<String>();
+		if (cmds != null)
+		{
+			for (String cmd : cmds)
+			{
+				if (cmd.toUpperCase().startsWith(txt))
+					rc.add(cmd);
+			}
+			for (String cmd : cmds)
+			{
+				if (cmd.toUpperCase().contains(txt) && !rc.contains(cmd))
+					rc.add(cmd);
+			}
+		}
+		return rc;
 	}
 
 	public void focusGained(FocusEvent e)
@@ -75,7 +118,8 @@ public class BPCommandPane extends JPanel implements FocusListener
 			case KeyEvent.VK_UP:
 			case KeyEvent.VK_DOWN:
 			{
-				setCommandByHistory(kc == KeyEvent.VK_UP);
+				if (e.isControlDown())
+					setCommandByHistory(kc == KeyEvent.VK_UP);
 				break;
 			}
 		}
@@ -117,10 +161,9 @@ public class BPCommandPane extends JPanel implements FocusListener
 			m_txt.setText("");
 			BPConnector conn = m_conn;
 			BPCommandResult r = conn == null ? BPCore.callCommand(cmd) : conn.call(cmd);
-			if (r != null && r.success)
+			if (r != null && r.data != null)
 			{
-				if (r.data != null)
-					UIStd.showData(r.data);
+				UIStd.showData(r.data);
 			}
 		}
 	}

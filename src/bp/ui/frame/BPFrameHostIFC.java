@@ -24,6 +24,8 @@ public interface BPFrameHostIFC
 	void toggleRightPanel();
 
 	void fullScreen();
+	
+	void dispose();
 
 	List<BPComponent<?>> getEditorList();
 

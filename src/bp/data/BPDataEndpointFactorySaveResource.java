@@ -41,7 +41,7 @@ public class BPDataEndpointFactorySaveResource implements BPDataEndpointFactory
 		public void finish()
 		{
 			super.finish();
-			BPResource res = CommonUIOperations.selectResource(Window.getWindows()[0]);
+			BPResource res = CommonUIOperations.selectResource(Window.getWindows()[0], true);
 			if (res != null && (res.isIO() || res.isFactory()))
 			{
 				if (res.isFactory())
@@ -55,6 +55,11 @@ public class BPDataEndpointFactorySaveResource implements BPDataEndpointFactory
 		{
 			return "Save to Resource(Text)";
 		}
+
+		public boolean isEndpoint()
+		{
+			return true;
+		}
 	}
 
 	public static class BPDataConsumerSaveRawResource extends BPDataConsumerByteArrayCollector
@@ -62,7 +67,7 @@ public class BPDataEndpointFactorySaveResource implements BPDataEndpointFactory
 		public void finish()
 		{
 			super.finish();
-			BPResource res = CommonUIOperations.selectResource(Window.getWindows()[0]);
+			BPResource res = CommonUIOperations.selectResource(Window.getWindows()[0], true);
 			if (res != null && (res.isIO() || res.isFactory()))
 			{
 				if (res.isFactory())
@@ -75,6 +80,11 @@ public class BPDataEndpointFactorySaveResource implements BPDataEndpointFactory
 		public String getInfo()
 		{
 			return "Save to Resource(byte[])";
+		}
+
+		public boolean isEndpoint()
+		{
+			return true;
 		}
 	}
 }

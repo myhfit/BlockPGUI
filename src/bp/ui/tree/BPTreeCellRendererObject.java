@@ -6,6 +6,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 import bp.ui.scomp.BPTree.BPTreeNode;
+import bp.util.ObjUtil;
 
 public class BPTreeCellRendererObject extends DefaultTreeCellRenderer
 {
@@ -26,6 +27,10 @@ public class BPTreeCellRendererObject extends DefaultTreeCellRenderer
 				Object[] vs = (Object[]) v;
 				v = vs[0] + ":" + vs[1];
 			}
+
+			v = ObjUtil.toString(v, "", 4);
+			if (((String) v).length() > 200)
+				v = ((String) v).substring(0, 200) + "...";
 		}
 		return super.getTreeCellRendererComponent(tree, v, selected, expanded, leaf, row, hasFocus);
 	}

@@ -65,6 +65,14 @@ public class BPTree extends JTree implements TreeWillExpandListener
 
 	}
 
+	public BPTreeModel getBPModel()
+	{
+		TreeModel m = getModel();
+		if (m instanceof BPTreeModel)
+			return (BPTreeModel) m;
+		return null;
+	}
+
 	public static class BPTreeModel extends DefaultTreeModel
 	{
 		/**

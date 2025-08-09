@@ -80,7 +80,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	public BPXYDEditor()
 	{
 		m_adddatafunc = this::onAddData;
-		m_setupqueryfunc = this::onSetupDSV;
+		m_setupqueryfunc = this::onSetupXY;
 		init();
 	}
 
@@ -321,7 +321,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		}
 	}
 
-	protected void onSetupDSV(BPXYDData data)
+	protected void onSetupXY(BPXYDData data)
 	{
 		data.setDataListener(new WeakReference<BiConsumer<List<BPXData>, Integer>>(m_adddatafunc), null, null);
 		setXYData(new BPXYData.BPXYDataList(data, true));

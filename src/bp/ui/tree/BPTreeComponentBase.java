@@ -15,6 +15,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import bp.ui.scomp.BPTree;
+import bp.ui.tree.BPTreeFuncs.BPTreeFuncsVoid;
 import bp.ui.util.UIUtil;
 
 public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTree>
@@ -251,5 +252,10 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 	public void reloadModel()
 	{
 		((DefaultTreeModel) getModel()).reload();
+	}
+
+	public void clearResource()
+	{
+		setModel(new BPTreeModel(new BPTreeFuncsVoid()));
 	}
 }

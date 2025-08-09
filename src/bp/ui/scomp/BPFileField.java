@@ -148,7 +148,8 @@ public class BPFileField extends BPTextField
 	{
 		if (m_popup != null)
 			m_popup.setVisible(false);
-		m_lstfiles.getBPModel().setDatas(new ArrayList<String>());
+		if (m_lstfiles != null)
+			m_lstfiles.getBPModel().setDatas(new ArrayList<String>());
 	}
 
 	protected void showPopup()

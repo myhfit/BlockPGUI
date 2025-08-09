@@ -44,6 +44,7 @@ public class UIConfigs extends BPConfigAdvBase
 	private static int S_STARTSCREEN_W = 800;
 	private static int S_STARTSCREEN_H = 600;
 	private static double S_UI_SCALE = 1f;
+	private static double S_UI_FIX_SCALE = 1f;
 	private static double S_GC_SCALE = 1f;
 	private static double S_FS_SCALE = 1f;
 	private static int S_BUTTON_SIZE = 16;
@@ -157,20 +158,22 @@ public class UIConfigs extends BPConfigAdvBase
 		if (javaver.startsWith("1.") && Integer.parseInt(javaver.substring(2)) <= 8)
 		{
 			S_UI_SCALE = Toolkit.getDefaultToolkit().getScreenResolution() / 96f;
+			S_UI_FIX_SCALE = S_UI_SCALE;
 			String uiscale = System.getProperty("bp.config.UIConfigs.uiscale");
 			String fsscale = System.getProperty("bp.config.UIConfigs.fsscale");
 			JTextArea testtext2 = new JTextArea();
 			S_EDITORFONT_SIZE = testtext2.getFont().getSize() + 2;
-			if (fsscale != null)
-			{
-				S_FS_SCALE = Float.parseFloat(fsscale);
-			}
 			if (uiscale != null)
-			{
 				S_UI_SCALE *= Float.parseFloat(uiscale);
+
+			if (fsscale != null)
+				S_FS_SCALE = Float.parseFloat(fsscale);
+			else if (S_UI_SCALE != 1)
 				S_FS_SCALE *= S_UI_SCALE;
+
+			if (S_FS_SCALE != 1)
 				S_EDITORFONT_SIZE = (int) (testtext2.getFont().getSize() * S_FS_SCALE) + 1;
-			}
+
 			S_BUTTON_SIZE = (int) (16f * S_UI_SCALE);
 			S_TREEFONT_SIZE = S_EDITORFONT_SIZE - 2;
 			S_MENUFONT_SIZE = S_EDITORFONT_SIZE - 3;
@@ -180,18 +183,19 @@ public class UIConfigs extends BPConfigAdvBase
 		}
 		else
 		{
-			S_FS_SCALE = Toolkit.getDefaultToolkit().getScreenResolution() / 96f;
-
 			String uiscale = System.getProperty("bp.config.UIConfigs.uiscale");
 			String fsscale = System.getProperty("bp.config.UIConfigs.fsscale");
-			if (fsscale != null)
-			{
-				S_FS_SCALE = Float.parseFloat(fsscale);
-			}
+			
 			if (uiscale != null)
-			{
 				S_UI_SCALE *= Float.parseFloat(uiscale);
-				S_FS_SCALE *= Float.parseFloat(uiscale);
+
+			if (fsscale != null)
+				S_FS_SCALE = Float.parseFloat(fsscale);
+			else
+				S_FS_SCALE *= S_UI_SCALE;
+
+			if (S_UI_SCALE != 1d)
+			{
 				S_EDITORFONT_SIZE = (int) ((float) S_EDITORFONT_SIZE * (float) S_FS_SCALE);
 				S_TREEFONT_SIZE = S_EDITORFONT_SIZE - 2;
 				S_TABLEFONT_SIZE = S_EDITORFONT_SIZE - 2;
@@ -321,6 +325,11 @@ public class UIConfigs extends BPConfigAdvBase
 	public final static double UI_SCALE()
 	{
 		return S_UI_SCALE;
+	}
+
+	public final static double UI_FIX_SCALE()
+	{
+		return S_UI_FIX_SCALE;
 	}
 
 	public final static double GC_SCALE()

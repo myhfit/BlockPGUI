@@ -3,24 +3,29 @@ package bp.ui.tree;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import bp.ui.scomp.BPTree.BPTreeNode;
 
 public class BPTreeFuncsObject implements BPTreeFuncs
 {
-	protected Object root;
+	protected Object m_root;
+	protected boolean m_sortkey;
 
 	public BPTreeFuncsObject(Object data)
 	{
-		root = data;
+		m_root = data;
 	}
 
 	public List<?> getRoots()
 	{
 		List<Object> rc = new ArrayList<Object>();
-		rc.add(root);
+		rc.add(m_root);
 		return rc;
+	}
+
+	public void setSortKey(boolean issortkey)
+	{
+		m_sortkey = issortkey;
 	}
 
 	public List<?> getChildren(BPTreeNode node, boolean isdelta)
@@ -47,14 +52,17 @@ public class BPTreeFuncsObject implements BPTreeFuncs
 			{
 				rc = new ArrayList<Object>();
 				Map<?, ?> vm = (Map<?, ?>) v;
-				for (Entry<?, ?> entry : vm.entrySet())
+				for (Object k : vm.keySet())
 				{
-					rc.add(new Object[] { entry.getKey(), entry.getValue() });
+					rc.add(new Object[] { k, vm.get(k) });
 				}
-				rc.sort((a, b) ->
+				if (m_sortkey)
 				{
-					return ((String) ((Object[]) a)[0]).toLowerCase().compareTo(((String) ((Object[]) b)[0]).toLowerCase());
-				});
+					rc.sort((a, b) ->
+					{
+						return ((String) ((Object[]) a)[0]).toLowerCase().compareTo(((String) ((Object[]) b)[0]).toLowerCase());
+					});
+				}
 			}
 			else if (v.getClass().isArray())
 			{

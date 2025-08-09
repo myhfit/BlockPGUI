@@ -231,6 +231,7 @@ public interface BPArchiveTreeFuncs extends BPTreeFuncs
 				BPResourceByteArraySupplier res = new BPResourceByteArraySupplier(eh, null, ext, BPCore.genID(BPCore.getFileContext()), ename, true);
 				rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
 				rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
+				rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
 			}
 			return rc;
 		}

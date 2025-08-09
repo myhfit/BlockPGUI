@@ -20,7 +20,11 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.Caret;
 
+import bp.BPCore;
 import bp.config.BPSetting;
+import bp.config.PredefinedDataPipes;
+import bp.data.BPDataPipes;
+import bp.data.BPJSONContainerBase;
 import bp.data.BPTextContainer;
 import bp.format.BPFormatText;
 import bp.processor.BPDataProcessor;
@@ -33,6 +37,7 @@ import bp.ui.actions.BPAction;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogSetting;
 import bp.ui.scomp.BPTextPane;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.TextUtil;
 
@@ -102,7 +107,34 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			}
 		}
 		actprocessor.putValue(BPAction.SUB_ACTIONS, actps.toArray(new Action[actps.size()]));
-		m_acts = new Action[] { actcopy, actcut, actpaste, actprocessor };
+
+		BPAction actpdps = BPAction.build("DataPipes").getAction();
+		List<Action> actsub = new ArrayList<Action>();
+		List<String[]> pdps = PredefinedDataPipes.getDataPipes();
+		for (String[] pdp : pdps)
+		{
+			String dpsrc = pdp[1];
+			BPAction actpdp = BPAction.build(pdp[0]).callback(e ->
+			{
+				String txt = getTextPanel().getSelectedText();
+				BPResource res = BPCore.getFileContext().getRes(dpsrc);
+				BPJSONContainerBase<BPDataPipes> con = new BPJSONContainerBase<BPDataPipes>();
+				con.bind(res);
+				BPDataPipes dp = con.readMData(false);
+				try
+				{
+					dp.run(txt);
+				}
+				catch (Exception e2)
+				{
+					UIStd.err(e2);
+				}
+			}).getAction();
+			actsub.add(actpdp);
+		}
+		actpdps.putValue(BPAction.SUB_ACTIONS, actsub.toArray(new Action[actsub.size()]));
+
+		m_acts = new Action[] { actcopy, actcut, actpaste, actprocessor, actpdps };
 	}
 
 	protected BPTextPane createTextPane()
@@ -181,11 +213,14 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	public void save()
 	{
 		m_con.open();
-		boolean flag = m_con.writeAllText(m_txt.getText());
-		m_con.close();
-		if (flag)
+		try
 		{
-			m_txt.setSaved();
+			if (m_con.writeAllText(m_txt.getText()))
+				m_txt.setSaved();
+		}
+		finally
+		{
+			m_con.close();
 		}
 	}
 

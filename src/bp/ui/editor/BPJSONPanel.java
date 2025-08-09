@@ -23,16 +23,20 @@ import bp.format.BPFormat;
 import bp.format.BPFormatJSON;
 import bp.res.BPResource;
 import bp.ui.scomp.BPEditorPane;
+import bp.ui.scomp.BPTree;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
+import bp.ui.tree.BPTreeComponent;
 import bp.ui.tree.BPTreeComponentBase;
 import bp.ui.tree.BPTreeFuncsObject;
 import bp.ui.util.UIUtil;
 import bp.util.JSONUtil;
 import bp.util.LogicUtil;
+import bp.util.ObjUtil;
+import bp.util.Std;
 import bp.util.TextUtil;
 
-public class BPJSONPanel extends BPCodePanel
+public class BPJSONPanel extends BPCodeAndPreviewPanel<BPTreeComponent<BPTree>>
 {
 	/**
 	 * 
@@ -82,7 +86,7 @@ public class BPJSONPanel extends BPCodePanel
 
 		m_canpreview = true;
 
-		preview(m_txt);
+		initPreview();
 	}
 
 	protected void initActions()
@@ -92,23 +96,39 @@ public class BPJSONPanel extends BPCodePanel
 		m_acts = acts.toArray(new Action[acts.size()]);
 	}
 
-	protected void setTextContainerValue(String text)
+	protected Object getInitPreviewData()
 	{
-		super.setTextContainerValue(text);
-		preview(m_txt);
+		return null;
 	}
 
-	protected void preview(BPEditorPane txt)
+	public void setPreviewOnlyMode()
 	{
-		m_changed.set(true);
-		UIUtil.laterUI(() ->
+		super.setPreviewOnlyMode();
+		m_sp.remove(m_scroll);
+	}
+
+	public BPTreeComponent<BPTree> getPreviewComponent()
+	{
+		return m_tree;
+	}
+
+	protected Object transPreviewData(String text, boolean errout)
+	{
+		try
 		{
-			if (m_changed.compareAndSet(true, false))
-			{
-				Object jsonobj = JSONUtil.decode(txt.getText());
-				m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(jsonobj)));
-			}
-		});
+			return JSONUtil.decode(text);
+		}
+		catch (Exception e)
+		{
+			if (errout)
+				Std.err(e);
+		}
+		return null;
+	}
+
+	public void setPreviewData(Object data)
+	{
+		m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(data)));
 	}
 
 	protected void onTextChanged(BPEditorPane txt)
@@ -120,8 +140,7 @@ public class BPJSONPanel extends BPCodePanel
 			{
 				if (m_changed.compareAndSet(true, false))
 				{
-					Object jsonobj = JSONUtil.decode(txt.getText());
-					m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(jsonobj)));
+					setPreviewValue(txt.getText());
 				}
 			});
 		}
@@ -129,6 +148,8 @@ public class BPJSONPanel extends BPCodePanel
 
 	public void toggleRightPanel()
 	{
+		if (m_ispmode)
+			return;
 		boolean canpreview = !m_canpreview;
 		m_canpreview = canpreview;
 		if (canpreview)
@@ -141,6 +162,12 @@ public class BPJSONPanel extends BPCodePanel
 			m_sp.remove(m_scroll2);
 		}
 		m_sp.validate();
+	}
+
+	public void clearResource()
+	{
+		m_tree.clearResource();
+		m_sp.removeAll();
 	}
 
 	public static class BPEditorFactoryJSON implements BPEditorFactory
@@ -162,6 +189,8 @@ public class BPJSONPanel extends BPCodePanel
 			if (options != null)
 			{
 				LogicUtil.VLF(((String) options.get("encoding")), TextUtil::checkNotEmpty, con::setEncoding);
+				if (ObjUtil.toBool(options.get("previewonly"), false))
+					pnl.setPreviewOnlyMode();
 			}
 			con.bind(res);
 			pnl.bind(con);
@@ -181,6 +210,7 @@ public class BPJSONPanel extends BPCodePanel
 		{
 			BPSettingBase rc = new BPSettingBase();
 			rc.addItem(BPSettingItem.create("encoding", "Encoding", BPSettingItem.ITEM_TYPE_TEXT, null));
+			rc.addItem(BPSettingItem.create("previewonly", "Preview Only", BPSettingItem.ITEM_TYPE_SELECT, new String[] { "false", "true" }));
 			return rc;
 		}
 	}

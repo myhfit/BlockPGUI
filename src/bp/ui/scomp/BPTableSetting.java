@@ -60,6 +60,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 		protected BPComboBox<String> m_cb;
 		protected BPTextField m_txt;
 		protected BPButton m_btn;
+		protected boolean m_isressave;
 		protected int m_sb;
 
 		public BPCellEditorSettingItem()
@@ -77,7 +78,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 
 		protected void onShowSelectResource(ActionEvent e)
 		{
-			BPResource res = CommonUIOperations.selectResource((Window) m_btn.getTopLevelAncestor());
+			BPResource res = CommonUIOperations.selectResource((Window) m_btn.getTopLevelAncestor(), m_isressave);
 			if (res != null)
 			{
 				m_btn.setText(res.getName());
@@ -117,8 +118,9 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 				m_cb.setSelectedItem(value);
 				return m_cb;
 			}
-			else if (BPSettingItem.ITEM_TYPE_RESOURCE.equals(item.itemtype))
+			else if (BPSettingItem.ITEM_TYPE_RESOURCE.equals(item.itemtype) || BPSettingItem.ITEM_TYPE_RESOURCE_SAVE.equals(item.itemtype))
 			{
+				m_isressave = BPSettingItem.ITEM_TYPE_RESOURCE_SAVE.equals(item.itemtype);
 				m_sb = 2;
 				BPButton btn = m_btn;
 				if (value != null && value instanceof BPResource)

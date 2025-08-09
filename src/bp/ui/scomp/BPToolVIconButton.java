@@ -129,11 +129,11 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 			int w = (int) Math.floor((float) getWidth() * f.getScaleX());
 			int y0 = (h - w) / 2;
 			m_icon.draw(g, 0, y0, w - 1, w - 1, m_issel);
-			g2d.setTransform(f);
 			if (!isEnabled())
 			{
 				m_icon.drawDisable(g, 0, y0, w - 1, w - 1);
 			}
+			g2d.setTransform(f);
 		}
 		else
 		{

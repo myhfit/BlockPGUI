@@ -23,8 +23,8 @@ public interface BPVIcon
 
 	default void drawDisable(Graphics g, int x, int y, int w, int h)
 	{
-		g.drawLine(w - 1, x, y, h - 1);
-		g.drawLine(w - 5, x, y, h - 5);
-		g.drawLine(w - 1, x + 4, y + 4, h - 1);
+		g.drawLine(w - 1, y, x, h - 1);
+		g.drawLine(w - 5, y, x, h - 5);
+		g.drawLine(w - 1, y + 4, x + 4, h - 1);
 	}
 }

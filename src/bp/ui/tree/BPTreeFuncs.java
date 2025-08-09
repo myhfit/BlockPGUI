@@ -1,5 +1,6 @@
 package bp.ui.tree;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -44,5 +45,23 @@ public interface BPTreeFuncs
 	default void setTreePathText(String str)
 	{
 
+	}
+
+	public final static class BPTreeFuncsVoid implements BPTreeFuncs
+	{
+		public List<?> getRoots()
+		{
+			return new ArrayList<>();
+		}
+
+		public List<?> getChildren(BPTreeNode node, boolean isdelta)
+		{
+			return new ArrayList<>();
+		}
+
+		public boolean isLeaf(BPTreeNode node)
+		{
+			return true;
+		}
 	}
 }

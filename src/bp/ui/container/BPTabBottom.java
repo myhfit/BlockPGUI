@@ -60,7 +60,7 @@ public class BPTabBottom extends BPTabbedContainerBase
 		addBPTab("TasksUIWL", null, "Work", m_tasksuiwl, false);
 
 		BPToolVIconButton togglebtn = new BPToolVIconButton(BPIconResV.UPDOWN(), this::onToggle);
-		togglebtn.setPreferredSize(new Dimension(UIConfigs.BAR_HEIGHT_VERTICAL(), 0));
+		togglebtn.setPreferredSize(new Dimension((int) (UIConfigs.UI_FIX_SCALE() * UIConfigs.BAR_HEIGHT_VERTICAL()), 0));
 		togglebtn.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
 		m_tabbar.setLeftComponent(togglebtn);
 		m_tabbar.setRightComponent(null);
