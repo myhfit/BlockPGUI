@@ -125,9 +125,7 @@ public class BPDialogFindText extends BPDialogCommon
 
 	protected void onFind(ActionEvent e)
 	{
-		ComboBoxEditor c = m_txtsrc.getEditor();
-		JTextField txt = (JTextField) c.getEditorComponent();
-		String src = txt.getText();
+		String src = m_txtsrc.getText();
 		if (src.length() == 0)
 			return;
 		m_txt.find(src, !m_chkbackward.isSelected(), m_chkword.isSelected(), m_chkcase.isSelected(), false);
@@ -140,12 +138,20 @@ public class BPDialogFindText extends BPDialogCommon
 
 	protected void onReplace(ActionEvent e)
 	{
-
+		String src = m_txtsrc.getText();
+		String tar = m_txtdest.getText();
+		if (src.length() == 0)
+			return;
+		m_txt.replace(src, tar, !m_chkbackward.isSelected(), m_chkword.isSelected(), m_chkcase.isSelected(), false);
 	}
 
 	protected void onReplaceAll(ActionEvent e)
 	{
-
+		String src = m_txtsrc.getText();
+		String tar = m_txtdest.getText();
+		if (src.length() == 0)
+			return;
+		m_txt.replaceAll(src, tar, !m_chkbackward.isSelected(), m_chkword.isSelected(), m_chkcase.isSelected(), false);
 	}
 
 	protected void setPrefers()

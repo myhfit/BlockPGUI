@@ -19,5 +19,6 @@ public class BPToolFactoryGUICommon implements BPToolFactory
 	public void install(BiConsumer<String, BPTool> installfunc, BPPlatform platform)
 	{
 		installfunc.accept("Common", new BPToolGUIDataPipe());
+		installfunc.accept("Common", new BPToolGUIParallelEditor());
 	}
 }

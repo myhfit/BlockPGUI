@@ -40,6 +40,7 @@ public class UIConfigs extends BPConfigAdvBase
 	private static Color S_COLOR_TEXTFG = new Color(0, 0, 0);
 	private static Color S_COLOR_TEXTHALF = new Color(128, 128, 128);
 	private static Color S_COLOR_TEXTQUARTER = new Color(192, 192, 192);
+	private static Color S_COLOR_TEXT3QUARTER = new Color(64, 64, 64);
 	private static Color S_COLOR_PANELBG = new Color(128, 128, 128, 51);
 	private static int S_STARTSCREEN_W = 800;
 	private static int S_STARTSCREEN_H = 600;
@@ -147,6 +148,7 @@ public class UIConfigs extends BPConfigAdvBase
 		S_COLOR_TEXTFG = testtext.getForeground();
 		S_COLOR_TEXTHALF = UIUtil.mix(S_COLOR_TEXTBG, S_COLOR_TEXTFG, 255);
 		S_COLOR_TEXTQUARTER = UIUtil.mix(S_COLOR_TEXTBG, S_COLOR_TEXTHALF, 255);
+		S_COLOR_TEXT3QUARTER = UIUtil.mix(S_COLOR_TEXTFG, S_COLOR_TEXTHALF, 255);
 		S_COLOR_WEAKBORDER = UIUtil.mix(S_COLOR_TEXTBG, S_COLOR_TEXTFG, 51);
 		testtext = null;
 
@@ -315,6 +317,11 @@ public class UIConfigs extends BPConfigAdvBase
 	public final static Color COLOR_TEXTQUARTER()
 	{
 		return S_COLOR_TEXTQUARTER;
+	}
+	
+	public final static Color COLOR_TEXT3QUARTER()
+	{
+		return S_COLOR_TEXT3QUARTER;
 	}
 
 	public final static Color COLOR_PANELBG()

@@ -35,6 +35,7 @@ public class BPIconResV
 	private static BPVIcon S_ICON_TOLEFT;
 	private static BPVIcon S_ICON_TORIGHTCLEAN;
 	private static BPVIcon S_ICON_TOLEFTCLEAN;
+	private static BPVIcon S_ICON_LEFTRIGHT;
 	private static BPVIcon S_ICON_UPDOWN;
 	private static BPVIcon S_ICON_RELATION;
 	private static BPVIcon S_ICON_LAYOUT;
@@ -63,7 +64,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w - 1;
 				int y1 = y0 + h - 1;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 3, y0 + 3, x1 - 3, y1 - 3);
 				g.drawLine(x0 + 3, y1 - 3, x1 - 3, y0 + 3);
 			};
@@ -79,7 +79,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w - 1;
 				int c = w / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 4, y0 + c - 3, x0 + c - 1, y0 + 2);
 				g.drawLine(x1 - c + 1, y0 + 2, x1 - 4, y0 + c - 3);
 				g.drawLine(x0 + 4, y0 + c + 3, x0 + c - 1, y0 + c + c - 2);
@@ -97,7 +96,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w - 1;
 				int c = w / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 4, y0 + c, x0 + c - 1, y0 + c + c - 5);
 				g.drawLine(x1 - c + 1, y0 + c + c - 5, x1 - 4, y0 + c);
 			};
@@ -118,7 +116,6 @@ public class BPIconResV
 				int gx1 = x1 - 1;
 				int gy0 = y0 + 1;
 				int gy1 = y1 - 1;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(gx0, gy0, gx1, gy0);
 				g.drawLine(gx0, gy0, gx0, gy1 - w0);
 				g.drawLine(gx1, gy0, gx1 - w0, gy0 + w0);
@@ -138,7 +135,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w - 1;
 				int y1 = y0 + h - 1;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				int r = w / 8;
 				int dw = w / 4;
 				int dh = w / 3;
@@ -158,7 +154,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w - 1;
 				int y1 = y0 + h - 1;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				int r = w / 8;
 				int dw = w / 4;
 				int dh = w / 3;
@@ -184,7 +179,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w - 1;
 				int y1 = y0 + h - 1;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				int r = w / 8;
 				int dw = w / 4;
 				int dh = w / 3;
@@ -206,7 +200,6 @@ public class BPIconResV
 				int y1 = y0 + h;
 				int x05 = (x0 + x1) / 2;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 1, y05, x1 - 2, y05);
 				g.drawLine(x05, y0 + 1, x05, y1 - 2);
 			};
@@ -223,7 +216,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 1, y05, x1 - 2, y05);
 			};
 		}
@@ -239,7 +231,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawPolygon(new int[] { x1 - 3, x0 + 2, x0 + 2 }, new int[] { y05, y0 + 2, y1 - 2 }, 3);
 			};
 		}
@@ -255,7 +246,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 1, y0 + 2, x0 + 1, y1 - 2);
 				g.drawPolygon(new int[] { x1 - 2, x0 + 3, x0 + 3 }, new int[] { y05, y0 + 2, y1 - 2 }, 3);
 			};
@@ -272,7 +262,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x1 - 2, y0 + 2, x1 - 2, y1 - 2);
 				g.drawPolygon(new int[] { x1 - 4, x0 + 1, x0 + 1 }, new int[] { y05, y0 + 2, y1 - 2 }, 3);
 			};
@@ -289,7 +278,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x1 - 2, y0 + 2, x1 - 2, y1 - 2);
 				g.drawPolygon(new int[] { x1 - 3, x0 + 2, x0 + 2 }, new int[] { y05, y0 + 2, y1 - 2 }, 3);
 			};
@@ -306,7 +294,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 2, y0 + 2, x0 + 2, y1 - 2);
 				g.drawPolygon(new int[] { x0 + 3, x1 - 2, x1 - 2 }, new int[] { y05, y0 + 2, y1 - 2 }, 3);
 			};
@@ -320,7 +307,6 @@ public class BPIconResV
 		{
 			S_ICON_STOP = (g, x0, y0, w, h) ->
 			{
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawRect(x0 + 2, y0 + 2, w - 5, h - 4);
 			};
 		}
@@ -335,7 +321,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w;
 				int y1 = y0 + h;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + 2, y0 + 2, x1 - 2, y1 - 2);
 				g.drawLine(x0 + 2, y1 - 2, x1 - 2, y0 + 2);
 			};
@@ -358,7 +343,6 @@ public class BPIconResV
 				int y13 = y1 - 1 - ((h - 2) / 4);
 				int y121 = (y12 + y13) / 2;
 
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawRect(x0 + 1, y0 + 1, w - 3, h - 2);
 				g.drawLine(x0 + 2, y11, x1 - 3, y11);
 				g.drawLine(x11, y12, x12, y12);
@@ -378,7 +362,6 @@ public class BPIconResV
 				int x02 = x0 + (w / 4);
 				int x03 = x0 + (w / 4 * 3);
 
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawRect(x0 + 1, y0 + 1, x03 - x0 - 2, h - 4);
 				g.drawRect(x02, y0 + 3, x03 - x0 - 2, h - 4);
 			};
@@ -398,7 +381,6 @@ public class BPIconResV
 				int y2 = y0 + (h / 2);
 				int y3 = y0 + (h / 4 * 3);
 
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawRect(x02 + 1, y0 + 1, x03 - 2, h - 2);
 				g.drawLine(x02 + 3, y1, x02 + x03 - 3, y1);
 				g.drawLine(x02 + 3, y2, x02 + x03 - 3, y2);
@@ -416,7 +398,6 @@ public class BPIconResV
 			{
 				int y1 = y0 + h;
 				int r = w / 10;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawRect(x0 + (w / 4), y0 + 2 + r, w / 2, h / 2 - r - 1);
 				g.drawLine(x0 + (w / 4), y0 + 1 + r + r, x0 + (w / 4), y1 - 2 - r);
 			};
@@ -432,7 +413,6 @@ public class BPIconResV
 			{
 				int x1 = x0 + w;
 				int y1 = y0 + h;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				int w2 = w / 10;
 				g.drawLine(x0 + w2 + 1, y0 + 2 + w2, x1 - 2 - w2, y0 + 2 + w2);
 				g.drawLine(x0 + (w / 2) - ((w + 1) % 2), y0 + 2 + w2, x0 + (w / 2) - ((w + 1) % 2), y1 - 2 - w2);
@@ -450,7 +430,6 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 				int w2 = w / 10;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + w2 + 2, y0 + 2 + w2, x1 - 2 - w2, y0 + 2 + w2);
 				g.drawLine(x0 + 2 + w2, y0 + 2 + w2, x0 + 2 + w2, y1 - 2 - w2);
 				g.drawLine(x0 + 2 + w2, y1 - 2 - w2, x1 - 2 - w2, y1 - 2 - w2);
@@ -470,7 +449,6 @@ public class BPIconResV
 				int y1 = y0 + h;
 				int y05 = (y0 + y1) / 2;
 				int w2 = w / 10;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + w2 + 2, y0 + 2 + w2, x1 - 2 - w2, y0 + 2 + w2);
 				g.drawLine(x0 + 2 + w2, y0 + 2 + w2, x0 + 2 + w2, y05);
 				g.drawLine(x0 + 2 + w2, y05, x1 - 2 - w2, y05);
@@ -555,7 +533,6 @@ public class BPIconResV
 		{
 			S_ICON_TOUP = (g, x0, y0, w, h) ->
 			{
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				int y1 = y0 + h;
 				int x05 = (y0 + y1) / 2;
 				g.drawLine(x05, y0 + 1, x05, y1 - 1);
@@ -572,7 +549,6 @@ public class BPIconResV
 		{
 			S_ICON_TODOWN = (g, x0, y0, w, h) ->
 			{
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				int y1 = y0 + h;
 				int x05 = (y0 + y1) / 2;
 				g.drawLine(x05, y0 + 1, x05, y1 - 1);
@@ -625,6 +601,25 @@ public class BPIconResV
 		return S_ICON_TORIGHTCLEAN;
 	}
 
+	public final static BPVIcon LEFTRIGHT()
+	{
+		if (S_ICON_LEFTRIGHT == null)
+		{
+			S_ICON_LEFTRIGHT = (g, x0, y0, w, h) ->
+			{
+				int x1 = x0 + w;
+				int y1 = y0 + h;
+				int y05 = (y0 + y1) / 2;
+				g.drawLine(x0 + 1, y05, x1 - 1, y05);
+				g.drawLine(x0 + 4, y05 - 3, x0 + 1, y05);
+				g.drawLine(x0 + 4, y05 + 3, x0 + 1, y05);
+				g.drawLine(x1 - 4, y05 - 3, x1 - 1, y05);
+				g.drawLine(x1 - 4, y05 + 3, x1 - 1, y05);
+			};
+		}
+		return S_ICON_LEFTRIGHT;
+	}
+
 	public final static BPVIcon RELATION()
 	{
 		if (S_ICON_RELATION == null)
@@ -633,7 +628,6 @@ public class BPIconResV
 			{
 				int y1 = y0 + h;
 				int r = w / 10;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawRect(x0 + (w / 4), y0 + 1 + r, w / 2, h / 2 - r - 1);
 				g.drawLine(x0 + (w / 4), y0 + 1 + r + r, x0 + (w / 4), y1 - 2 - r);
 				g.drawLine(x0 + (w / 2), y0 + 1 + r + (h / 2) - r - 1, x0 + (w / 4 * 3), y1 - 2 - r);
@@ -649,7 +643,6 @@ public class BPIconResV
 			S_ICON_LAYOUT = (g, x0, y0, w, h) ->
 			{
 				int y1 = y0 + h;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + (w / 4), y0 + 1, x0 + (w / 4), y1 - 2);
 				g.drawLine(x0 + (w / 4), y1 - 2, x0 + (w / 4 * 3), y1 - 2);
 			};
@@ -669,7 +662,6 @@ public class BPIconResV
 				int y05 = (y0 + y1) / 2;
 				int t = w / 4;
 				int t2 = t / 2;
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x05 - t - t, y05 + t + t, x05, y05);
 				g.drawLine(x05 + 1 - t2, y05 - 1 - t2, x05 + 1 + t2, y05 - 1 + t2);
 				g.drawLine(x05 + 1 - t2, y05 - 1 - t2, x05 + 1 - t2, y05 - 2 - t2);
@@ -694,8 +686,6 @@ public class BPIconResV
 
 				int x61 = w / 3;
 
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
-
 				g.drawRect(x05 - x61 - 1, y05 - 1, 2, 2);
 				g.drawRect(x05 - 1, y05 - 1, 2, 2);
 				g.drawRect(x05 + x61 - 1, y05 - 1, 2, 2);
@@ -713,12 +703,11 @@ public class BPIconResV
 				int x1 = x0 + w;
 				int y1 = y0 + h;
 
-				g.setColor(UIConfigs.COLOR_TEXTQUARTER());
-				g.drawRect(x0 + 1, y0 + 1, w - 4, h - 4);
-
-				g.setColor(UIConfigs.COLOR_TEXTHALF());
 				g.drawLine(x0 + w - 3, y0 + h - 3, x0 + w - 3, y1 - 1);
 				g.drawLine(x0 + w - 3, y0 + h - 3, x1 - 1, y0 + h - 3);
+
+				g.setColor(UIConfigs.COLOR_TEXTQUARTER());
+				g.drawRect(x0 + 1, y0 + 1, w - 4, h - 4);
 			};
 		}
 		return S_ICON_RECTSEL;

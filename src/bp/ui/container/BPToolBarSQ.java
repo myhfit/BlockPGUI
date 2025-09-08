@@ -29,7 +29,7 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 
 	protected int m_barheight;
 
-	protected static boolean m_isvertical;
+	protected boolean m_isvertical;
 
 	protected boolean m_btnsetsize;
 	protected int m_btnsetsizedelta;

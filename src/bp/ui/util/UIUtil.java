@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -19,6 +21,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.font.LineMetrics;
+import java.awt.geom.Rectangle2D;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -226,7 +230,7 @@ public class UIUtil
 
 		public void accept(ActionEvent e)
 		{
-			if(act.isEnabled())
+			if (act.isEnabled())
 				act.actionPerformed(e);
 		}
 	}
@@ -625,6 +629,21 @@ public class UIUtil
 						break;
 				}
 			}
+		}
+		return rc;
+	}
+
+	public final static Object[][] measureLines(FontMetrics fm, String[] lines, Graphics g)
+	{
+		int l = lines.length;
+		Object[][] rc = new Object[lines.length][2];
+		for (int i = 0; i < l; i++)
+		{
+			String text = lines[i];
+			LineMetrics lm = fm.getLineMetrics(text, g);
+			Rectangle2D rect = fm.getStringBounds(text, g);
+			rc[i][0] = lm;
+			rc[i][1] = rect;
 		}
 		return rc;
 	}

@@ -1,12 +1,14 @@
 package bp.ext;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import bp.BPCore;
 import bp.context.BPFileContext;
 import bp.core.BPCommandHandlerGUICore;
 import bp.ui.frame.BPMainFrameIFC;
 import bp.ui.util.UIStd;
+import bp.util.ObjUtil;
 import bp.util.Std;
 
 public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
@@ -34,6 +36,7 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 	public void setup(BPMainFrameIFC mainframe)
 	{
 		Std.setupUI(UIStd::info, BPExtensionLoaderGUISwingMain::err_u, BPExtensionLoaderGUISwingMain::confirm_u, BPExtensionLoaderGUISwingMain::prompt_u, BPExtensionLoaderGUISwingMain::select_u);
+		Std.setupAdv(ObjUtil.makeMap("showdata", (Consumer<Object>) UIStd::showData));
 	}
 
 	private static boolean confirm_u(String str)

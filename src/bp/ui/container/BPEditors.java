@@ -289,7 +289,7 @@ public class BPEditors extends BPTabbedContainerBase
 					{
 						BPTextContainer con = new BPTextContainerBase();
 						con.bind(file);
-						((BPViewer<BPTextContainer>) comp).bind(con, true);
+						((BPViewer<BPTextContainer>) comp).rebind(con);
 						BPEditor<?> editor = (BPEditor<?>) comp;
 						editor.setID(newid);
 						m_compmap.remove(selid);
@@ -316,7 +316,7 @@ public class BPEditors extends BPTabbedContainerBase
 							UIStd.info("This Editor can't Save as");
 							return;
 						}
-						((BPViewer<BPDataContainer>) comp).bind(con, true);
+						((BPViewer<BPDataContainer>) comp).rebind(con);
 						BPEditor<?> editor = (BPEditor<?>) comp;
 						editor.setID(newid);
 						m_compmap.remove(selid);

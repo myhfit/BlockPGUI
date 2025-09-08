@@ -195,7 +195,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_cmdpan = new BPCommandPane();
 		m_cmdpan.setVisible(false);
 		m_cmdpan.setBorder(new MatteBorder(0, 1, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
-//		m_cmdpan.setMinimumSize(new Dimension(4000, 0));
+		// m_cmdpan.setMinimumSize(new Dimension(4000, 0));
 		m_cmdpan.setPreferredSize(new Dimension(4000, 0));
 
 		m_mnuactbar = new JPanel();
@@ -604,6 +604,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			case BPEventUIEditors.EDITOR_CLOSED:
 			{
 				setTitle(BPGUICore.S_BP_TITLE);
+				m_editorinfo.setEditorDynamicInfo("");
 				m_editorinfo.setEditorInfo("");
 				UIUtil.rebuildMenu(m_mnuedit, null, true);
 				setActBarActions(null);
@@ -1418,7 +1419,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_editors.saveAs();
 	}
 
-	public void showLocateResoruce()
+	public void showLocateResource()
 	{
 		BPDialogLocateCachedResource dlg = new BPDialogLocateCachedResource();
 		dlg.setVisible(true);

@@ -111,6 +111,11 @@ public class BPTextField extends JTextField
 		return text.isEmpty() ? null : text;
 	}
 
+	public void clearResource()
+	{
+		m_um.discardAllEdits();
+	}
+
 	protected static class BPTextFieldUndoManager extends UndoManager
 	{
 		/**

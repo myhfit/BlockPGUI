@@ -11,10 +11,15 @@ public interface BPViewer<C extends BPDataContainer>
 
 	void bind(C con, boolean noread);
 
+	default void rebind(C con)
+	{
+		bind(con, true);
+	}
+
 	void unbind();
 
 	C getDataContainer();
-	
+
 	default String[] getViewerFormat()
 	{
 		return null;

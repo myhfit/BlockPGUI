@@ -231,6 +231,29 @@ public class BPTable<T> extends JTable
 		((BPTableModel<?>) getModel()).fireTableDataChanged();
 	}
 
+	public void setSelectionRows(int[] sels)
+	{
+		clearSelection();
+		int l = getModel().getRowCount();
+		if (sels != null)
+		{
+			for (int i = 0; i < sels.length; i++)
+			{
+				int p = sels[i];
+				if (p >= l)
+					continue;
+				if (i == 0)
+				{
+					setRowSelectionInterval(p, p);
+				}
+				else
+				{
+					addRowSelectionInterval(p, p);
+				}
+			}
+		}
+	}
+
 	public int getSelectedModelColumn()
 	{
 		int rc = getSelectedColumn();

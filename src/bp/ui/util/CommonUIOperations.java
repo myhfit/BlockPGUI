@@ -212,15 +212,10 @@ public class CommonUIOperations
 			if (filename != null && filename.length() > 0)
 			{
 				if (FileUtil.isDir(filename))
-				{
 					res = new BPResourceDirLocal(filename);
-					ext = res.getExt();
-				}
 				else
-				{
 					res = new BPResourceFileLocal(filename);
-					ext = res.getExt();
-				}
+				ext = res.getExt();
 			}
 			BPEditorFactory fac = null;
 			BPFormat nformat = (format != null ? BPFormatManager.getFormatByName(format) : ext == null ? null : BPFormatManager.getFormatByExt(ext));

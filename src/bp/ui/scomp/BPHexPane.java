@@ -16,18 +16,23 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
+import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.KeyStroke;
 
 import bp.config.UIConfigs;
-import bp.tool.BPToolGUIDataPipe;
 import bp.ui.actions.BPAction;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
+import bp.util.LogicUtil;
 import bp.util.TextUtil;
 
 public class BPHexPane extends JPanel
@@ -39,6 +44,8 @@ public class BPHexPane extends JPanel
 
 	protected BiFunction<Long, Integer, byte[]> m_readcb;
 	protected BiConsumer<byte[], Integer> m_previewcb;
+	protected BiConsumer<Long, Long> m_poscb;
+
 	protected byte[] m_bs;
 	protected int m_linesize;
 	protected String[] m_chs = new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F" };
@@ -51,7 +58,8 @@ public class BPHexPane extends JPanel
 
 	protected long m_pos;
 
-	protected long m_selstart = -1, m_selend = -1, m_selstartm = -1;
+	protected long m_selstart = -1, m_selend = -1, m_selpos = -1;
+	protected long m_rselstart = -1, m_rselend = -1;
 
 	protected int m_lastw;
 	protected int m_lasth;
@@ -59,8 +67,11 @@ public class BPHexPane extends JPanel
 	protected long m_len;
 
 	protected boolean m_isdown;
+	protected int[] m_downpt;
 
 	protected JScrollBar m_sbar;
+
+	protected Action[] m_actions;
 
 	public BPHexPane()
 	{
@@ -73,10 +84,15 @@ public class BPHexPane extends JPanel
 
 		addMouseWheelListener(this::onMouseWheel);
 		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouseDown, this::onMouseUp, null, this::onMouseLeave));
+		addMouseMotionListener(new UIUtil.BPMouseMotionListener(this::onMouseDrag, null));
 		addKeyListener(new UIUtil.BPKeyListener(null, this::onKeyDown, null));
+		getInputMap().put(KeyStroke.getKeyStroke("control L"), "locate");
+		getActionMap().put("locate", BPAction.build("locate").callback(this::onShowLocate).getAction());
+
 		KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK);
 		getInputMap().put(ks, "copy");
 		getActionMap().put("copy", BPAction.build("").callback(this::onCopy).getAction());
+		setContextActions(null);
 
 		setLineSize(32);
 	}
@@ -97,15 +113,51 @@ public class BPHexPane extends JPanel
 		m_chh = fm.getHeight();
 	}
 
-	public void setup(BiFunction<Long, Integer, byte[]> readcb, long len, BiConsumer<byte[], Integer> previewcb)
+	public void setup(BiFunction<Long, Integer, byte[]> readcb, long len, BiConsumer<byte[], Integer> previewcb, BiConsumer<Long, Long> poscb)
 	{
 		m_readcb = readcb;
 		m_len = len;
 		m_previewcb = previewcb;
+		m_poscb = poscb;
 		updateView();
 	}
 
-	protected void updateView()
+	protected void onShowLocate(ActionEvent e)
+	{
+		String addr = UIStd.input("", "Address(hex)", "Input address");
+		StringBuilder sb = new StringBuilder();
+		for (char c : addr.toCharArray())
+		{
+			if (c != ' ' && c < '0' || c > '9')
+			{
+				UIStd.info("Address not correct");
+				return;
+			}
+			sb.append(c);
+		}
+		long l = Long.parseLong(sb.toString(), 16);
+		setSelection(l, l);
+		updateView();
+	}
+
+	public void ensurePosition(long pos)
+	{
+		if (pos < m_pos)
+			m_pos = pos - pos % m_linesize;
+		else if (pos > m_pos + (m_linesize * 20))
+		{
+			long d = pos % m_linesize;
+			if (d != 0)
+				pos += (m_linesize - d);
+			int h = getHeight();
+			int line = (h / m_chh) - 1;
+			pos = pos - (line * m_linesize);
+			if (pos > 0)
+				m_pos = pos;
+		}
+	}
+
+	public void updateView()
 	{
 		int w = getWidth();
 		int h = getHeight();
@@ -136,6 +188,11 @@ public class BPHexPane extends JPanel
 		}
 	}
 
+	public JScrollBar getScrollBar()
+	{
+		return m_sbar;
+	}
+
 	protected void onPage(int delta)
 	{
 		int h = getHeight();
@@ -148,6 +205,100 @@ public class BPHexPane extends JPanel
 			v = m_sbar.getMaximum();
 		if (v != ori)
 			m_sbar.setValue(v);
+	}
+
+	protected void onMoveCursor(int delta, boolean isshift)
+	{
+		if (!isshift)
+		{
+			long ss = m_selpos + delta;
+
+			if ((ss >= m_len || ss < 0))
+				return;
+			m_selstart = ss;
+			m_selend = ss;
+			m_selpos = ss;
+
+			if (m_selstart > -1 && m_selstart < m_len && m_selend > -1 && m_selend < m_len)
+			{
+				m_rselstart = m_selstart;
+				m_rselend = m_selend;
+			}
+			else
+			{
+				if (m_selstart == m_selend)
+				{
+					m_rselstart = -1;
+					m_rselend = -1;
+				}
+				else if ((m_selstart >= m_len && m_selend >= m_len) || (m_selstart < 0 && m_selend < 0))
+				{
+					m_rselstart = -1;
+					m_rselend = -1;
+				}
+				else
+				{
+					m_rselstart = fixPos(m_selstart);
+					m_rselend = fixPos(m_selend);
+				}
+			}
+			if (m_rselstart > m_rselend)
+			{
+				long t = m_rselend;
+				m_rselend = m_rselstart;
+				m_rselstart = t;
+			}
+			ensurePosition(ss);
+			updateView();
+			LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+		}
+		else
+		{
+			m_selpos = m_selpos + delta;
+			if (m_selpos > m_len)
+				m_selpos = m_len - 1;
+			if (m_selpos < 0)
+				m_selpos = 0;
+			m_selend = m_selpos;
+
+			if (m_selstart > -1 && m_selstart < m_len && m_selend > -1 && m_selend < m_len)
+			{
+				m_rselstart = m_selstart;
+				m_rselend = m_selend;
+			}
+			else
+			{
+				if (m_selstart == m_selend)
+				{
+					m_rselstart = -1;
+					m_rselend = -1;
+				}
+				else if ((m_selstart >= m_len && m_selend >= m_len) || (m_selstart < 0 && m_selend < 0))
+				{
+					m_rselstart = -1;
+					m_rselend = -1;
+				}
+				else
+				{
+					m_rselstart = fixPos(m_selstart);
+					m_rselend = fixPos(m_selend);
+				}
+			}
+			if (m_rselstart > m_rselend)
+			{
+				long t = m_rselend;
+				m_rselend = m_rselstart;
+				m_rselstart = t;
+			}
+			ensurePosition(m_selpos);
+			updateView();
+			LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+		}
+	}
+
+	public void updateLen(long len)
+	{
+		m_len = len;
 	}
 
 	protected void updatePos(long pos, int size, boolean updatebar)
@@ -164,16 +315,16 @@ public class BPHexPane extends JPanel
 			else
 			{
 				m_sbar.setMinimum(0);
-				m_sbar.setValue((int) (pos % m_linesize));
 				int line = (int) (m_len / m_linesize + (m_len % m_linesize == 0 ? 0 : 1));
 				m_sbar.setMaximum(line);
+				m_sbar.setValue((int) (pos / m_linesize));
 			}
 		}
 		if (m_previewcb != null)
 			m_previewcb.accept(m_bs, m_linesize);
 	}
 
-	protected final static String getHEX(long pos)
+	public final static String getHEXStr(long pos)
 	{
 		String str = Long.toHexString(pos);
 		int l = str.length();
@@ -190,7 +341,7 @@ public class BPHexPane extends JPanel
 	protected void onCopy(ActionEvent e)
 	{
 		Clipboard clipboard = getToolkit().getSystemClipboard();
-		String text = getSelectedText();
+		String text = getSelectedHex();
 		clipboard.setContents(new StringSelection(text), null);
 	}
 
@@ -202,30 +353,100 @@ public class BPHexPane extends JPanel
 		clipboard.setContents(new StringSelection(text), null);
 	}
 
-	private String getSelectedText()
+	public long[] getSelection()
 	{
-		byte[] bs = m_bs;
-		long pos = m_pos;
+		return new long[] { m_rselstart, m_rselend };
+	}
+
+	public void setSelection(long start, long end)
+	{
+		m_selstart = start;
+		m_selend = end;
+		m_selpos = end;
+
+		if (m_selstart > -1 && m_selstart < m_len && m_selend > -1 && m_selend < m_len)
+		{
+			m_rselstart = m_selstart;
+			m_rselend = m_selend;
+		}
+		else
+		{
+			if (start == end)
+			{
+				m_rselstart = -1;
+				m_rselend = -1;
+			}
+			else
+			{
+				m_rselstart = fixPos(m_rselstart);
+				m_rselend = fixPos(m_rselend);
+			}
+		}
+		LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+	}
+
+	protected long fixPos(long pos)
+	{
+		if (pos < 0)
+			pos = 0;
+		if (pos > m_len)
+			pos = m_len - 1;
+		return pos;
+	}
+
+	public void setSelectionEnd(long end)
+	{
+		m_selend = end;
+		m_selpos = end;
+
+		if (m_selstart > -1 && m_selstart < m_len && m_selend > -1 && m_selend < m_len)
+		{
+			m_rselstart = m_selstart;
+			m_rselend = m_selend;
+		}
+		else
+		{
+			if (m_selstart == m_selend)
+			{
+				m_rselstart = -1;
+				m_rselend = -1;
+			}
+			else if ((m_selstart >= m_len && m_selend >= m_len) || (m_selstart < 0 && m_selend < 0))
+			{
+				m_rselstart = -1;
+				m_rselend = -1;
+			}
+			else
+			{
+				m_rselstart = fixPos(m_selstart);
+				m_rselend = fixPos(m_selend);
+			}
+		}
+		if (m_rselstart > m_rselend)
+		{
+			long t = m_rselend;
+			m_rselend = m_rselstart;
+			m_rselstart = t;
+		}
+		LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+	}
+
+	private String getSelectedHex()
+	{
+		byte[] bs = getSelectedBytes();
+		int pos = 0;
+		int len = bs.length;
 		StringBuilder sb = new StringBuilder();
-		long selstart = m_selstart;
-		long selend = m_selend;
 		for (int i = 0; i < bs.length; i++, pos++)
 		{
 			byte b = bs[i];
 			byte b1 = (byte) (b & 0xF);
 			byte b0 = (byte) (b >> 4 & 0xF);
-			if (pos >= m_len)
+			if (pos >= len)
 				break;
 
-			if (selstart <= pos && selend >= pos)
-			{
-				sb.append(m_chs[b0]);
-				sb.append(m_chs[b1]);
-			}
-			else if (sb.length() > 0)
-			{
-				break;
-			}
+			sb.append(m_chs[b0]);
+			sb.append(m_chs[b1]);
 		}
 		if (sb.length() > 0)
 			return sb.toString();
@@ -242,24 +463,16 @@ public class BPHexPane extends JPanel
 			if ((e.getModifiersEx() & ct) == ct)
 			{
 				m_isdown = false;
-				long end = getPos(e.getX(), e.getY());
-				if (end < m_selstart)
-				{
-					m_selend = m_selstart;
-					m_selstart = end;
-				}
-				else
-				{
-					m_selend = end;
-				}
+				long end = getPos(e.getX(), e.getY(), 2);
+				setSelectionEnd(end);
 				repaint();
 			}
 			else
 			{
 				m_isdown = true;
-				long pos = getPos(e.getX(), e.getY());
-				m_selstart = pos;
-				m_selend = pos;
+				m_downpt = new int[] { e.getX(), e.getY() };
+				long pos = getPos(e.getX(), e.getY(), 2);
+				setSelection(pos, pos);
 				repaint();
 			}
 		}
@@ -269,60 +482,94 @@ public class BPHexPane extends JPanel
 		}
 	}
 
+	public void setContextActions(List<Action> actions)
+	{
+		Action actcopy = BPAction.build("Copy(Hex)").callback(this::onCopy).getAction();
+		Action actcopytext = BPAction.build("Copy(Text)").callback(this::onCopyText).getAction();
+		List<Action> acts = new ArrayList<Action>();
+		acts.add(actcopy);
+		acts.add(actcopytext);
+		acts.add(BPAction.separator());
+		if (actions != null)
+			acts.addAll(actions);
+		m_actions = acts.toArray(new Action[acts.size()]);
+	}
+
 	protected void showContextMenu(int x, int y)
 	{
-		JPopupMenu pop = new JPopupMenu();
-		BPMenuItem mnucopy = new BPMenuItem(BPAction.build("Copy(Hex)").callback(this::onCopy).getAction());
-		BPMenuItem mnucopytext = new BPMenuItem(BPAction.build("Copy(Text)").callback(this::onCopyText).getAction());
-		BPMenuItem mnudp = new BPMenuItem(BPAction.build("Data Pipe...").callback(this::sendToDataPipe).getAction());
-		pop.add(mnucopy);
-		pop.add(mnucopytext);
-		pop.add(new JPopupMenu.Separator());
-		pop.add(mnudp);
-		pop.show(this, x, y);
+		if (m_actions != null && m_actions.length > 0)
+		{
+			JPopupMenu pop = new JPopupMenu();
+			JComponent[] comps = UIUtil.makeMenuItems(m_actions);
+			for (JComponent comp : comps)
+			{
+				pop.add(comp);
+			}
+			pop.show(this, x, y);
+		}
 	}
 
-	protected void sendToDataPipe(ActionEvent e)
-	{
-		byte[] bs = getSelectedBytes();
-		BPToolGUIDataPipe tool = new BPToolGUIDataPipe();
-		tool.showTool(bs, true);
-	}
-
-	protected byte[] getSelectedBytes()
+	public byte[] getSelectedBytes()
 	{
 		byte[] rc = null;
-		long selstart = m_selstart;
-		long selend = m_selend;
-		int pos = (int) m_pos;
-		if (selstart > -1 && selend > selstart && selstart < Integer.MAX_VALUE && selend < Integer.MAX_VALUE)
+		long selstart = m_rselstart;
+		long selend = m_rselend;
+		rc = getBytes(selstart, selend);
+		return rc;
+	}
+
+	public byte[] getBytes(long start, long end)
+	{
+		byte[] rc = null;
+		if (start > -1 && end >= start && start < Integer.MAX_VALUE && end < Integer.MAX_VALUE)
 		{
-			byte[] bs = m_bs;
-			int l = (int) selend - (int) selstart;
-			rc = new byte[l];
-			System.arraycopy(bs, ((int) selstart) - pos, rc, 0, l);
+			int l = (int) end - (int) start + 1;
+			if (l <= 0)
+			{
+				rc = null;
+			}
+			else
+			{
+				rc = m_readcb.apply(start, l);
+			}
 		}
 		return rc;
+	}
+
+	protected boolean checkSamePt(int x, int y)
+	{
+		if (m_downpt == null)
+			return false;
+		int r = Math.abs(m_downpt[0] - x) + Math.abs(m_downpt[1] - y);
+		if (r > 4)
+			return false;
+		return true;
+	}
+
+	protected void onMouseDrag(MouseEvent e)
+	{
+		if (m_isdown)
+		{
+			if (!checkSamePt(e.getX(), e.getY()))
+			{
+				long end = getPos(e.getX(), e.getY(), 1);
+				setSelectionEnd(end);
+				repaint(1);
+			}
+		}
 	}
 
 	protected void onMouseUp(MouseEvent e)
 	{
 		if (e.getButton() == MouseEvent.BUTTON1)
 		{
-			if (m_isdown)
+			if (m_isdown && !checkSamePt(e.getX(), e.getY()))
 			{
-				long end = getPos(e.getX(), e.getY());
-				if (end < m_selstart)
-				{
-					m_selend = m_selstart;
-					m_selstart = end;
-				}
-				else
-				{
-					m_selend = end;
-				}
+				long end = getPos(e.getX(), e.getY(), 2);
+				setSelectionEnd(end);
 				repaint();
 				m_isdown = false;
+				m_downpt = null;
 			}
 		}
 	}
@@ -330,9 +577,10 @@ public class BPHexPane extends JPanel
 	protected void onMouseLeave(MouseEvent e)
 	{
 		m_isdown = false;
+		m_downpt = null;
 	}
 
-	protected long getPos(int x, int y)
+	protected long getPos(int x, int y, int fixoutofbound)
 	{
 		long rc = -1;
 
@@ -357,10 +605,34 @@ public class BPHexPane extends JPanel
 				py = 0;
 			int tx = x - xgap + 2;
 			int px = tx / (chw + chw + 4);
-			if (px >= m_linesize)
-				px = m_linesize - 1;
-			rc = pos + (py * m_linesize) + px;
+			if (fixoutofbound == 1)
+			{
+				if (px >= m_linesize)
+					px = m_linesize - 1;
+				rc = pos + (py * m_linesize) + px;
+			}
+			else if (fixoutofbound == 2)
+			{
+				if (px >= m_linesize)
+				{
+					long trc = pos + (py * m_linesize) + m_linesize - 1;
+					if (trc == m_len - 1)
+						rc = trc + 1;
+					else
+						rc = trc;
+				}
+				else
+				{
+					rc = pos + (py * m_linesize) + px;
+				}
+			}
+			else
+			{
+				rc = pos + (py * m_linesize) + px;
+			}
 		}
+		if (rc > m_len && fixoutofbound == 1)
+			rc = m_len - 1;
 		return rc;
 	}
 
@@ -377,6 +649,7 @@ public class BPHexPane extends JPanel
 		Color fg = UIConfigs.COLOR_TEXTFG();
 		Color bg = UIConfigs.COLOR_TEXTBG();
 		Color bc = UIConfigs.COLOR_WEAKBORDER();
+		Color h3f = UIConfigs.COLOR_TEXT3QUARTER();
 
 		Font f = getFont();
 		Font f2 = f.deriveFont(Font.BOLD);
@@ -401,21 +674,22 @@ public class BPHexPane extends JPanel
 		String[] chs = m_chs;
 		int linesize = m_linesize;
 		long len = m_len;
+		boolean isinsel = false;
 
 		if (bs == null)
 			return;
 
-		long selstart = m_selstart, selend = m_selend;
+		long selstart = m_rselstart, selend = m_rselend;
 
 		g.setColor(bc);
 		g.drawLine(xgap - 3, 0, xgap - 3, h);
 		g.drawLine(0, YGAP + YHEADER - 1, w, YGAP + YHEADER - 1);
 
 		{
-			byte selstartx = (byte) (m_selstart % (long) linesize);
-			byte selendx = (byte) (m_selend % (long) linesize);
+			byte selstartx = (byte) (selstart % (long) linesize);
+			byte selendx = (byte) (selend % (long) linesize);
 			int selb = 0;
-			if (m_selend - m_selstart >= linesize)
+			if (selend - selstart >= linesize)
 				selb = -1;
 			else if (selendx < selstartx)
 				selb = 1;
@@ -468,33 +742,40 @@ public class BPHexPane extends JPanel
 			byte b0 = (byte) (b >> 4 & 0xF);
 			if (pos >= len)
 				break;
+
+			isinsel = selstart <= pos && selend >= pos;
 			if (i % linesize == 0)
 			{
 				if (selstart <= pos + linesize - 1 && selend >= pos)
 				{
 					g.setColor(fg);
 					g.setFont(f2);
-					g.drawString(getHEX(pos), XGAP, y);
+					g.drawString(getHEXStr(pos), XGAP, y);
 					g.setFont(f);
 				}
 				else
 				{
 					g.setColor(hf);
-					g.drawString(getHEX(pos), XGAP, y);
+					g.drawString(getHEXStr(pos), XGAP, y);
 					g.setColor(fg);
 				}
 			}
 
 			if (selstart <= pos && selend >= pos)
 			{
-				g.setColor(bc);
+				g.setColor(h3f);
 				g.fillRect(x - 2, y + chp - chh, chw + chw + 4, chh);
 				g.setColor(fg);
 			}
+
+			if (isinsel)
+				g.setColor(bg);
 			g.drawString(chs[b0], x, y);
 			x += chw;
 			g.drawString(chs[b1], x, y);
 			x += (chw + 4);
+			g.setColor(fg);
+
 			if ((i + 1) % 16 == 0)
 			{
 				x += chw;
@@ -523,14 +804,39 @@ public class BPHexPane extends JPanel
 	private void onKeyDown(KeyEvent e)
 	{
 		int keycode = e.getKeyCode();
-		if (keycode == KeyEvent.VK_PAGE_DOWN)
+		boolean isshift = ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) == MouseEvent.SHIFT_DOWN_MASK);
+		switch (keycode)
 		{
-			onPage(1);
+			case KeyEvent.VK_PAGE_DOWN:
+			{
+				onPage(1);
+				break;
+			}
+			case KeyEvent.VK_PAGE_UP:
+			{
+				onPage(-1);
+				break;
+			}
+			case KeyEvent.VK_UP:
+			{
+				onMoveCursor(0 - m_linesize, isshift);
+				break;
+			}
+			case KeyEvent.VK_DOWN:
+			{
+				onMoveCursor(m_linesize, isshift);
+				break;
+			}
+			case KeyEvent.VK_LEFT:
+			{
+				onMoveCursor(-1, isshift);
+				break;
+			}
+			case KeyEvent.VK_RIGHT:
+			{
+				onMoveCursor(1, isshift);
+				break;
+			}
 		}
-		else if (keycode == KeyEvent.VK_PAGE_UP)
-		{
-			onPage(-1);
-		}
-
 	}
 }

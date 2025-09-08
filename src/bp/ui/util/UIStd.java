@@ -122,7 +122,7 @@ public class UIStd
 			}
 			else
 			{
-				viewList(lst, null, null);
+				viewList(lst, "BlockP - Show Data", null);
 			}
 		}
 		else

@@ -49,6 +49,7 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 		});
 		m_actcmd = (String) action.getValue(Action.ACTION_COMMAND_KEY);
 		String tooltip = (String) action.getValue(Action.SHORT_DESCRIPTION);
+		setEnabled(action.isEnabled());
 		action.addPropertyChangeListener(this::onPropChanged);
 		if (tooltip != null)
 			setToolTipText(tooltip);
@@ -120,6 +121,7 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 		float scale = 1f;
 		if (f != null)
 			scale = (float) f.getScaleY();
+		g.setColor(isEnabled() ? UIConfigs.COLOR_TEXTHALF() : UIConfigs.COLOR_TEXTQUARTER());
 		if (scale != 1f)
 		{
 			AffineTransform f2 = AffineTransform.getScaleInstance(1, 1);

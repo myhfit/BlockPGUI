@@ -20,6 +20,7 @@ import javax.swing.event.ListSelectionEvent;
 
 import bp.BPGUICore;
 import bp.config.BPSetting;
+import bp.config.BPSettingItem;
 import bp.data.BPDataConsumer;
 import bp.data.BPDataContainer;
 import bp.data.BPDataContainerBase;
@@ -104,7 +105,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_scroll1 = new JScrollPane();
 		m_toolbar = new BPToolBarSQ(true);
 		m_lstcons = new BPList<BPDataConsumer<?>>();
-		m_lstcons.setCellRenderer(new BPList.BPListRenderer(obj -> ((BPDataConsumer<?>) obj).getInfo()));
+		m_lstcons.setCellRenderer(new BPList.BPListRenderer(obj -> ((BPDataConsumer<?>) obj).getID() + ":" + ((BPDataConsumer<?>) obj).getInfo()));
 		m_actrun = BPAction.build("run").tooltip("Run").vIcon(BPIconResV.START()).callback(this::onRunPipe).getAction();
 		m_actaddtf = BPAction.build("add tf").tooltip("Add Transformer").vIcon(BPIconResV.ADD()).callback(this::onCreateTransformer).getAction();
 		m_actaddep = BPAction.build("add ep").tooltip("Add Endpoint").vIcon(BPIconResV.ADD()).callback(this::onCreateEndpoint).getAction();
@@ -270,6 +271,26 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 
 	}
 
+	protected String getDetail(BPDataConsumer<?> c)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(c.getInfo());
+		BPSetting setting = c.getSetting();
+		if (setting != null)
+		{
+			for (BPSettingItem item : setting.getItems())
+			{
+				Object v = setting.get(item.key);
+				if (v != null)
+				{
+					sb.append("\n  ");
+					sb.append(item.name + "=>" + v);
+				}
+			}
+		}
+		return sb.toString();
+	}
+
 	protected void onConfigConsumer(ActionEvent e)
 	{
 		BPDataConsumer<?> c = m_lstcons.getSelectedValue();
@@ -283,19 +304,21 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			dlg.setVisible(true);
 			setting = dlg.getResult();
 			if (setting != null)
-				c.setSetting(setting);
-			m_lstcons.updateUI();
-
-			String key = m_rccmap.get(c);
-			BPDiagramElement ele = m_dcomp.getDiagram().findElement(key);
-			if (ele != null)
 			{
-				ele.label = c.getInfo();
-				ele.measuresize = null;
-				m_dcomp.refresh();
+				c.setSetting(setting);
+				m_lstcons.updateUI();
+
+				String key = m_rccmap.get(c);
+				BPDiagramElement ele = m_dcomp.getDiagram().findElement(key);
+				if (ele != null)
+				{
+					ele.label = c.getID() + ":" + getDetail(c);
+					ele.measuresize = null;
+					m_dcomp.refresh();
+				}
+				m_needsave = true;
+				dispatchStateChanged();
 			}
-			m_needsave = true;
-			dispatchStateChanged();
 		}
 	}
 
@@ -339,7 +362,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		}
 		BPDiagramNode node = new BPDiagramNode(key);
 		node.userdata = c;
-		node.label = c.getInfo();
+		node.label = c.getID() + ":" + getDetail(c);
 		node.x = Math.random() * 200d + 100d;
 		node.y = Math.random() * 200d + 50d;
 		node.layerid = 2;

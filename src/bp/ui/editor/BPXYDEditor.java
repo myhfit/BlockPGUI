@@ -3,6 +3,7 @@ package bp.ui.editor;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.AdjustmentEvent;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -21,10 +22,15 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
+import bp.BPGUICore;
+import bp.compare.BPDataComparator;
+import bp.compare.BPDataComparatorXY;
+import bp.compare.BPDataComparatorXY.BPDataCompareResultXY;
 import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
 import bp.data.BPXData;
@@ -34,13 +40,16 @@ import bp.data.BPXYDData;
 import bp.data.BPXYDDataBase;
 import bp.data.BPXYData;
 import bp.data.BPXYData.BPXYDataList;
-import bp.res.BPResource;
 import bp.data.BPXYHolder;
+import bp.res.BPResource;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPActionHolder;
 import bp.ui.actions.BPXYDEditorActions;
 import bp.ui.actions.BPXYDataCloneActions;
+import bp.ui.compare.BPComparableGUI;
 import bp.ui.container.BPToolBarSQ;
+import bp.ui.parallel.BPEventUISyncEditor;
+import bp.ui.parallel.BPSyncGUI;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPRowFilter;
 import bp.ui.scomp.BPTable.BPTableModel;
@@ -49,20 +58,23 @@ import bp.ui.table.BPTableFuncsXY;
 import bp.ui.util.UIUtil;
 import bp.util.Std;
 
-public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BPEditor<JPanel>, BPViewer<CON>
+public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BPEditor<JPanel>, BPViewer<CON>, BPComparableGUI<BPXYData, BPDataCompareResultXY>, BPSyncGUI
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 9212809561160774333L;
 
+	public final static String SYNCPOSTYPE_XY = "XY";
+	public final static String SYNCSELSTYPE_XY = "XY";
+
 	protected String m_id;
 	protected int m_channelid;
 	protected CON m_con;
 	protected BiConsumer<List<BPXData>, Integer> m_adddatafunc;
 	protected Consumer<BPXYDData> m_setupqueryfunc;
-
 	protected WeakReference<Consumer<String>> m_dynainfo;
+	protected Consumer<BPEventUISyncEditor> m_synccb;
 
 	protected JScrollPane m_scroll;
 	protected BPTableFuncsXY m_funcs;
@@ -70,12 +82,14 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	protected BPTable<BPXData> m_table;
 	protected BPToolBarSQ m_toolbar;
 	protected BPTextField m_txtfilter;
+	protected volatile boolean m_onsync;
+	protected volatile boolean m_blocksync;
 
 	protected BPActionHolder m_acts;
 
 	protected boolean m_needsave;
 
-	private WeakReference<BiConsumer<String, Boolean>> m_statehandler;
+	protected WeakReference<BiConsumer<String, Boolean>> m_statehandler;
 
 	public BPXYDEditor()
 	{
@@ -105,9 +119,12 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_scroll.setBorder(new MatteBorder(1, 0, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 		m_txtfilter.setBorder(new CompoundBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 2)));
 		m_scroll.setViewportView(m_table);
+		m_scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
+		m_scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
 		m_table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		m_table.setMonoFont();
 		m_table.setCommonRenderAlign();
+		m_table.getSelectionModel().addListSelectionListener(this::onSelectionChanged);
 
 		setLayout(new BorderLayout());
 		toppnl.setLayout(new BorderLayout());
@@ -382,6 +399,11 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		}
 	}
 
+	public BPDataComparator<BPXYData, BPDataCompareResultXY> getComparator()
+	{
+		return new BPDataComparatorXY();
+	}
+
 	public void showClone(ActionEvent e)
 	{
 		List<BPXData> datas = m_model.getDatas();
@@ -408,6 +430,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	public void clearResource()
 	{
+		stopSync();
 		if (m_con != null)
 			unbind();
 		if (m_model != null)
@@ -421,5 +444,77 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 			m_model = null;
 		}
 		removeAll();
+	}
+
+	protected void onScroll(AdjustmentEvent e)
+	{
+		if (m_onsync)
+		{
+			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
+			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_XY, xy));
+		}
+	}
+
+	protected void onSelectionChanged(ListSelectionEvent e)
+	{
+		if (m_onsync && !m_blocksync)
+		{
+			int[] sels = m_table.getSelectedRows();
+			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_XY, sels));
+		}
+	}
+
+	public void startSync()
+	{
+		if (m_synccb != null)
+			stopSync();
+		m_synccb = this::onSyncEditor;
+		BPGUICore.EVENTS_UI.on(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
+		m_onsync = true;
+	}
+
+	public void stopSync()
+	{
+		m_onsync = false;
+		if (m_synccb != null)
+			BPGUICore.EVENTS_UI.off(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
+		m_synccb = null;
+	}
+
+	protected void onSyncEditor(BPEventUISyncEditor e)
+	{
+		if (BPEventUISyncEditor.SYNC_POS.equals(e.subkey))
+		{
+			if (SYNCPOSTYPE_XY.equals(e.getSyncDataType()))
+			{
+				String id = (String) e.datas[0];
+				if (!m_id.equals(id))
+				{
+					int[] xy = e.getSyncData();
+					m_scroll.getHorizontalScrollBar().setValue(xy[0]);
+					m_scroll.getVerticalScrollBar().setValue(xy[1]);
+				}
+			}
+		}
+		else if (BPEventUISyncEditor.SYNC_SELECTION.equals(e.subkey))
+		{
+			if (SYNCSELSTYPE_XY.equals(e.getSyncDataType()))
+			{
+				String id = (String) e.datas[0];
+				if (!m_id.equals(id))
+				{
+					int[] sels = e.getSyncData();
+					m_blocksync = true;
+					try
+					{
+						m_table.setSelectionRows(sels);
+					}
+					finally
+					{
+						m_blocksync = false;
+					}
+				}
+			}
+		}
 	}
 }

@@ -36,9 +36,7 @@ public class BPPopupComboList extends JPopupMenu
 
 	protected String m_lasttext;
 	protected WeakRefGo<JTextComponent> m_txtref;
-	protected WeakRefGo<Function<Object, String>> m_transfuncref;
-	protected WeakRefGo<Function<String, List<?>>> m_listfuncref;
-	protected WeakRefGo<Consumer<?>> m_submitref;
+	protected WeakRefGo<BPPopupComboController> m_controllerref;
 
 	protected int m_tarmode = 0;
 
@@ -55,8 +53,7 @@ public class BPPopupComboList extends JPopupMenu
 		JScrollPane scroll = new JScrollPane(m_lst);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		add(scroll);
-
-		m_submitref = new WeakRefGo<Consumer<?>>();
+		m_controllerref = new WeakRefGo<BPPopupComboController>();
 	}
 
 	public void setTargetMode(int mode)
@@ -64,14 +61,12 @@ public class BPPopupComboList extends JPopupMenu
 		m_tarmode = mode;
 	}
 
-	public void bind(JTextComponent txt, Function<String, List<?>> listfunc, Function<Object, String> transfunc)
+	public void bind(JTextComponent txt, BPPopupComboController controller)
 	{
 		m_txtref = new WeakRefGo<JTextComponent>(txt);
-		if (transfunc != null)
-			m_transfuncref = new WeakRefGo<Function<Object, String>>(transfunc);
-		m_listfuncref = new WeakRefGo<Function<String, List<?>>>(listfunc);
+		m_controllerref = new WeakRefGo<BPPopupComboController>(controller);
 		m_lst.setFont(txt.getFont());
-		m_lst.setCellRenderer(new BPList.BPListRenderer(transfunc));
+		m_lst.setCellRenderer(new BPList.BPListRenderer(controller.transfunc));
 		txt.getDocument().addDocumentListener(new UIUtil.BPDocumentChangedHandler(this::onChanged));
 		txt.addComponentListener(new UIUtil.BPComponentListener(null, null, null, this::onHidden));
 		txt.setFocusTraversalKeysEnabled(false);
@@ -84,11 +79,6 @@ public class BPPopupComboList extends JPopupMenu
 		txt.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "onDown");
 		txt.getActionMap().put("onUp", BPAction.build("").callback(this::onUp).getAction());
 		txt.getActionMap().put("onDown", BPAction.build("").callback(this::onDown).getAction());
-	}
-
-	public void setSubmitCB(Consumer<?> submitcb)
-	{
-		m_submitref = new WeakRefGo<Consumer<?>>(submitcb);
 	}
 
 	protected void onKeyDown(KeyEvent e)
@@ -141,13 +131,26 @@ public class BPPopupComboList extends JPopupMenu
 		m_txtref.run(t -> t.setText(txt2));
 		hidePopup();
 		if (needsubmit)
-			m_submitref.run(c -> ((Consumer) c).accept(tar));
+		{
+			m_controllerref.run(c -> c.blockpopup = true);
+			try
+			{
+				Consumer submitfunc = m_controllerref.exec(c -> c.submitfunc);
+				if (submitfunc != null)
+					submitfunc.accept(tar);
+			}
+			finally
+			{
+				m_controllerref.run(c -> c.blockpopup = false);
+			}
+		}
 	}
 
 	protected String transData(Object v)
 	{
-		if (m_transfuncref != null)
-			return m_transfuncref.exec(f -> f.apply(v));
+		Function<Object, String> f = m_controllerref.exec(c -> c.transfunc);
+		if (f != null)
+			return f.apply(v);
 		return ObjUtil.toString(v);
 	}
 
@@ -186,6 +189,8 @@ public class BPPopupComboList extends JPopupMenu
 
 	protected void onChanged(DocumentEvent e)
 	{
+		if (m_controllerref.exec(c -> c.blockpopup))
+			return;
 		String txt = m_txtref.exec(t -> t.getText());
 		if (txt.length() == 0)
 		{
@@ -220,7 +225,7 @@ public class BPPopupComboList extends JPopupMenu
 	@SuppressWarnings("unchecked")
 	protected List<Object> getDatas(String txt)
 	{
-		return (List<Object>) m_listfuncref.exec(f -> f.apply(txt));
+		return (List<Object>) m_controllerref.exec(c -> c.listfunc.apply(txt));
 	}
 
 	protected void hidePopup()
@@ -234,7 +239,27 @@ public class BPPopupComboList extends JPopupMenu
 		m_txtref.run(t ->
 		{
 			setPreferredSize(new Dimension(t.getWidth(), 250));
-			show(t.getParent(), t.getX(), t.getY() + t.getHeight());
+			show(t.getParent(), t.getX(), t.getY() + t.getHeight() - 1);
 		});
+	}
+
+	public static class BPPopupComboController
+	{
+		public Function<String, List<?>> listfunc;
+		public Function<Object, String> transfunc;
+		public Consumer<?> submitfunc;
+		public boolean blockpopup;
+
+		public BPPopupComboController()
+		{
+
+		}
+
+		public BPPopupComboController(Function<String, List<?>> listfunc, Function<Object, String> transfunc, Consumer<?> submitfunc)
+		{
+			this.listfunc = listfunc;
+			this.transfunc = transfunc;
+			this.submitfunc = submitfunc;
+		}
 	}
 }

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,6 +27,7 @@ import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
 import bp.ui.scomp.BPPopupComboList;
+import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
 import bp.ui.scomp.BPTableSetting;
 import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
@@ -48,10 +48,8 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 	protected JScrollPane m_rbpan;
 	protected JPanel m_rpan;
 	protected BPTextField m_txtfilter;
-	protected Function<Object, String> m_etextfunc;
-	protected Function<String, List<?>> m_listeditorfunc;
-	protected Consumer<BPEditorFactory> m_filtersubmitcb;
 	protected BPPopupComboList m_popupfilter;
+	protected BPPopupComboController m_popupc;
 	protected boolean m_iscreate;
 	protected List<BPEditorFactory> m_allfacs;
 
@@ -78,9 +76,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 	protected void initUIComponents()
 	{
 		setLayout(new BorderLayout());
-		m_listeditorfunc = this::listEditors;
-		m_filtersubmitcb = this::submitEditor;
-		m_etextfunc = this::getEditorText;
+		m_popupc = new BPPopupComboController(this::listEditors, this::getEditorText, (Consumer<BPEditorFactory>) this::submitEditor);
 		JPanel pmain = new JPanel();
 		JScrollPane scroll = new JScrollPane();
 		JScrollPane scroll2 = new JScrollPane();
@@ -96,6 +92,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		m_rbpan.setVisible(false);
 		m_rbpan.setViewportView(m_tbsetting);
 
+		m_tbsetting.setTableFont();
 		m_txtfilter.setMonoFont();
 		lbl.setLabelFont();
 		lbl2.setLabelFont();
@@ -105,8 +102,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		m_lsteditorfac.setCellRenderer(new BPList.BPListRenderer((fac) -> ((BPEditorFactory) fac).getName()));
 
 		m_popupfilter = new BPPopupComboList();
-		m_popupfilter.bind(m_txtfilter, m_listeditorfunc, m_etextfunc);
-		m_popupfilter.setSubmitCB(m_filtersubmitcb);
+		m_popupfilter.bind(m_txtfilter, m_popupc);
 
 		m_lstformat.addMouseListener(new UIUtil.BPMouseListener(this::onFormatClick, null, null, null, null));
 		m_lsteditorfac.addMouseListener(new UIUtil.BPMouseListener(this::onEditorClick, null, null, null, null));
@@ -174,6 +170,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 			m_format = BPFormatManager.getFormatByName(fs[0]);
 		else
 			m_format = null;
+		m_setting = null;
 		m_actionresult = COMMAND_OK;
 		close();
 	}

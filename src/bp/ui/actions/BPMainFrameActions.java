@@ -76,7 +76,7 @@ public class BPMainFrameActions
 		scswitchlasttab = BPAction.build("SwitchLastTab").callback((e) -> m_mf.switchTab(-1)).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.CTRL_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK)).getAction();
 		scclosecurrenttab = BPAction.build("CloseCurrentTab").callback((e) -> m_mf.closeCurrentTab()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK)).getAction();
 
-		navresource = BPAction.build("Resource...").callback((e) -> m_mf.showLocateResoruce()).mnemonicKey(KeyEvent.VK_R).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)).getAction();
+		navresource = BPAction.build("Resource...").callback((e) -> m_mf.showLocateResource()).mnemonicKey(KeyEvent.VK_R).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)).getAction();
 		navprjitem = BPAction.build("Project Item...").callback((e) -> m_mf.showLocateProjectItem()).mnemonicKey(KeyEvent.VK_P).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_DOWN_MASK)).getAction();
 		naveditor = BPAction.build("Editor...").callback((e) -> m_mf.showSwitchEditor()).mnemonicKey(KeyEvent.VK_E).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)).getAction();
 		navoverview = BPAction.build("Overview...").callback((e) -> m_mf.showOverview()).mnemonicKey(KeyEvent.VK_O).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.ALT_DOWN_MASK)).getAction();

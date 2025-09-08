@@ -143,6 +143,11 @@ public class BPFileField extends BPTextField
 				showPopup();
 		}
 	}
+	
+	public void setRootDir()
+	{
+		
+	}
 
 	protected void hidePopup()
 	{

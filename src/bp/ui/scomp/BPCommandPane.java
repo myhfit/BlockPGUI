@@ -6,7 +6,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -17,6 +16,7 @@ import bp.core.BPCommandHandlerCore;
 import bp.data.BPCommand;
 import bp.data.BPCommandResult;
 import bp.remote.BPConnector;
+import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 
@@ -33,7 +33,7 @@ public class BPCommandPane extends JPanel implements FocusListener
 	protected int m_cmdpos = 0;
 	protected volatile BPConnector m_conn;
 	protected BPPopupComboList m_popup;
-	protected Function<String, List<?>> m_listfunc;
+	protected BPPopupComboController m_popupc;
 
 	public BPCommandPane()
 	{
@@ -48,9 +48,9 @@ public class BPCommandPane extends JPanel implements FocusListener
 		m_txt.setMonoFont();
 		m_lbl.setFont(UIUtil.deltaFont(m_txt.getFont(), 1));
 
-		m_listfunc = this::listCommands;
+		m_popupc = new BPPopupComboController(this::listCommands, null, null);
 		m_popup = new BPPopupComboList();
-		m_popup.bind(m_txt, m_listfunc, null);
+		m_popup.bind(m_txt, m_popupc);
 
 		setBackground(m_txt.getBackground());
 		setLayout(new BorderLayout());
@@ -78,7 +78,7 @@ public class BPCommandPane extends JPanel implements FocusListener
 			if (r != null)
 				cmds = (List<String>) r.data;
 		}
-		
+
 		List<String> rc = new ArrayList<String>();
 		if (cmds != null)
 		{

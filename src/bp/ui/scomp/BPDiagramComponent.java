@@ -228,6 +228,7 @@ public class BPDiagramComponent extends JComponent
 					int mflag = n.measureflag;
 					int x, y, rw, rh, a;
 					double w, h;
+					String[] lines = text.split("\n");
 					if (msize != null && mflag == newfontsize)
 					{
 						w = msize[0] * scale;
@@ -238,15 +239,48 @@ public class BPDiagramComponent extends JComponent
 					}
 					else
 					{
-						LineMetrics lm = fm.getLineMetrics(text, g);
-						Rectangle2D rect = fm.getStringBounds(text, g);
-						w = rect.getWidth();
-						h = lm.getHeight();
-						a = (int) Math.round(lm.getAscent());
+						Object[][] measures = UIUtil.measureLines(fm, lines, g);
+						double[] newms;
+						{
+							int l = lines.length;
+							newms = new double[l + l + l + 3];
+						}
+
+						w = 0;
+						h = 0;
+						if (measures.length > 0)
+						{
+							a = (int) Math.round(((LineMetrics) measures[0][0]).getAscent());
+							int sti = 3;
+							for (int i = 0; i < measures.length; i++)
+							{
+								LineMetrics lm = (LineMetrics) measures[i][0];
+								Rectangle2D rect = (Rectangle2D) measures[i][1];
+								double linew = rect.getWidth();
+								double lineh = rect.getHeight();
+								w = Math.max(w, linew);
+								h += lineh;
+
+								newms[sti] = linew / scale;
+								newms[sti + 1] = lineh / scale;
+								newms[sti + 2] = lm.getAscent() / scale;
+								sti += 3;
+							}
+							newms[0] = w / scale;
+							newms[1] = h / scale;
+							newms[2] = a / scale;
+						}
+						else
+						{
+							a = 0;
+							newms = new double[] { w / scale, h / scale, a / scale };
+						}
+
 						x = (int) Math.round(tmppt[0] - (w / 2));
 						y = (int) Math.round(tmppt[1] - (h / 2));
-						n.measuresize = new double[] { w / scale, h / scale, a / scale };
+						n.measuresize = newms;
 						n.measureflag = newfontsize;
+						msize = newms;
 					}
 					rw = (int) Math.round(w);
 					rh = (int) Math.round(h);
@@ -259,7 +293,13 @@ public class BPDiagramComponent extends JComponent
 					g.fillRect(x - 2 - dx, y - 1 - dy, rw + 4, rh + 2);
 					g.setColor(fg);
 					g.drawRect(x - 2 - dx, y - 1 - dy, rw + 4, rh + 2);
-					g.drawString(text, x - dx, y + a - dy);
+
+					int ty = 0;
+					for (int i = 0; i < lines.length; i++)
+					{
+						g.drawString(lines[i], x - dx, y + a - dy + ty);
+						ty += msize[4 + i * 3];
+					}
 				}
 				else if (et == BPDiagramElement.ELEMENTTYPE_LINK)
 				{

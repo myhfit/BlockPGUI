@@ -117,7 +117,7 @@ public class BPTextPane extends BPEditorPane
 		setText("");
 	}
 
-	public void find(String target, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
+	public int find(String target, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
 	{
 		int pos = isforward ? getSelectionEnd() : getSelectionStart();
 		if (pos < 0)
@@ -134,6 +134,7 @@ public class BPTextPane extends BPEditorPane
 			setSelectionStart(si);
 			setSelectionEnd(si + target.length());
 		}
+		return si;
 	}
 
 	protected int findPos(String target, String text, int st, boolean isforward, boolean wholeword, boolean casesensitive)
@@ -154,11 +155,26 @@ public class BPTextPane extends BPEditorPane
 
 	public void replace(String src, String dest, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
 	{
+		int si = find(src, isforward, wholeword, casesensitive, onlysel);
+		if (si != -1)
+		{
+			int selstart = getSelectionStart();
+			replaceSelection(dest);
+			setSelectionStart(selstart);
+			setSelectionEnd(selstart + dest.length());
+		}
 	}
 
 	public void replaceAll(String src, String dest, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
 	{
-
+		setSelectionStart(0);
+		setSelectionEnd(-1);
+		int si = find(src, true, wholeword, casesensitive, onlysel);
+		while (si > -1)
+		{
+			replaceSelection(dest);
+			si = find(src, true, wholeword, casesensitive, onlysel);
+		}
 	}
 
 	public void setSaved()
@@ -306,7 +322,7 @@ public class BPTextPane extends BPEditorPane
 	static class TextView extends PlainView
 	{
 		protected Element longLine;
-		
+
 		public TextView(Element elem)
 		{
 			super(elem);

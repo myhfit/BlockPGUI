@@ -10,7 +10,6 @@ import java.awt.event.WindowListener;
 import javax.swing.JPanel;
 
 import bp.ui.frame.BPFrame;
-import bp.util.LogicUtil.WeakRefGo;
 
 public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> implements BPToolGUI
 {
@@ -95,7 +94,7 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 		 */
 		private static final long serialVersionUID = 5281557063189501609L;
 
-		protected WeakRefGo<BPToolGUIContext> m_contextref = new WeakRefGo<BPToolGUIContext>(null);
+		protected BPToolGUIContext m_context = null;
 
 		protected void initUIComponents()
 		{
@@ -104,7 +103,7 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 
 		public void setContext(BPToolGUIContext context)
 		{
-			m_contextref.setTarget(context);
+			m_context = context;
 		}
 
 		protected void initDatas()
@@ -121,7 +120,8 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 
 		public void windowClosed(WindowEvent e)
 		{
-			m_contextref.run(con -> con.clearResource());
+			m_context.clearResource();
+			m_context = null;
 		}
 
 		public void windowIconified(WindowEvent e)

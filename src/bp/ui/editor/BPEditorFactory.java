@@ -10,7 +10,6 @@ import bp.config.BPSettingItem;
 import bp.console.BPConsoleCLI;
 import bp.data.BPDataContainerFactory;
 import bp.data.BPDataContainerRandomAccess;
-import bp.data.BPDataContainerRandomAccessBase;
 import bp.data.BPDataHolder;
 import bp.data.BPDataPipes;
 import bp.data.BPDiagram;
@@ -363,18 +362,8 @@ public interface BPEditorFactory
 
 		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
 		{
-			if (res.isFileSystem() && ((BPResourceFileSystem) res).isFile())
-			{
-				BPDataContainerRandomAccess con = new BPDataContainerRandomAccessBase();
-				con.bind(res);
-				((BPRawEditor) editor).bind(con);
-			}
-			else if (res instanceof BPResourceHolder && ((BPResourceHolder) res).isHold(byte[].class))
-			{
-				BPDataContainerRandomAccess con = new BPDataContainerRandomAccessBase();
-				con.bind(res);
-				((BPRawEditor) editor).bind(con);
-			}
+			BPDataContainerRandomAccess con = (BPDataContainerRandomAccess) editor.createDataContainer(res);
+			((BPRawEditor) editor).bind(con);
 		}
 
 		public String getName()
@@ -479,6 +468,33 @@ public interface BPEditorFactory
 		public String getName()
 		{
 			return "Data Pipes Editor";
+		}
+
+		public boolean handleFormat(String formatkey)
+		{
+			return false;
+		}
+	}
+
+	public static class BPEditorFactoryClient implements BPEditorFactory
+	{
+		public String[] getFormats()
+		{
+			return new String[] { BPFormatUnknown.FORMAT_NA };
+		}
+
+		public BPEditor<?> createEditor(BPFormat format, BPResource res, BPConfig options, Object... params)
+		{
+			return new BPClientPanel();
+		}
+
+		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
+		{
+		}
+
+		public String getName()
+		{
+			return "Client Panel";
 		}
 
 		public boolean handleFormat(String formatkey)
