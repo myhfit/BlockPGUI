@@ -72,4 +72,9 @@ public class BPDialogSetting extends BPDialogCommon
 	{
 		return m_result;
 	}
+
+	public void setEditable(boolean b)
+	{
+		m_tbsetting.setEnabled(b);
+	}
 }

@@ -142,6 +142,12 @@ public class BPGUICore
 		return S_MF.exec(seg);
 	}
 
+	public final static boolean checkMainFrameVisible()
+	{
+		Boolean r = S_MF.exec(mf -> mf.isVisible());
+		return r != null && r == true;
+	}
+
 	public final static void runOnMainFrame(Consumer<BPMainFrameIFC> seg)
 	{
 		S_MF.run(seg);
@@ -153,6 +159,12 @@ public class BPGUICore
 		if (f0 != null && f0 instanceof BPFrameHostIFC)
 			return seg.apply((BPFrameHostIFC) f0);
 		return null;
+	}
+
+	public final static boolean checkCurrentFrameVisible()
+	{
+		Frame f0 = getCurrentFrame();
+		return f0 != null && f0.isVisible();
 	}
 
 	public final static void runOnCurrentFrame(Consumer<BPFrameHostIFC> seg)

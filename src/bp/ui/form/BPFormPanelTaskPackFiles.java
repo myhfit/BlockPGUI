@@ -8,11 +8,14 @@ import java.util.Map;
 import bp.BPCore;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
+import bp.res.BPResourceFileSystem;
 import bp.ui.dialog.BPDialogSelectResourceDir;
 import bp.ui.dialog.BPDialogSelectResourceList;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
+import bp.util.LogicUtil;
+import bp.util.ObjUtil;
 
 public class BPFormPanelTaskPackFiles extends BPFormPanelTask
 {
@@ -96,9 +99,7 @@ public class BPFormPanelTaskPackFiles extends BPFormPanelTask
 		{
 			String[] ops = oldpath.split(";");
 			for (String op : ops)
-			{
-				oldress.add(BPCore.getFileContext().getRes(op));
-			}
+				LogicUtil.IFVU(BPCore.getFileContext().getRes(op), res -> oldress.add(res));
 		}
 		BPDialogSelectResourceList dlg = new BPDialogSelectResourceList();
 		dlg.setResourceList(oldress);
@@ -106,19 +107,7 @@ public class BPFormPanelTaskPackFiles extends BPFormPanelTask
 		dlg.setVisible(true);
 		List<BPResource> rs = dlg.getResult();
 		if (rs != null)
-		{
-			StringBuilder sb = new StringBuilder();
-			for (BPResource r : rs)
-			{
-				if (r != null)
-				{
-					if (sb.length() > 0)
-						sb.append(";");
-					sb.append(BPCore.getFileContext().comparePath(((BPResourceDir) r).getFileFullName()));
-				}
-			}
-			rc = sb.toString();
-		}
+			rc = ObjUtil.joinDatas(rs, ";", res -> BPCore.getFileContext().comparePath(((BPResourceFileSystem) res).getFileFullName()), false);
 		return rc;
 	}
 }

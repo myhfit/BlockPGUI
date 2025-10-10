@@ -51,7 +51,7 @@ public class BPDialogForm extends BPDialogCommon
 
 	protected void setPrefers()
 	{
-		setPreferredSize(UIUtil.scaleUIDimension(new Dimension(500, 600)));
+		setPreferredSize(UIUtil.scaleUIDimension(new Dimension(640, 600)));
 		super.setPrefers();
 	}
 

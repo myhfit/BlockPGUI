@@ -4,13 +4,19 @@ import java.awt.Desktop;
 import java.awt.Dialog;
 import java.awt.FileDialog;
 import java.awt.Frame;
+import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import bp.BPCore;
@@ -36,13 +42,16 @@ import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
 import bp.ui.BPComponent;
 import bp.ui.container.BPRoutableContainer;
+import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommonCategoryView;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogLocateCachedResource;
+import bp.ui.dialog.BPDialogLocateProjectItem;
 import bp.ui.dialog.BPDialogNewProject;
 import bp.ui.dialog.BPDialogNewSchedule;
 import bp.ui.dialog.BPDialogNewTask;
 import bp.ui.dialog.BPDialogSelectResource2;
+import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
@@ -53,7 +62,9 @@ import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeComponent;
 import bp.util.ClassUtil;
 import bp.util.FileUtil;
+import bp.util.LogicUtil.WeakRefGo;
 import bp.util.ObjUtil;
+import bp.util.ResourceUtil;
 import bp.util.ScheduleUtil;
 import bp.util.Std;
 import bp.util.SystemUtil;
@@ -362,9 +373,14 @@ public class CommonUIOperations
 
 	public final static BPResource selectResource(Window par, boolean issave)
 	{
+		return selectResource(par, issave, null);
+	}
+
+	public final static BPResource selectResource(Window par, boolean issave, String[] exts)
+	{
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2(par);
 		if (issave)
-			dlg.showSave();
+			dlg.showSave(exts);
 		else
 			dlg.showOpen();
 		return dlg.getSelectedResource();
@@ -626,6 +642,81 @@ public class CommonUIOperations
 			{
 				Std.err(re);
 				UIStd.err(re);
+			}
+		}
+	}
+
+	public final static void copyResources(BPResource[] ress)
+	{
+		List<String> rs = new ArrayList<String>();
+		for (BPResource res : ress)
+		{
+			if (res.isFileSystem())
+				rs.add(((BPResourceFileSystem) res).getFileFullName());
+		}
+		if (rs.size() > 0)
+		{
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			clipboard.setContents(new FileTransferable(rs), null);
+		}
+	}
+
+	public final static void showCopyResourcesTo(BPResource[] ress, Window par)
+	{
+		if (ress == null || ress.length == 0)
+			return;
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2(par);
+		dlg.setSelectType(SELECTTYPE.DIR);
+		dlg.showOpen();
+		BPResourceDir dir = (BPResourceDir) dlg.getSelectedResource();
+		if (dir != null)
+		{
+			WeakRefGo<BPDialogBlock<?>> dlgref = new WeakRefGo<BPDialogBlock<?>>();
+			Consumer<int[]> cbrefresh = (vs) -> dlgref.run(dlg2 -> dlg2.refreshText(vs[0] + "/" + vs[1]));
+			AtomicReference<int[]> iarrref = new AtomicReference<>();
+			UIUtil.LaterUIUpdateSegment<int[]> uiseg = new UIUtil.LaterUIUpdateSegment<int[]>(cbrefresh, iarrref);
+			BiConsumer<Integer, Integer> pcb = (v, max) -> uiseg.updateObject(new int[] { v, max });
+			UIUtil.block(() -> CompletableFuture.supplyAsync(() -> ResourceUtil.copyResources(ress, dir, pcb)), "Copying...", true, false, dlg2 -> dlgref.setTarget(dlg2));
+		}
+	}
+
+	public final static void showLocateProjectItem()
+	{
+		BPDialogLocateProjectItem dlg = new BPDialogLocateProjectItem();
+		dlg.doSearch();
+		dlg.setVisible(true);
+		BPResource res = dlg.getSelectedResource();
+		if (res != null)
+		{
+			if (!BPGUICore.checkMainFrameVisible())
+				openResourceNewWindow(res, null, null, null, null);
+			else
+			{
+				BPGUICore.runOnMainFrame(mf ->
+				{
+					mf.openResource(res, null, null, false, null);
+					mf.toFront();
+				});
+			}
+		}
+	}
+
+	public final static void showLocateResource()
+	{
+		BPDialogLocateCachedResource dlg = new BPDialogLocateCachedResource();
+		dlg.setVisible(true);
+		BPResource res = dlg.getSelectedResource();
+		if (res != null)
+		{
+			if (!BPGUICore.checkMainFrameVisible())
+				openResourceNewWindow(res, null, null, null, null);
+			else
+			{
+				BPGUICore.runOnMainFrame(mf ->
+				{
+					mf.openResource(res, null, null, false, null);
+					mf.toFront();
+				});
 			}
 		}
 	}

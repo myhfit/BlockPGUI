@@ -242,6 +242,7 @@ public class BPTable<T> extends JTable
 				int p = sels[i];
 				if (p >= l)
 					continue;
+				p = convertRowIndexToView(p);
 				if (i == 0)
 				{
 					setRowSelectionInterval(p, p);

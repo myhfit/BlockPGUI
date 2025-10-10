@@ -25,6 +25,8 @@ public interface BPFrameHostIFC
 
 	void fullScreen();
 	
+	void toFront();
+	
 	void dispose();
 
 	List<BPComponent<?>> getEditorList();

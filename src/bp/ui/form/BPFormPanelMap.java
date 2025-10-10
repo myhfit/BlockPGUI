@@ -99,6 +99,7 @@ public class BPFormPanelMap extends BPFormPanel
 		m_tabkvs = new BPKVTable();
 		BPKVTableFuncsEditable funcs = new BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable();
 		m_tabkvs.setModel(new BPTableModel<BPKVTable.KV>(funcs));
+		m_tabkvs.getBPTableModel().setDatas(new ArrayList<KV>());
 		m_tabkvs.initRowSorter();
 		m_tabfuncs = funcs;
 		JScrollPane scroll = new JScrollPane(m_tabkvs);

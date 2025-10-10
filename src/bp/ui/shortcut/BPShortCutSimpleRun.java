@@ -50,7 +50,7 @@ public class BPShortCutSimpleRun extends BPShortCutBase
 		rc.addItem(BPSettingItem.create(SC_KEY_DIR, "Work Dir", BPSettingItem.ITEM_TYPE_TEXT, null));
 		rc.addItem(BPSettingItem.create(SC_KEY_ARGS, "Arguments", BPSettingItem.ITEM_TYPE_TEXT, null));
 
-		Map<String, Object> ps = new LinkedHashMap<String, Object>(m_params);
+		Map<String, Object> ps = m_params == null ? new LinkedHashMap<String, Object>() : new LinkedHashMap<String, Object>(m_params);
 		Object argobj = ps.get(SC_KEY_ARGS);
 		if (argobj != null)
 		{

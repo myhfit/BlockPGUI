@@ -3,8 +3,10 @@ package bp.ui.tree;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -17,6 +19,7 @@ import javax.swing.tree.TreePath;
 import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeFuncs.BPTreeFuncsVoid;
 import bp.ui.util.UIUtil;
+import bp.util.LogicUtil.WeakRefGo;
 
 public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTree>
 {
@@ -25,11 +28,14 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 	 */
 	private static final long serialVersionUID = 8516452067413933407L;
 
+	protected WeakRefGo<Function<List<Action>, List<Action>>> m_fixerref;
+
 	public BPTreeComponentBase()
 	{
 		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouseDown, null, null, null));
 		addKeyListener(new UIUtil.BPKeyListener(null, this::onKeyDown, null));
 		addTreeSelectionListener(this::onTreeSelected);
+		m_fixerref = new WeakRefGo<>();
 	}
 
 	public BPTree getComponent()
@@ -177,7 +183,7 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 			{
 				if (node != null)
 				{
-					List<Action> acts = getTreeFuncs().getActions(this, node);
+					List<Action> acts = tryFixAction(getTreeFuncs().getActions(this, node));
 					if (acts != null && acts.size() > 0)
 					{
 						JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
@@ -235,7 +241,7 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 				if (!flag)
 					setSelectionPath(path);
 			}
-			List<Action> acts = getTreeFuncs().getActions(this, ((path != null) ? (BPTreeNode) path.getLastPathComponent() : null));
+			List<Action> acts = tryFixAction(getTreeFuncs().getActions(this, ((path != null) ? (BPTreeNode) path.getLastPathComponent() : null)));
 			if (acts != null && acts.size() > 0)
 			{
 				JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
@@ -249,6 +255,17 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 		}
 	}
 
+	protected List<Action> tryFixAction(List<Action> acts)
+	{
+		if (acts != null)
+		{
+			List<Action> newacts = m_fixerref.exec(f -> f.apply(acts));
+			if (newacts != null)
+				return newacts;
+		}
+		return acts;
+	}
+
 	public void reloadModel()
 	{
 		((DefaultTreeModel) getModel()).reload();
@@ -257,5 +274,23 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 	public void clearResource()
 	{
 		setModel(new BPTreeModel(new BPTreeFuncsVoid()));
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T[] getSelectedLeafs(Class<T> leafcls)
+	{
+		Object[][] paths = getSelectedNodeUserObjectPaths();
+		T[] rc = (T[]) Array.newInstance(leafcls, paths.length);
+		for (int i = 0; i < paths.length; i++)
+		{
+			Object[] path = paths[i];
+			rc[i] = (T) path[path.length - 1];
+		}
+		return rc;
+	}
+
+	public void setContextActionFixer(Function<List<Action>, List<Action>> fixer)
+	{
+		m_fixerref.setTarget(fixer);
 	}
 }

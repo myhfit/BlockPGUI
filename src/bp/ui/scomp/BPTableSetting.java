@@ -50,6 +50,11 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 		refreshData();
 	}
 
+	public void setEditable(boolean flag)
+	{
+		((BPCellEditorSettingItem) getColumnModel().getColumn(1).getCellEditor()).setEditable(flag);
+	}
+
 	protected final static class BPCellEditorSettingItem extends AbstractCellEditor implements TableCellEditor
 	{
 		/**
@@ -62,6 +67,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 		protected BPButton m_btn;
 		protected boolean m_isressave;
 		protected int m_sb;
+		protected boolean m_disable;
 
 		public BPCellEditorSettingItem()
 		{
@@ -86,6 +92,11 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 			}
 		}
 
+		public void setEditable(boolean flag)
+		{
+			m_disable = !flag;
+		}
+
 		public Object getCellEditorValue()
 		{
 			switch (m_sb)
@@ -102,7 +113,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 
 		public boolean isCellEditable(EventObject e)
 		{
-			return true;
+			return !m_disable;
 		}
 
 		@SuppressWarnings("unchecked")

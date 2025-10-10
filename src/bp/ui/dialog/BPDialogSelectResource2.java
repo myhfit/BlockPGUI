@@ -25,7 +25,9 @@ import bp.event.BPEventCoreUI;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFactory;
+import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPPathTreeNodeActions;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPTextField;
@@ -105,7 +107,17 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 				}
 				case BPEventUIPathTree.NODE_ACTION:
 				{
-					m_ptreehandler.onPathTreeEvent(event);
+					if (event.getActionName().equals(BPPathTreeNodeActions.ACTION_OPENFILE))
+						callCommonAction(COMMAND_OK);
+					else
+						m_ptreehandler.onPathTreeEvent(event);
+					break;
+				}
+				case BPEventUIPathTree.NODE_OPEN:
+				{
+					BPResource res = event.getSelectedResource();
+					if (res.isLeaf())
+						callCommonAction(COMMAND_OK);
 					break;
 				}
 			}
@@ -125,9 +137,9 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 			}
 		}
 		if (m_selecttype == SELECTTYPE.DIR)
-			return !res.isLeaf();
+			return res.isFileSystem() && !res.isLeaf();
 		else if (m_selecttype == SELECTTYPE.FILE)
-			return res.isLeaf();
+			return res.isFileSystem() && res.isLeaf();
 		return true;
 	}
 
@@ -179,7 +191,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 		add(mainp, BorderLayout.CENTER);
 
-		setCommandBarMode(COMMANDBAR_OK_CANCEL);
+		setCommandBarMode(COMMANDBAR_OKENTER_CANCEL);
 
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
@@ -390,40 +402,47 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 				}
 				else
 				{
-					if (checkexist == CHECKEXITFLAG.CONFIRMOVERWRITE)
+					if (checkexist != CHECKEXITFLAG.BLOCKNOTEXIST)
 					{
-						if (!UIStd.confirm(this, res.toString() + " exists, \nOverwrite?", "Confirm"))
-							return true;
-					}
-					if (!res.isLeaf())
-					{
-						String filename = m_filebox.getText().trim();
-						if (filename.isEmpty())
+						if (!res.isLeaf())
 						{
-							m_filebox.setBorder(new MatteBorder(1, 1, 1, 1, Color.RED));
-							return true;
-						}
-						else
-						{
-							rc = ((BPResourceDir) res).getChild(filename, false);
-						}
-					}
-					else
-					{
-						String filename = m_filebox.getText().trim();
-						if (filename.isEmpty())
-							rc = res;
-						else
-						{
-							if (filename.equals(res.getName()))
+							String filename = m_filebox.getText().trim();
+							if (filename.isEmpty())
 							{
-								rc = res;
+								m_filebox.setBorder(new MatteBorder(1, 1, 1, 1, Color.RED));
+								return true;
 							}
 							else
 							{
-								rc = ((BPResourceDir) res.getParentResource()).getChild(filename, false);
+								rc = ((BPResourceDir) res).getChild(filename, false);
 							}
 						}
+						else
+						{
+							String filename = m_filebox.getText().trim();
+							if (filename.isEmpty())
+								rc = res;
+							else
+							{
+								if (filename.equals(res.getName()))
+								{
+									rc = res;
+								}
+								else
+								{
+									BPResourceDir dir = (BPResourceDir) res.getParentResource();
+									if (dir != null)
+										rc = ((BPResourceDir) res.getParentResource()).getChild(filename, false);
+									else
+										rc = res;
+								}
+							}
+						}
+					}
+					if (rc != null && rc.isFileSystem() && ((BPResourceFileSystem) rc).exists() && checkexist == CHECKEXITFLAG.CONFIRMOVERWRITE)
+					{
+						if (!UIStd.confirm(this, res.toString() + " exists, \nOverwrite?", "Confirm"))
+							return true;
 					}
 				}
 				if (rc != null)

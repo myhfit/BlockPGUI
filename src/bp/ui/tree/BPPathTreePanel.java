@@ -1,6 +1,7 @@
 package bp.ui.tree;
 
 import java.awt.BorderLayout;
+import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
@@ -12,8 +13,10 @@ import javax.swing.border.MatteBorder;
 import javax.swing.tree.TreePath;
 
 import bp.BPCore;
+import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.context.BPFileContext;
+import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
 import bp.event.BPEventUI;
 import bp.res.BPResource;
@@ -245,6 +248,11 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 			return rc;
 		}
 
+		public BPResource[] getSelectedResources()
+		{
+			return (BPResource[]) datas[0];
+		}
+
 		public BPResource[] getSelectedResourcePath()
 		{
 			return (BPResource[]) datas[0];
@@ -351,5 +359,32 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 	public <T> T getRootData()
 	{
 		return (T) ((BPPathTreeFuncs) m_tree.getTreeFuncs()).getRootPath();
+	}
+
+	protected static class BPPathTreeEventHandler implements Consumer<BPEventUIPathTree>
+	{
+		protected int m_chid;
+		protected WeakReference<BPTreeComponent<?>> m_pref;
+
+		public BPPathTreeEventHandler(BPTreeComponent<?> p)
+		{
+			BPEventChannelUI channelui = new BPEventChannelUI();
+			m_chid = BPGUICore.EVENTS_UI.addChannel(channelui);
+		}
+
+		public void accept(BPEventUIPathTree t)
+		{
+
+		}
+
+		public int getChannelID()
+		{
+			return m_chid;
+		}
+
+		public void clearResource()
+		{
+			BPGUICore.EVENTS_UI.removeChannel(m_chid);
+		}
 	}
 }

@@ -504,14 +504,18 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 				if (!m_id.equals(id))
 				{
 					int[] sels = e.getSyncData();
-					m_blocksync = true;
-					try
+					if (sels.length > 0)
 					{
-						m_table.setSelectionRows(sels);
-					}
-					finally
-					{
-						m_blocksync = false;
+						m_blocksync = true;
+						try
+						{
+							m_table.setSelectionRows(sels);
+							m_table.scrollRectToVisible(m_table.getCellRect(sels[0], 0, true));
+						}
+						finally
+						{
+							m_blocksync = false;
+						}
 					}
 				}
 			}

@@ -21,6 +21,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
+import bp.config.BPSetting;
 import bp.config.UIConfigs;
 import bp.event.BPEventCoreUI;
 import bp.task.BPTask;
@@ -28,6 +29,7 @@ import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
+import bp.ui.dialog.BPDialogSetting;
 import bp.ui.form.BPFormManager;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPProgressBar;
@@ -36,6 +38,7 @@ import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPToolVIconButton;
 import bp.ui.table.BPTableFuncsTask;
 import bp.ui.util.CommonUIOperations;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
 import bp.util.NumberUtil;
@@ -214,6 +217,16 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 		List<BPTask<?>> tasks = m_tabtasks.getSelectedDatas();
 		for (BPTask<?> task : tasks)
 		{
+			if (task.needConfirm())
+			{
+				if (UIStd.confirm(getFocusCycleRootAncestor(), "BlockP - Start task", "Confirm start task(s)?"))
+					break;
+				else
+					return;
+			}
+		}
+		for (BPTask<?> task : tasks)
+		{
 			if (!task.isRunning())
 				task.start();
 		}
@@ -226,28 +239,52 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 		{
 			BPTask<?> task = tasks.get(0);
 			boolean isrun = task.isRunning();
-			BPDialogForm dlg = new BPDialogForm();
-			dlg.setEditable(!isrun);
-			Class<?> c = ClassUtil.tryLoopSuperClass((cls) ->
+			BPSetting setting = task.getSetting();
+			if (setting != null)
 			{
-				if (BPFormManager.containsKey(cls.getName()))
-					return cls;
-				return null;
-			}, task.getClass(), BPTask.class);
-			dlg.setup(c == null ? task.getClass().getName() : c.getName(), task);
-			dlg.setTitle("Task:" + task.getName());
-			dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(700, 600)));
-			dlg.pack();
-			dlg.setLocationRelativeTo(null);
-			dlg.setVisible(true);
-			if (!isrun)
-			{
-				Map<String, Object> formdata = dlg.getFormData();
-				if (formdata != null)
+				BPDialogSetting dlg = new BPDialogSetting();
+				dlg.setSetting(setting);
+				dlg.setEditable(!isrun);
+				dlg.setTitle(task.getClass().getName() + ":" + task.getName());
+				dlg.pack();
+				dlg.setVisible(true);
+				if (!isrun)
 				{
-					task.setMappedData(formdata);
-					saveTask(task);
-					m_model.fireTableDataChanged();
+					BPSetting newsetting = dlg.getResult();
+					if (newsetting != null)
+					{
+						task.setSetting(newsetting);
+						saveTask(task);
+						m_model.fireTableDataChanged();
+					}
+				}
+			}
+			else
+			{
+				BPDialogForm dlg = new BPDialogForm();
+				dlg.setEditable(!isrun);
+
+				Class<?> c = ClassUtil.tryLoopSuperClass((cls) ->
+				{
+					if (BPFormManager.containsKey(cls.getName()))
+						return cls;
+					return null;
+				}, task.getClass(), BPTask.class);
+				dlg.setup(c == null ? task.getClass().getName() : c.getName(), task);
+				dlg.setTitle("Task:" + task.getName());
+				dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(700, 600)));
+				dlg.pack();
+				dlg.setLocationRelativeTo(null);
+				dlg.setVisible(true);
+				if (!isrun)
+				{
+					Map<String, Object> formdata = dlg.getFormData();
+					if (formdata != null)
+					{
+						task.setMappedData(formdata);
+						saveTask(task);
+						m_model.fireTableDataChanged();
+					}
 				}
 			}
 		}

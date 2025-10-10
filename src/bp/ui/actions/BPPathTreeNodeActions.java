@@ -28,6 +28,9 @@ public class BPPathTreeNodeActions
 	public final static String ACTION_DELETES = "delfiles";
 	public final static String ACTION_RENAME = "rename";
 	public final static String ACTION_PROPERTIES = "prop";
+	public final static String ACTION_COPY = "copy";
+	public final static String ACTION_COPYTO = "copyto";
+	public final static String ACTION_PASTE = "paste";
 	public final static String ACTION_OPENEXTERNAL_SYSTEM = "openextsys";
 	public final static String ACTION_EDITEXTERNAL_SYSTEM = "editextsys";
 	public final static String ACTION_PRINTEXTERNAL_SYSTEM = "printextsys";
@@ -120,14 +123,7 @@ public class BPPathTreeNodeActions
 
 	public BPAction getOpenFileWithToolAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		Object[][] respaths = tree.getSelectedNodeUserObjectPaths();
-		BPResource[] resarr = new BPResource[respaths.length];
-		for (int i = 0; i < respaths.length; i++)
-		{
-			Object[] respath = respaths[i];
-			resarr[i] = (BPResource) respath[respath.length - 1];
-		}
-		BPAction rc = BPAction.build("Open With Tool...").callback(new EventUtil.EventConsumerNodeAction(resarr, channelid, ACTION_OPENWITHTOOL)).mnemonicKey(KeyEvent.VK_S).getAction();
+		BPAction rc = BPAction.build("Open With Tool...").callback(new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_OPENWITHTOOL)).mnemonicKey(KeyEvent.VK_S).getAction();
 		return rc;
 	}
 
@@ -163,5 +159,23 @@ public class BPPathTreeNodeActions
 	public BPAction getPropertyAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
 		return BPAction.build("Properties...").callback(new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PROPERTIES)).mnemonicKey(KeyEvent.VK_P).getAction();
+	}
+
+	public BPAction getCopyAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
+	{
+		return BPAction.build("Copy").callback(new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_COPY)).mnemonicKey(KeyEvent.VK_C).getAction();
+	}
+
+	// public BPAction getCopyToAction(BPTreeComponent<BPTree> tree, BPResource
+	// res, int channelid)
+	// {
+	// return BPAction.build("Copy To...").callback(new
+	// EventUtil.EventConsumerNodeAction(getSelectedResources(tree), channelid,
+	// ACTION_COPYTO)).getAction();
+	// }
+
+	public BPAction getCopyToAction(BPTreeComponent<BPTree> tree, BPResource[] ress, int channelid)
+	{
+		return BPAction.build("Copy To...").callback(new EventUtil.EventConsumerNodeAction(ress, channelid, ACTION_COPYTO)).getAction();
 	}
 }

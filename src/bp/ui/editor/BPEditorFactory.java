@@ -246,6 +246,7 @@ public interface BPEditorFactory
 			BPConsolePanel rc = new BPConsolePanel();
 			BPConsolePane cc = new BPConsolePane();
 			BPConsoleCLI c2 = new BPConsoleCLI();
+			cc.setBorder(null);
 			if (encoding != null)
 				c2.setEncoding(encoding);
 			cc.bindConsole(c2);

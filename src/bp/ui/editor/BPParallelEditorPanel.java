@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -11,6 +13,7 @@ import java.util.function.Consumer;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -49,6 +52,7 @@ import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIStd;
 import bp.util.FileUtil;
 import bp.util.LogicUtil;
+import bp.util.ObjUtil;
 
 public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 {
@@ -67,6 +71,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	protected JPanel m_mainp;
 	protected List<BPEditorSubPanel> m_eps;
 	protected BPToolBarSQ m_toolbar;
+	protected Action m_actsync;
 
 	public BPParallelEditorPanel()
 	{
@@ -93,7 +98,9 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		m_mainp = new JPanel();
 		BPAction actadd = BPAction.build("add").tooltip("Add").vIcon(BPIconResV.ADD()).callback(this::onAdd).getAction();
 		BPAction actcompare = BPAction.build("compare").tooltip("Compare").vIcon(BPIconResV.LEFTRIGHT()).callback(this::onCompare).getAction();
-		Action[] acts = new Action[] { actadd, actcompare };
+		m_actsync = BPAction.build("sync").tooltip("Toggle Sync Status").vIcon(BPIconResV.REFRESH()).callback(this::onToggleSync).getAction();
+		m_actsync.putValue(Action.SELECTED_KEY, true);
+		Action[] acts = new Action[] { actadd, actcompare, m_actsync };
 		m_toolbar.setActions(acts);
 
 		m_toolbar.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_STRONGBORDER()), new EmptyBorder(1, 1, 1, 0)));
@@ -268,6 +275,12 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		}
 	}
 
+	protected void onToggleSync(ActionEvent e)
+	{
+		boolean v = !ObjUtil.toBool(m_actsync.getValue(Action.SELECTED_KEY), false);
+		m_actsync.putValue(Action.SELECTED_KEY, v);
+	}
+
 	protected class BPEditorSubPanel extends JPanel
 	{
 		/**
@@ -312,7 +325,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			pnlbottom.setBorder(new MatteBorder(1, 0, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 			tbctrl.setMinimumSize(new Dimension(0, UIConfigs.BAR_HEIGHT_VICON()));
 			tbctrl.setPreferredSize(null);
-			tbctrl.setActions(getEditorAction(null));
+			tbctrl.setActions(getEditorAction(null), this);
 
 			pop.bind(m_txttitle, m_editorc);
 
@@ -367,10 +380,11 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 
 		protected Action[] getEditorAction(BPEditor<?> editor)
 		{
-			BPAction actopen = BPAction.build("open").tooltip("Open").vIcon(BPIconResV.DOC()).callback(this::loadEditor).getAction();
+			BPAction actcreate = BPAction.build("create").tooltip("Create Editor").vIcon(BPIconResV.ADD()).callback(this::createEditor).getAction();
+			BPAction actopen = BPAction.build("open").tooltip("Open").vIcon(BPIconResV.DOC()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)).callback(this::loadEditor).getAction();
 			m_actsave = BPAction.build("save").tooltip("Save").vIcon(BPIconResV.SAVE()).callback(this::onSave).getAction();
-			BPAction actclose = BPAction.build("close").tooltip("Close").vIcon(BPIconResV.KILL()).callback(e -> removeEditor(m_editorindex)).getAction();
-			return new Action[] { actopen, m_actsave, actclose };
+			BPAction actclose = BPAction.build("close").tooltip("Close").vIcon(BPIconResV.KILL()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK)).callback(e -> removeEditor(m_editorindex)).getAction();
+			return new Action[] { actcreate, actopen, m_actsave, actclose };
 		}
 
 		protected void selectResource(BPCacheDataResource rescache)
@@ -406,6 +420,33 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
 				teditor.getTextPanel().resizeDoc();
 			}
+			setEditor(editor);
+		}
+
+		public void createEditor(ActionEvent e)
+		{
+			BPDialogSelectFormatEditor dlg = new BPDialogSelectFormatEditor();
+			dlg.setVisible(true);
+			BPFormat format = dlg.getSelectedFormat();
+			BPEditorFactory fac = dlg.getSelectedEditorFactory();
+			if (format == null && fac == null)
+				return;
+			BPConfig options = dlg.getEditorOptions();
+			BPEditor<?> editor = fac.createEditor(format, null, options);
+			if (editor == null)
+				return;
+			editor.setChannelID(m_channelid);
+			editor.setID(BPCore.genID(BPCore.getFileContext()));
+			editor.setOnStateChanged(m_statechangecb);
+			editor.setOnDynamicInfo(m_dyncinfocb);
+			fac.initEditor(editor, format, null, options);
+
+			if (editor instanceof BPTextEditor)
+			{
+				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
+				teditor.getTextPanel().resizeDoc();
+			}
+			editor.focusEditor();
 			setEditor(editor);
 		}
 

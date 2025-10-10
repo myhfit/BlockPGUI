@@ -13,6 +13,7 @@ public class BPFormPanelFileSystem extends BPFormPanelResourceBase
 	 */
 	private static final long serialVersionUID = -3864922930958849625L;
 
+	protected BPTextField m_txtfullname;
 	protected BPTextField m_txtattrib;
 	protected BPTextField m_txtcreationtime;
 	protected BPTextField m_txtlastmodified;
@@ -22,11 +23,13 @@ public class BPFormPanelFileSystem extends BPFormPanelResourceBase
 	{
 		super.initForm();
 
+		m_txtfullname = makeSingleLineTextField();
 		m_txtattrib = makeSingleLineTextField();
 		m_txtcreationtime = makeSingleLineTextField();
 		m_txtlastmodified = makeSingleLineTextField();
 		m_txtaccesstime = makeSingleLineTextField();
 
+		addLine(new String[] { "Full Name" }, new Component[] { m_txtfullname });
 		addLine(new String[] { "Attrib" }, new Component[] { m_txtattrib });
 		addLine(new String[] { "Creation Time" }, new Component[] { m_txtcreationtime });
 		addLine(new String[] { "Last Modified" }, new Component[] { m_txtlastmodified });
@@ -37,6 +40,7 @@ public class BPFormPanelFileSystem extends BPFormPanelResourceBase
 	{
 		super.showData(data, editable);
 
+		setComponentValue(m_txtfullname, data, "fullname", false);
 		setComponentValue(m_txtattrib, data, "attrib", false);
 
 		Long ltime = (Long) data.get("lastmodified");

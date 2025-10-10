@@ -109,7 +109,7 @@ public interface BPDataActionFactory
 
 		private final static void cloneXYDataToJSON(BPXYData xydata, ActionEvent event)
 		{
-			BPResource file = CommonUIOperations.selectResource(null, true);
+			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "json" });
 			if (file != null)
 			{
 				BPTextContainer con = new BPTextContainerBase();
@@ -126,7 +126,7 @@ public interface BPDataActionFactory
 				}
 			}
 		}
-		
+
 		private final static void cloneTreeDataToJSON(BPTreeData treedata, ActionEvent event)
 		{
 			BPResource file = CommonUIOperations.selectResource(null, true);

@@ -18,9 +18,11 @@ import bp.task.BPTask;
 import bp.task.BPTaskFactory;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
+import bp.ui.form.BPFormPanelMap;
 import bp.ui.scomp.BPList;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
+import bp.util.ObjUtil;
 import bp.util.LogicUtil.WeakRefGo;
 import bp.util.LogicUtil.WeakRefGoConsumer;
 
@@ -121,6 +123,8 @@ public class BPDialogNewTask extends BPDialogCommon
 				add(form.getComponent(), BorderLayout.CENTER);
 				m_form = form;
 			}
+			if (form instanceof BPFormPanelMap)
+				form.showData(ObjUtil.makeMap("name", ""));
 			validate();
 			repaint();
 		}

@@ -35,6 +35,8 @@ import bp.ui.form.BPFormPanelTaskReadTextFile;
 import bp.ui.form.BPFormPanelTaskRemind;
 import bp.ui.form.BPFormPanelTaskSerial;
 import bp.ui.form.BPFormPanelTaskTimer;
+import bp.ui.form.BPFormPanelTaskUnpackFiles;
+import bp.ui.form.BPFormPanelTaskUserInput;
 import bp.ui.form.BPFormPanelUIConfigs;
 import bp.util.ClassUtil;
 
@@ -99,11 +101,13 @@ public class FormConfigs extends BPConfigAdvBase
 			regfunc.accept("bp.task.BPTaskTimer", BPFormPanelTaskTimer.class);
 			regfunc.accept("bp.task.BPTaskCopyFiles", BPFormPanelTaskCopyFiles.class);
 			regfunc.accept("bp.task.BPTaskPackFiles", BPFormPanelTaskPackFiles.class);
+			regfunc.accept("bp.task.BPTaskUnpackFiles", BPFormPanelTaskUnpackFiles.class);
 			regfunc.accept("bp.task.BPTaskSerial", BPFormPanelTaskSerial.class);
 			regfunc.accept("bp.task.BPTaskSerialPipe", BPFormPanelTaskSerial.class);
 			regfunc.accept("bp.task.BPTaskExec", BPFormPanelTaskExec.class);
 			regfunc.accept("bp.task.BPTaskReadTextFile", BPFormPanelTaskReadTextFile.class);
 			regfunc.accept("bp.task.BPTaskRemind", BPFormPanelTaskRemind.class);
+			regfunc.accept("bp.task.BPTaskUserInput", BPFormPanelTaskUserInput.class);
 			regfunc.accept("bp.format.BPFormatManager", BPFormPanelFormatAssocs.class);
 			regfunc.accept("bp.script.BPScriptBase", BPFormPanelScript.class);
 			regfunc.accept("bp.env.BPEnvs", BPFormPanelEnvs.class);

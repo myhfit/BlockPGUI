@@ -55,6 +55,21 @@ public class BPPathTreeNodeCommonHandler
 						showProperty(res);
 						break;
 					}
+					case BPPathTreeNodeActions.ACTION_RENAME:
+					{
+						CommonUIOperations.showRenameResource(res);
+						break;
+					}
+					case BPPathTreeNodeActions.ACTION_COPY:
+					{
+						CommonUIOperations.copyResources(event.getSelectedResources());
+						break;
+					}
+					case BPPathTreeNodeActions.ACTION_COPYTO:
+					{
+						CommonUIOperations.showCopyResourcesTo(event.getSelectedResources(), null);
+						break;
+					}
 					// case BPPathTreeNodeActions.ACTION_OPENFILE:
 					// {
 					// if (res.isFileSystem() && ((BPResourceFileSystem)

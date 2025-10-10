@@ -130,6 +130,7 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 		if (node != null)
 		{
 			BPResource res = (BPResource) node.getUserObject();
+			BPResource[] ress = tree.getSelectedLeafs(BPResource.class);
 			if (res.isProjectResource() && res.fullHandleAction())
 			{
 				List<Action> prjactions = BPProjectsTreeNodeActionManager.getActions(tree, res, m_channelid);
@@ -150,6 +151,9 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 						rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
 						rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
 						rc.add(BPAction.separator());
+						rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
+						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
+						rc.add(BPAction.separator());
 						rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
 						rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
 						rc.add(BPAction.separator());
@@ -160,6 +164,9 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 						rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
 						rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
 						rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
+						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
 						rc.add(BPAction.separator());
 						rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
 						rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));

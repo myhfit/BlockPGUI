@@ -172,7 +172,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		m_ptree.setPathTreeFuncs(funcs);
 		m_ptree.refreshContextPath();
 	}
-	
+
 	public void switchProjectTreeFuncs()
 	{
 		BPPathTreeFuncs treefuncs = new BPProjectsTreeFuncsManList(m_channelid);
@@ -180,7 +180,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		m_ptree.setPathTreeFuncs(treefuncs);
 		m_ptree.refreshContextPath();
 	}
-	
+
 	public void switchPathTreeFuncs()
 	{
 		BPPathTreeFuncs treefuncs = new BPPathTreeLocalFuncsManList(m_channelid);
@@ -227,7 +227,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		m_datas.add(res);
 		m_lstres.updateUI();
 	}
-	
+
 	protected static class BPPathTreeLocalFuncsManList extends BPPathTreeLocalFuncs
 	{
 		public BPPathTreeLocalFuncsManList(int channelid)

@@ -39,8 +39,6 @@ import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.BPConfig;
 import bp.config.BPConfigSimple;
-import bp.config.ShortCuts;
-import bp.config.ShortCuts.ShortCutData;
 import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
@@ -76,7 +74,6 @@ import bp.ui.container.BPRoutableContainer;
 import bp.ui.container.BPRoutableContainerBase;
 import bp.ui.container.BPTabBottom;
 import bp.ui.dialog.BPDialogConfigs;
-import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogLocateCachedResource;
 import bp.ui.dialog.BPDialogLocateProjectItem;
 import bp.ui.dialog.BPDialogScriptManager;
@@ -96,8 +93,7 @@ import bp.ui.scomp.BPPopupMenuTray;
 import bp.ui.scomp.BPSplitPane;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.scomp.BPToolVIconButton;
-import bp.ui.shortcut.BPShortCut;
-import bp.ui.shortcut.BPShortCutManager;
+import bp.ui.sys.BlockPMenus;
 import bp.ui.tree.BPPathTreeLocalFuncs;
 import bp.ui.tree.BPPathTreePanel;
 import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
@@ -336,7 +332,14 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		BPPopupMenuTray mnutray = new BPPopupMenuTray();
 		{
 			m_mnupopscs = new BPMenu("Shortcut");
+			BPMenuItemInTray mnulocres = new BPMenuItemInTray("Resource...");
+			BPMenuItemInTray mnulocprjitem = new BPMenuItemInTray("Project Item...");
+
+			mnulocres.addActionListener(e -> CommonUIOperations.showLocateResource());
+			mnulocprjitem.addActionListener(e -> CommonUIOperations.showLocateProjectItem());
 			mnutray.add(m_mnupopscs);
+			mnutray.add(mnulocres);
+			mnutray.add(mnulocprjitem);
 		}
 		m_mnutray = mnutray;
 		mnutray.addSeparator();
@@ -403,113 +406,13 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	public void refreshShortCuts()
 	{
-		JMenu mnushortcuts = m_mnushortcuts;
-		mnushortcuts.removeAll();
-		List<ShortCutData> scs = ShortCuts.getShortCuts();
-		Map<String, JMenu> mnumap = new HashMap<String, JMenu>();
-		for (ShortCutData sc : scs)
-		{
-			String scname = sc.name;
-			String mnuname = scname;
-			JMenu mnupar = mnushortcuts;
-			if (scname.indexOf(">") != -1)
-			{
-				String[] strs = scname.split(">");
-				String pathstr = null;
-				for (int i = 0; i < strs.length - 1; i++)
-				{
-					String s = strs[i];
-					if (pathstr == null)
-						pathstr = s;
-					else
-						pathstr += ">" + s;
-					JMenu mnunode = mnumap.get(pathstr);
-					if (mnunode == null)
-					{
-						mnunode = new BPMenu(s);
-						mnupar.add(mnunode);
-						mnumap.put(pathstr, mnunode);
-					}
-					mnupar = mnunode;
-				}
-				mnuname = strs[strs.length - 1];
-			}
-			Action act = BPAction.build(mnuname).callback(e ->
-			{
-				ShortCutData sc2 = ShortCuts.getShortCut(scname);
-				BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
-				if (bsc != null)
-					bsc.run();
-			}).getAction();
-			act.putValue("scname", scname);
-			mnupar.add(act);
-		}
-		mnushortcuts.addSeparator();
-		Action actsetting = BPAction.build("Edit Shortcuts...").callback(e ->
-		{
-			BPDialogForm dlg = new BPDialogForm();
-			dlg.setup(ShortCuts.class.getName(), BPGUICore.CONFIGS_SC);
-			dlg.setTitle("BlockP - ShortCuts");
-			dlg.setVisible(true);
-			Map<String, Object> formdata = dlg.getFormData();
-			if (formdata != null)
-			{
-				BPGUICore.CONFIGS_SC.setMappedData(formdata);
-				BPGUICore.CONFIGS_SC.save();
-				refreshShortCuts();
-			}
-		}).getAction();
-		mnushortcuts.add(actsetting);
-
+		BlockPMenus.refreshShortcuts(m_mnushortcuts, this::refreshShortCuts);
 		refreshTrayMenus();
 	}
 
 	protected void refreshTrayMenus()
 	{
-		JMenu mnuscs = m_mnupopscs;
-		if (mnuscs == null)
-			return;
-		mnuscs.removeAll();
-
-		List<ShortCutData> scs = ShortCuts.getShortCuts();
-		Map<String, JMenu> mnumap = new HashMap<String, JMenu>();
-		for (ShortCutData sc : scs)
-		{
-			String scname = sc.name;
-			String mnuname = scname;
-			JMenu mnupar = mnuscs;
-			if (scname.indexOf(">") != -1)
-			{
-				String[] strs = scname.split(">");
-				String pathstr = null;
-				for (int i = 0; i < strs.length - 1; i++)
-				{
-					String s = strs[i];
-					if (pathstr == null)
-						pathstr = s;
-					else
-						pathstr += ">" + s;
-					JMenu mnunode = mnumap.get(pathstr);
-					if (mnunode == null)
-					{
-						mnunode = new BPMenu(s);
-						mnupar.add(mnunode);
-						mnumap.put(pathstr, mnunode);
-					}
-					mnupar = mnunode;
-				}
-				mnuname = strs[strs.length - 1];
-			}
-			BPMenuItemInTray newmnu = new BPMenuItemInTray(mnuname);
-			newmnu.addActionListener(e ->
-			{
-				ShortCutData sc2 = ShortCuts.getShortCut(scname);
-				BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
-				if (bsc != null)
-					bsc.run();
-			});
-			mnupar.add(newmnu);
-		}
+		BlockPMenus.refreshPopupShortcuts(m_mnupopscs);
 	}
 
 	protected void initToolMenu(JMenu mnutool)
@@ -844,7 +747,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 					case BPPathTreeNodeActions.ACTION_OPENWITHTOOL:
 					{
 						BPResource[] ress = (BPResource[]) event.datas[0];
-						openWithTool(ress);
+						CommonUIOperations.openWithTool(ress);
 						break;
 					}
 					case BPPathTreeNodeActions.ACTION_DELETE:
@@ -865,6 +768,16 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 					case BPPathTreeNodeActions.ACTION_RENAME:
 					{
 						CommonUIOperations.showRenameResource(event.getSelectedResource());
+						break;
+					}
+					case BPPathTreeNodeActions.ACTION_COPY:
+					{
+						CommonUIOperations.copyResources(event.getSelectedResources());
+						break;
+					}
+					case BPPathTreeNodeActions.ACTION_COPYTO:
+					{
+						CommonUIOperations.showCopyResourcesTo(event.getSelectedResources(), this);
 						break;
 					}
 				}
@@ -1086,13 +999,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 				m_editors.open(res, format, fac, null, options);
 			}
 		}
-	}
-
-	public void openWithTool(BPResource[] ress)
-	{
-		if (ress == null)
-			return;
-		CommonUIOperations.openWithTool(ress);
 	}
 
 	public void registerMenu(String key, String title, Action[] actions)

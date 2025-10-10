@@ -2,6 +2,7 @@ package bp.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.AdjustmentEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -16,6 +17,7 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
 
 import bp.BPCore;
 import bp.BPGUICore;
@@ -33,6 +35,7 @@ import bp.format.BPFormatDir;
 import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
+import bp.res.BPResourceDir;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceHolder;
 import bp.ui.BPViewer;
@@ -42,6 +45,8 @@ import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.form.BPFormPanelXYData;
+import bp.ui.parallel.BPEventUISyncEditor;
+import bp.ui.parallel.BPSyncGUI;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTable;
 import bp.ui.table.BPTableFuncsResourceFiles;
@@ -52,12 +57,15 @@ import bp.util.ObjUtil;
 import bp.util.SystemUtil;
 import bp.util.SystemUtil.SystemOS;
 
-public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainer>
+public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainer>, BPSyncGUI
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 7009889832393872251L;
+
+	public final static String SYNCPOSTYPE_FILES_LIST = "FILES_L";
+	public final static String SYNCSELSTYPE_FILES = "FILES";
 
 	protected BPDataContainer m_con;
 	protected List<BPResource> m_children;
@@ -71,6 +79,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	protected BPTableFuncsResourceFiles m_tablefuncs;
 	protected Consumer<BPEventCoreUI> m_refreshpathhandler;
 	protected boolean m_navmode;
+	protected JScrollPane m_scroll;
+	protected Consumer<BPEventUISyncEditor> m_synccb;
+	protected volatile boolean m_onsync;
+	protected volatile boolean m_blocksync;
 
 	protected String m_id;
 
@@ -91,14 +103,19 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		m_table.setBorder(null);
 		m_table.getColumnModel().getColumn(2).setCellRenderer(new BPTable.BPTableRendererFileSize());
 		m_table.getColumnModel().getColumn(3).setCellRenderer(new BPTable.BPTableRendererDateTime());
+		m_table.getSelectionModel().addListSelectionListener(this::onSelectionChanged);
 		m_table.setTableFont();
 		JScrollPane scroll = new JScrollPane();
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		scroll.setViewportView(m_table);
+		m_scroll = scroll;
 
 		BPAction actrefresh = BPAction.build("Refresh").callback((e) -> refresh()).vIcon(BPIconResV.REFRESH()).tooltip("Refresh").getAction();
 		BPAction actstat = BPAction.build("Stat").callback((e) -> stat()).vIcon(BPIconResV.MORE()).tooltip("Statistics").getAction();
 		m_toolbar.setActions(new Action[] { BPAction.separator(), actrefresh, BPAction.separator(), actstat }, this);
+
+		scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
+		scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
 
 		add(scroll, BorderLayout.CENTER);
 		add(m_toolbar, BorderLayout.WEST);
@@ -131,6 +148,17 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	protected void onCopy(ActionEvent e)
 	{
 		copy();
+	}
+
+	protected void onScroll(AdjustmentEvent e)
+	{
+		if (!m_onsync)
+			return;
+		if (!m_blocksync)
+		{
+			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
+			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_FILES_LIST, xy));
+		}
 	}
 
 	public void copy()
@@ -495,6 +523,121 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 			if (formatkey.equals(BPFormatDir.FORMAT_DIR))
 				return true;
 			return false;
+		}
+	}
+
+	public void startSync()
+	{
+		if (m_synccb != null)
+			stopSync();
+		m_synccb = this::onSyncEditor;
+		BPGUICore.EVENTS_UI.on(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
+		m_onsync = true;
+	}
+
+	public void stopSync()
+	{
+		m_onsync = false;
+		if (m_synccb != null)
+			BPGUICore.EVENTS_UI.off(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
+		m_synccb = null;
+	}
+
+	public BPResource[] getSubResources(String[] path)
+	{
+		BPResource[] rc = new BPResource[path.length];
+		BPResource base = m_tablefuncs.getBaseResource();
+		if (base.isFileSystem() && !base.isLeaf())
+		{
+			BPResourceDir d = (BPResourceDir) base;
+			for (int i = 0; i < path.length; i++)
+			{
+				rc[i] = d.getChild(path[i]);
+			}
+		}
+		return rc;
+	}
+
+	public int[] getFileIndex(BPResource[] ress)
+	{
+		int[] rc = new int[ress.length];
+		List<BPResource> datas = m_table.getBPTableModel().getDatas();
+		for (int i = 0; i < ress.length; i++)
+		{
+			rc[i] = datas.indexOf(ress[i]);
+		}
+		return rc;
+	}
+
+	protected void onSyncEditor(BPEventUISyncEditor e)
+	{
+		if (BPEventUISyncEditor.SYNC_POS.equals(e.subkey))
+		{
+			if (SYNCPOSTYPE_FILES_LIST.equals(e.getSyncDataType()))
+			{
+				String id = (String) e.datas[0];
+				if (!m_id.equals(id))
+				{
+					int[] xy = e.getSyncData();
+					m_scroll.getHorizontalScrollBar().setValue(xy[0]);
+					m_scroll.getVerticalScrollBar().setValue(xy[1]);
+				}
+			}
+		}
+		else if (BPEventUISyncEditor.SYNC_SELECTION.equals(e.subkey))
+		{
+			if (SYNCSELSTYPE_FILES.equals(e.getSyncDataType()))
+			{
+				String id = (String) e.datas[0];
+				if (!m_id.equals(id))
+				{
+					String[] sels = e.getSyncData();
+					m_blocksync = true;
+					try
+					{
+						int[] tcs = getFileIndex(ObjUtil.collectNotEmpty(getSubResources(sels)).toArray(new BPResource[0]));
+						if (tcs.length > 0)
+						{
+							m_table.setSelectionRows(tcs);
+							m_table.scrollRectToVisible(m_table.getCellRect(m_table.convertRowIndexToView(tcs[0]), 0, true));
+						}
+					}
+					finally
+					{
+						m_blocksync = false;
+					}
+				}
+			}
+		}
+	}
+
+	protected void onSelectionChanged(ListSelectionEvent e)
+	{
+		if (!e.getValueIsAdjusting()&& m_onsync)
+		{
+			if (!m_blocksync)
+			{
+				List<BPResource> ress = m_table.getSelectedDatas();
+				String[] resstrs = new String[ress.size()];
+				BPResource base = m_tablefuncs.getBaseResource();
+				if (base.isFileSystem() && !base.isLeaf())
+				{
+					String basestr = ((BPResourceFileSystem) base).getFileFullName();
+					for (int i = 0; i < ress.size(); i++)
+					{
+						resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
+					}
+					BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+				}
+				else
+				{
+					for (int i = 0; i < ress.size(); i++)
+					{
+						resstrs[i] = ress.get(i).getName();
+					}
+					BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+				}
+			}
 		}
 	}
 }

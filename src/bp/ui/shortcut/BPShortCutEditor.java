@@ -31,10 +31,14 @@ public class BPShortCutEditor extends BPShortCutBase
 
 		if (editorname != null)
 		{
-			if (!BPGUICore.execOnMainFrame(mf -> mf.isVisible()))
+			if (!BPGUICore.checkMainFrameVisible())
 				CommonUIOperations.openFileNewWindow(filename, format, editorname, null);
 			else
-				BPGUICore.runOnMainFrame(mf -> mf.openEditorByFileSystem(filename, format, editorname, null));
+				BPGUICore.runOnMainFrame(mf ->
+				{
+					mf.openEditorByFileSystem(filename, format, editorname, null);
+					mf.toFront();
+				});
 			return true;
 		}
 		return false;

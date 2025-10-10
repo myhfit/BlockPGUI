@@ -29,11 +29,12 @@ import bp.format.BPFormat;
 import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
-import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceDirLocal;
+import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTextField;
+import bp.ui.tree.BPPathTreeEventHandler;
 import bp.ui.tree.BPPathTreeLocalFuncs;
 import bp.ui.tree.BPPathTreePanel;
 import bp.ui.util.CommonUIOperations;
@@ -62,6 +63,9 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 
 	protected JPanel m_lp = new JPanel();
 	protected JPanel m_rp = new JPanel();
+
+	protected BPPathTreeEventHandler m_lh;
+	protected BPPathTreeEventHandler m_rh;
 
 	protected JScrollPane m_leftscroll;
 	protected JScrollPane m_rightscroll;
@@ -261,6 +265,19 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 			m_leftcomp = pnl;
 			m_lpath.setText(((BPResourceFileSystem) res).getFileFullName());
 		}
+		else
+		{
+			BPPathTreePanel pnl = new BPPathTreePanel();
+			BPPathTreeLocalFuncs funcs = new BPPathTreeLocalFuncs();
+			BPFileContext context = BPCore.getFileContext();
+			String relpath = context.comparePath(((BPResourceFileSystem) res).getFileFullName());
+			funcs.setSkipRoot(true);
+			funcs.setup(BPCore.getFileContext(), relpath);
+			pnl.setPathTreeFuncs(funcs);
+			m_lp.add(pnl, BorderLayout.CENTER);
+			m_lp.updateUI();
+			m_leftcomp = pnl.getComponent();
+		}
 	}
 
 	public void setRightResource(BPResource res, BPFormat format)
@@ -400,29 +417,72 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 					roots.add(srcroot);
 					rootmap.put(srcroot, tarroot);
 				}
-				BPDataContainer con = srcselector.getRootData();
-				con.open();
-				success = con.useInputStream((in) ->
+				if (IOUtil.PATH_TYPE_ZIP.equals(srctype))
 				{
-					return ZipUtil.readTrees(roots.toArray(new String[roots.size()]), in, (reader, root) ->
+					BPDataContainer con = srcselector.getRootData();
+					con.open();
+					success = con.useInputStream((in) ->
 					{
-						String path = reader.res;
-						String tarpath = path;
-						if (File.separatorChar != '/')
-							tarpath = tarpath.replace('/', File.separatorChar);
-						if (path != null && path.length() == 0 && !reader.isdir)
+						return ZipUtil.readTrees(roots.toArray(new String[roots.size()]), in, (reader, root) ->
 						{
-							int vi = root.lastIndexOf("/");
-							if (vi > -1)
-								tarpath = root.substring(vi + 1);
-							else
-								tarpath = root;
-						}
-						String tarfilename = rootmap.get(root) + File.separatorChar + tarpath;
-						Std.debug(root + path + "->" + tarfilename);
-						return FileUtil.copyFile(rootmap.get(root), tarpath, reader);
+							String path = reader.res;
+							String tarpath = path;
+							if (File.separatorChar != '/')
+								tarpath = tarpath.replace('/', File.separatorChar);
+							if (path != null && path.length() == 0 && !reader.isdir)
+							{
+								int vi = root.lastIndexOf("/");
+								if (vi > -1)
+									tarpath = root.substring(vi + 1);
+								else
+									tarpath = root;
+							}
+							String tarfilename = rootmap.get(root) + File.separatorChar + tarpath;
+							Std.debug("Copy " + root + path + ">" + tarfilename);
+							return FileUtil.copyFileByReader(rootmap.get(root), tarpath, reader);
+						});
 					});
-				});
+				}
+				else if (IOUtil.PATH_TYPE_LOCALFS.equals(srctype))
+				{
+					String srcroot = srcselector.getRootData();
+					if (!(srcroot.endsWith("/") || srcroot.endsWith(File.separator)))
+						srcroot += File.separator;
+					for (String csrc : roots)
+					{
+						String tar = rootmap.get(csrc);
+						String src = srcroot + csrc;
+						File fsrc = new File(src);
+						File ftar = new File(tar);
+						if (fsrc.exists())
+						{
+							if (fsrc.isFile())
+							{
+								if (ftar.isDirectory())
+								{
+									ftar = new File(ftar, fsrc.getName());
+									if (ftar.isDirectory())
+									{
+										Std.err(ftar.getAbsolutePath() + " unwritable");
+										continue;
+									}
+								}
+								else if (!ftar.isFile())
+								{
+									Std.err(ftar.getAbsolutePath() + " unwritable");
+									continue;
+								}
+								FileUtil.copyFile(fsrc, ftar);
+							}
+							else if (fsrc.isDirectory())
+							{
+								FileUtil.copyDir(fsrc, ftar);
+								Std.debug("Copy " + src + ">" + tar);
+							}
+						}
+					}
+					success = true;
+				}
 			}
 		}
 		catch (Exception e)

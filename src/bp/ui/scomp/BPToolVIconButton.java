@@ -48,6 +48,10 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 			action.actionPerformed(e);
 		});
 		m_actcmd = (String) action.getValue(Action.ACTION_COMMAND_KEY);
+		{
+			Boolean v = (Boolean) action.getValue(Action.SELECTED_KEY);
+			setSelected((v == null) ? false : v);
+		}
 		String tooltip = (String) action.getValue(Action.SHORT_DESCRIPTION);
 		setEnabled(action.isEnabled());
 		action.addPropertyChangeListener(this::onPropChanged);

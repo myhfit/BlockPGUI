@@ -17,12 +17,15 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 import bp.BPCore;
+import bp.BPGUICore;
 import bp.data.BPDataContainer;
 import bp.format.BPFormatDir;
 import bp.res.BPResourceByteArraySupplier;
+import bp.ui.actions.BPAction;
 import bp.ui.actions.BPPathTreeNodeActions;
 import bp.ui.scomp.BPTree;
 import bp.ui.scomp.BPTree.BPTreeNode;
+import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
 import bp.util.FileUtil;
 import bp.util.Std;
 import bp.util.ZipUtil;
@@ -93,6 +96,7 @@ public interface BPArchiveTreeFuncs extends BPTreeFuncs
 			if (l != null)
 			{
 				rc.addAll(l);
+				sort(rc);
 			}
 			return rc;
 		}
@@ -219,30 +223,57 @@ public interface BPArchiveTreeFuncs extends BPTreeFuncs
 			});
 		}
 
+		public void onOpen(BPTree tree, BPTreeNode node)
+		{
+			ZipEntry entry = (ZipEntry) node.getUserObject();
+			if (!entry.isDirectory())
+				BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUIPathTree.makeActionEvent(BPPathTreeNodeActions.ACTION_OPENFILE, linkResource(entry)));
+		}
+
 		public List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)
 		{
 			List<Action> rc = new ArrayList<Action>();
 			ZipEntry entry = (ZipEntry) node.getUserObject();
 			if (!entry.isDirectory())
 			{
-				String ename = entry.getName();
-				String ext = entry.isDirectory() ? BPFormatDir.FORMAT_DIR : FileUtil.getExt(ename);
-				EntryHolder eh = new EntryHolder(m_conref.get(), entry);
-				BPResourceByteArraySupplier res = new BPResourceByteArraySupplier(eh, null, ext, BPCore.genID(BPCore.getFileContext()), ename, true);
+				ZipEntry[] es = tree.getSelectedLeafs(ZipEntry.class);
+				BPResourceByteArraySupplier res = linkResource(entry);
+				BPResourceByteArraySupplier[] ress = linkResources(es);
 				rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
 				rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
+				rc.add(BPAction.separator());
+				rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
+				rc.add(BPAction.separator());
 				rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
 			}
 			return rc;
 		}
+
+		protected BPResourceByteArraySupplier linkResource(ZipEntry e)
+		{
+			String ename = e.getName();
+			if (ename.contains("/"))
+				ename = ename.substring(ename.lastIndexOf("/") + 1);
+			String ext = e.isDirectory() ? BPFormatDir.EXT_DIR : FileUtil.getExt(ename);
+			ZipEntryHolder eh = new ZipEntryHolder(m_conref.get(), e);
+			return new BPResourceByteArraySupplier(eh, null, ext, BPCore.genID(BPCore.getFileContext()), ename, true);
+		}
+
+		protected BPResourceByteArraySupplier[] linkResources(ZipEntry[] es)
+		{
+			BPResourceByteArraySupplier[] rc = new BPResourceByteArraySupplier[es.length];
+			for (int i = 0; i < es.length; i++)
+				rc[i] = linkResource(es[i]);
+			return rc;
+		}
 	}
 
-	public static class EntryHolder implements Supplier<byte[]>
+	public static class ZipEntryHolder implements Supplier<byte[]>
 	{
 		protected WeakReference<BPDataContainer> m_conref;
 		protected ZipEntry m_entry;
 
-		public EntryHolder(BPDataContainer con, ZipEntry entry)
+		public ZipEntryHolder(BPDataContainer con, ZipEntry entry)
 		{
 			m_conref = new WeakReference<BPDataContainer>(con);
 			m_entry = entry;
