@@ -42,6 +42,7 @@ public class BPIconResV
 	private static BPVIcon S_ICON_SETTING;
 	private static BPVIcon S_ICON_MORE;
 	private static BPVIcon S_ICON_RECTSEL;
+	private static BPVIcon S_ICON_FIND;
 
 	public final static BPVIcon BP()
 	{
@@ -711,5 +712,26 @@ public class BPIconResV
 			};
 		}
 		return S_ICON_RECTSEL;
+	}
+
+	public final static BPVIcon FIND()
+	{
+		if (S_ICON_FIND == null)
+		{
+			S_ICON_FIND = (g, x0, y0, w, h) ->
+			{
+				int x1 = x0 + w;
+				int y1 = y0 + h;
+				int x05 = (x0 + x1) / 2;
+				int y05 = (y0 + y1) / 2;
+				int x025 = (x0 + x1) / 4;
+
+				g.drawLine(x0, y1 - 2, x05 - (w / 8) - 1, y05 + (w / 8) - 1);
+				g.drawLine(x0 + 2, y1, x05 - (w / 8) + 1, y05 + (w / 8) + 1);
+				g.drawLine(x0, y1 - 2, x0 + 2, y1);
+				g.drawOval(x025, y0, x1 - x025 - 1, x1 - x025 - 1);
+			};
+		}
+		return S_ICON_FIND;
 	}
 }

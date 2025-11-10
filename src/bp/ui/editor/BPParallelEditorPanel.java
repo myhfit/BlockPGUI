@@ -6,10 +6,12 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
@@ -24,6 +26,7 @@ import bp.cache.BPCacheDataFileSystem;
 import bp.cache.BPCacheDataResource;
 import bp.cache.BPTreeCacheNode;
 import bp.compare.BPDataComparator;
+import bp.compare.BPDataComparator.BPDataCompareResult;
 import bp.config.BPConfig;
 import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
@@ -34,6 +37,8 @@ import bp.res.BPResource;
 import bp.res.BPResourceDirLocal;
 import bp.res.BPResourceFileLocal;
 import bp.res.BPResourceFileSystemLocal;
+import bp.tool.BPToolGUI;
+import bp.tool.BPToolGUIParallelEditor;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.compare.BPComparableGUI;
@@ -188,7 +193,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		addEditor(null);
 	}
 
-	public void addEditor(BPEditor<?> editor)
+	public BPEditorSubPanel addEditor(BPEditor<?> editor)
 	{
 		int newindex = m_eps.size();
 		BPEditorSubPanel ep = new BPEditorSubPanel();
@@ -203,6 +208,38 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			ep.setEditor(editor);
 		m_mainp.add(ep);
 		m_mainp.updateUI();
+		return ep;
+	}
+
+	public void batchAdd(BPResource[] ress, Function<BPResource, BPEditor<?>> editorcb)
+	{
+		if (editorcb != null)
+		{
+			for (BPResource res : ress)
+				addEditor(editorcb.apply(res));
+		}
+		else
+		{
+			BPResource res0 = ress[0];
+			String ext = res0.getExt();
+			BPFormat format = ext == null ? null : BPFormatManager.getFormatByExt(ext);
+			BPEditorFactory fac = null;
+			BPConfig options = null;
+			BPDialogSelectFormatEditor dlg2 = new BPDialogSelectFormatEditor();
+			if (format != null)
+				dlg2.setFormat(format);
+			dlg2.setVisible(true);
+			format = dlg2.getSelectedFormat();
+			fac = dlg2.getSelectedEditorFactory();
+			if (format == null && fac == null)
+				return;
+			options = dlg2.getEditorOptions();
+
+			for (BPResource res : ress)
+			{
+				addEditor(null).loadEditorByResource(res, format, fac, options);
+			}
+		}
 	}
 
 	public void removeEditor(int index)
@@ -249,6 +286,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		addEditor(null);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void onCompare(ActionEvent e)
 	{
 		int s = m_eps.size();
@@ -269,10 +307,36 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 				cgs[i] = cg;
 			}
 		}
-		if (cp != null)
+		if (cp != null && cgs.length == s)
 		{
+			Object carr = null;
+			{
+				Object c0 = cgs[0].getCompareData();
+				Class<?> c0cls = c0.getClass();
+				carr = Array.newInstance(c0cls, cgs.length);
+				for (int i = 0; i < cgs.length; i++)
+				{
+					Array.set(carr, i, i == 0 ? c0 : cgs[i].getCompareData());
+				}
+			}
 
+			BPDataCompareResult[] results = ((BPDataComparator) cp).compare((Object[]) carr);
+			List<BPEditor<?>> editors = new ArrayList<BPEditor<?>>();
+			for (BPDataCompareResult r : results)
+			{
+				BPEditor<?> editor = makeResultEditor(r);
+				editors.add(editor);
+			}
+			BPToolGUI tool = new BPToolGUIParallelEditor();
+			tool.showTool(new Object[] { editors.toArray(new BPEditor<?>[0]) });
 		}
+	}
+
+	protected BPEditor<?> makeResultEditor(BPDataCompareResult r)
+	{
+		BPCodePanel rc = new BPCodePanel();
+		rc.setID(BPCore.genID(BPCore.getFileContext()));
+		return rc;
 	}
 
 	protected void onToggleSync(ActionEvent e)

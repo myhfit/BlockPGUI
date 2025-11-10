@@ -3,6 +3,8 @@ package bp.tool;
 import java.awt.BorderLayout;
 import java.awt.Container;
 
+import bp.res.BPResource;
+import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPParallelEditorPanel;
 import bp.ui.frame.BPFrame;
 import bp.ui.util.UIUtil;
@@ -40,9 +42,31 @@ public class BPToolGUIParallelEditor extends BPToolGUIBase<BPToolGUIParallelEdit
 		{
 			BPParallelEditorPanel p = new BPParallelEditorPanel();
 			p.setEditable(true);
-			p.init2Editor();
 			m_p = p;
 			par.add(p, BorderLayout.CENTER);
+
+			boolean added = false;
+			if (params != null && params.length > 0)
+			{
+				Object objarr = params[0];
+				if (objarr instanceof BPResource[])
+				{
+					p.batchAdd((BPResource[]) objarr, null);
+					added = true;
+				}
+				else if (objarr instanceof BPEditor<?>[])
+				{
+					for (BPEditor<?> editor : (BPEditor<?>[]) objarr)
+					{
+						p.addEditor(editor);
+					}
+					added = true;
+				}
+			}
+			if (!added)
+			{
+				p.init2Editor();
+			}
 		}
 
 		public void initDatas(Object... params)

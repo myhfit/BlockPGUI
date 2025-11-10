@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.undo.UndoManager;
 
 import bp.config.UIConfigs;
@@ -38,6 +39,11 @@ public class BPTextField extends JTextField
 		getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "onRedoKey");
 		getActionMap().put("onUndoKey", BPAction.build("").callback(this::onUndoKey).getAction());
 		getActionMap().put("onRedoKey", BPAction.build("").callback(this::onRedoKey).getAction());
+	}
+
+	public void setDefaultBorder()
+	{
+		setBorder(UIManager.getBorder("TextField.border"));
 	}
 
 	public void setNoMeasureSize(boolean flag)

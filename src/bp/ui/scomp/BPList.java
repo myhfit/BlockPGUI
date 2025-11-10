@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.function.Function;
 
@@ -128,7 +129,7 @@ public class BPList<T> extends JList<T>
 				if (i < 0)
 					i = 0;
 			}
-			
+
 			String t = null;
 			{
 				Object ele = model.getElementAt(i);
@@ -136,7 +137,7 @@ public class BPList<T> extends JList<T>
 					ele = br.apply(ele);
 				t = ObjUtil.toString(ele);
 			}
-			
+
 			if (TextUtil.containsText(t, target, wholeword, !casesensitive))
 			{
 				ListSelectionModel selmodel = getSelectionModel();
@@ -153,9 +154,9 @@ public class BPList<T> extends JList<T>
 	protected Function<Object, ?> getRendererTransFunction()
 	{
 		ListCellRenderer<? super T> r = getCellRenderer();
-		if (r != null && r instanceof BPListRenderer)
+		if (r != null && r instanceof BPListRendererIFC)
 		{
-			BPListRenderer br = (BPListRenderer) r;
+			BPListRendererIFC br = (BPListRendererIFC) r;
 			return br.getTransFunction();
 		}
 		return null;
@@ -203,8 +204,13 @@ public class BPList<T> extends JList<T>
 		}
 	}
 
+	protected static interface BPListRendererIFC
+	{
+		Function<Object, ?> getTransFunction();
+	}
+
 	@SuppressWarnings("serial")
-	public static class BPListRenderer extends DefaultListCellRenderer
+	public static class BPListRenderer extends DefaultListCellRenderer implements BPListRendererIFC
 	{
 		protected Function<Object, ?> m_transfunc;
 
@@ -221,6 +227,28 @@ public class BPList<T> extends JList<T>
 		public Function<Object, ?> getTransFunction()
 		{
 			return m_transfunc;
+		}
+	}
+
+	@SuppressWarnings("serial")
+	public static class BPListRendererWeakRef extends DefaultListCellRenderer implements BPListRendererIFC
+	{
+		protected WeakReference<Function<Object, ?>> m_transfuncref;
+
+		public BPListRendererWeakRef(Function<Object, ?> transfunc)
+		{
+			m_transfuncref = new WeakReference<>(transfunc);
+		}
+
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+		{
+			Function<Object, ?> tf = m_transfuncref == null ? null : m_transfuncref.get();
+			return super.getListCellRendererComponent(list, tf == null ? value : tf.apply(value), index, isSelected, cellHasFocus);
+		}
+
+		public Function<Object, ?> getTransFunction()
+		{
+			return m_transfuncref.get();
 		}
 	}
 }

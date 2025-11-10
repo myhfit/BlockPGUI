@@ -331,9 +331,13 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 
 	protected void onDInfo(String info)
 	{
+		BPGUIInfoPanel paninfo = m_paninfo;
 		BPEditor<?> editor = (BPEditor<?>) m_comp;
-		m_paninfo.setEditorDynamicInfo(info);
-		m_paninfo.setEditorInfo(editor.getEditorInfo());
+		if (paninfo != null && editor != null)
+		{
+			paninfo.setEditorDynamicInfo(info);
+			paninfo.setEditorInfo(editor.getEditorInfo());
+		}
 	}
 
 	protected void initDatas()

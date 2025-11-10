@@ -593,6 +593,8 @@ public class BPHexPane extends JPanel
 		int YHEADER = chh;
 		int xgap = XGAP + XHEADER + 5;
 		int ygap = cha + YGAP + YHEADER;
+
+		int midgap = m_linesize > 16 ? 33 * chw : -1;
 		if (x < xgap)
 		{
 			rc = -1;
@@ -604,7 +606,7 @@ public class BPHexPane extends JPanel
 			if (y < ygap + chp)
 				py = 0;
 			int tx = x - xgap + 2;
-			int px = tx / (chw + chw + 4);
+			int px = (tx - (midgap > 0 ? (tx > midgap ? chw : 0) : 0)) / (chw + chw + 4);
 			if (fixoutofbound == 1)
 			{
 				if (px >= m_linesize)

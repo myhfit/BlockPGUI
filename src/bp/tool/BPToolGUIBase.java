@@ -140,4 +140,17 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 		{
 		}
 	}
+
+	protected static class BPFrameToolUndecorated extends BPFrameTool
+	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4224069973246695902L;
+
+		protected boolean initWithUndecorated()
+		{
+			return true;
+		}
+	}
 }

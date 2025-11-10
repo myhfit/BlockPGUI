@@ -23,6 +23,8 @@ public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
 
 	public BPFrame()
 	{
+		if (initWithUndecorated())
+			setUndecorated(true);
 		init();
 		setPrefers();
 	}
@@ -49,6 +51,11 @@ public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
 		initUIComponents();
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	}
+
+	protected boolean initWithUndecorated()
+	{
+		return false;
 	}
 
 	protected abstract void initUIComponents();

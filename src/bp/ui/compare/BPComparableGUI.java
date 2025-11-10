@@ -7,6 +7,8 @@ public interface BPComparableGUI<D, R extends BPDataCompareResult>
 {
 	BPDataComparator<D, R> getComparator();
 
+	D getCompareData();
+
 	default boolean canCompareInUI()
 	{
 		return false;

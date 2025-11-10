@@ -60,6 +60,7 @@ public class BPFormPanelMap extends BPFormPanel
 
 	public void showData(Map<String, ?> data, boolean editable)
 	{
+		m_tabkvs.editingCanceled(null);
 		List<KV> kvs = new ArrayList<KV>();
 		for (String key : data.keySet())
 		{

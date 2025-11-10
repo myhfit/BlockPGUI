@@ -404,6 +404,11 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		return new BPDataComparatorXY();
 	}
 
+	public BPXYData getCompareData()
+	{
+		return m_funcs.getRawData();
+	}
+
 	public void showClone(ActionEvent e)
 	{
 		List<BPXData> datas = m_model.getDatas();

@@ -666,17 +666,47 @@ public class CommonUIOperations
 		if (ress == null || ress.length == 0)
 			return;
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2(par);
-		dlg.setSelectType(SELECTTYPE.DIR);
-		dlg.showOpen();
-		BPResourceDir dir = (BPResourceDir) dlg.getSelectedResource();
-		if (dir != null)
+		if (ress.length > 1 || !ress[0].isLeaf())
 		{
-			WeakRefGo<BPDialogBlock<?>> dlgref = new WeakRefGo<BPDialogBlock<?>>();
-			Consumer<int[]> cbrefresh = (vs) -> dlgref.run(dlg2 -> dlg2.refreshText(vs[0] + "/" + vs[1]));
-			AtomicReference<int[]> iarrref = new AtomicReference<>();
-			UIUtil.LaterUIUpdateSegment<int[]> uiseg = new UIUtil.LaterUIUpdateSegment<int[]>(cbrefresh, iarrref);
-			BiConsumer<Integer, Integer> pcb = (v, max) -> uiseg.updateObject(new int[] { v, max });
-			UIUtil.block(() -> CompletableFuture.supplyAsync(() -> ResourceUtil.copyResources(ress, dir, pcb)), "Copying...", true, false, dlg2 -> dlgref.setTarget(dlg2));
+			dlg.setSelectType(SELECTTYPE.DIR);
+			dlg.showOpen();
+		}
+		else
+		{
+			dlg.setSelectType(SELECTTYPE.ALL);
+			dlg.showSave();
+		}
+		BPResource tar = dlg.getSelectedResource();
+		if (tar != null)
+		{
+			if (tar.isFileSystem())
+			{
+				BPResourceFileSystem fstar = (BPResourceFileSystem) tar;
+				if (fstar.isDirectory())
+				{
+					BPResourceDir dir = (BPResourceDir) dlg.getSelectedResource();
+					if (dir != null)
+					{
+						WeakRefGo<BPDialogBlock<?>> dlgref = new WeakRefGo<BPDialogBlock<?>>();
+						Consumer<int[]> cbrefresh = (vs) -> dlgref.run(dlg2 -> dlg2.refreshText(vs[0] + "/" + vs[1]));
+						AtomicReference<int[]> iarrref = new AtomicReference<>();
+						UIUtil.LaterUIUpdateSegment<int[]> uiseg = new UIUtil.LaterUIUpdateSegment<int[]>(cbrefresh, iarrref);
+						BiConsumer<Integer, Integer> pcb = (v, max) -> uiseg.updateObject(new int[] { v, max });
+						UIUtil.block(() -> CompletableFuture.supplyAsync(() -> ResourceUtil.copyResources(ress, dir, pcb)), "Copying...", true, false, dlg2 -> dlgref.setTarget(dlg2));
+					}
+				}
+				else
+				{
+					if (fstar.exists())
+						fstar.delete();
+					UIUtil.block(() -> CompletableFuture.supplyAsync(() ->
+					{
+						BPResourceFileLocal f0 = (BPResourceFileLocal) ress[0];
+						FileUtil.copyFile(new File(f0.getFileFullName()), new File(fstar.getFileFullName()));
+						return true;
+					}), "Copying...");
+				}
+			}
 		}
 	}
 

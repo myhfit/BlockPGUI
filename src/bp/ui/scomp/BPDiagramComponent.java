@@ -184,8 +184,9 @@ public class BPDiagramComponent extends JComponent
 		}
 		if (fgs != 1f)
 		{
-			gtf.setToScale(1, 1);
-			g2d.setTransform(gtf);
+			AffineTransform f2 = AffineTransform.getScaleInstance(1, 1);
+			f2.translate(gtf.getTranslateX(), gtf.getTranslateY());
+			g2d.setTransform(f2);
 		}
 		if (fgs != 1f)
 		{

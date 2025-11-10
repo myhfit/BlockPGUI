@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -22,12 +23,14 @@ import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
 import bp.config.UIConfigs;
+import bp.data.BPMData.BPMDataWMap;
 import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
 import bp.task.BPTask;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogCommonCategoryView;
+import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
@@ -44,6 +47,7 @@ import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIUtil.BPMouseListener;
 import bp.util.ClassUtil;
 import bp.util.LogicUtil.WeakRefGo;
+import bp.util.ObjUtil;
 
 public class UIStd
 {
@@ -124,6 +128,18 @@ public class UIStd
 			{
 				viewList(lst, "BlockP - Show Data", null);
 			}
+		}
+		else if (data instanceof Map)
+		{
+			BPDialogForm dlg = new BPDialogForm();
+			dlg.setEditable(false);
+			dlg.setTitle("BlockP");
+			BPMDataWMap w = (BPMDataWMap) ObjUtil.wrapUIData(data);
+			dlg.setup(w.getClass().getName(), w);
+			dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
+			dlg.pack();
+			dlg.setLocationRelativeTo(null);
+			dlg.setVisible(true);
 		}
 		else
 		{

@@ -51,6 +51,11 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		}
 	}
 
+	public BPXYData getRawData()
+	{
+		return m_xydata;
+	}
+
 	public void setUserDeletable(boolean flag)
 	{
 		m_deletable_user = flag;

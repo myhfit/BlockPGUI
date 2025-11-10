@@ -20,21 +20,25 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import bp.BPGUICore;
+import bp.compare.BPDataComparator;
+import bp.compare.BPDataComparatorRaw;
+import bp.compare.BPDataComparatorRaw.BPDataCompareResultRaw;
 import bp.config.UIConfigs;
 import bp.data.BPBytesHolder;
 import bp.data.BPDataContainerOverlay;
 import bp.data.BPDataContainerRandomAccess;
 import bp.data.BPDataContainerRandomAccessBase;
 import bp.data.BPDataContainerRandomAccessBase.BPBlockCache;
+import bp.data.BPDataContainerRandomAccessOverlay;
 import bp.env.BPEnvCommon;
 import bp.env.BPEnvManager;
-import bp.data.BPDataContainerRandomAccessOverlay;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceHolder;
 import bp.tool.BPToolGUIDataPipe;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
+import bp.ui.compare.BPComparableGUI;
 import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
 import bp.ui.scomp.BPBytesCalcPane;
@@ -46,7 +50,7 @@ import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
 
-public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainerRandomAccess>, BPSyncGUI
+public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainerRandomAccess>, BPSyncGUI, BPComparableGUI<BPDataContainerRandomAccess, BPDataCompareResultRaw>
 {
 	/**
 	 * 
@@ -629,5 +633,15 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 				}
 			}
 		}
+	}
+
+	public BPDataComparator<BPDataContainerRandomAccess, BPDataCompareResultRaw> getComparator()
+	{
+		return new BPDataComparatorRaw();
+	}
+
+	public BPDataContainerRandomAccess getCompareData()
+	{
+		return m_con;
 	}
 }

@@ -14,6 +14,7 @@ import javax.swing.table.TableCellEditor;
 
 import bp.config.BPSetting;
 import bp.config.BPSettingItem;
+import bp.config.UIConfigs;
 import bp.res.BPResource;
 import bp.ui.scomp.BPComboBox.BPComboBoxModel;
 import bp.ui.table.BPTableFuncsBase;
@@ -30,6 +31,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 	{
 		super(new BPTableFuncsSettingItem());
 
+		setRowHeight(UIConfigs.TABLE_ROWHEIGHT());
 		getColumnModel().getColumn(1).setCellEditor(new BPCellEditorSettingItem());
 		putClientProperty("terminateEditOnFocusLost", true);
 	}
