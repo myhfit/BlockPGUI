@@ -198,6 +198,11 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 				}
 				break;
 			}
+			case KeyEvent.VK_DELETE:
+			{
+				getTreeFuncs().onDelete(this, getSelectedNode());
+				break;
+			}
 		}
 	}
 

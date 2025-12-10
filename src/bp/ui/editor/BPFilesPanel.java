@@ -3,6 +3,7 @@ package bp.ui.editor;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -16,6 +17,7 @@ import java.util.function.Consumer;
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 
@@ -100,6 +102,8 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		m_tablefuncs = new BPTableFuncsResourceFiles();
 		m_table = new BPTable<BPResource>(m_tablefuncs);
 		m_table.addMouseListener(new UIUtil.BPMouseListener(this::onTableClick, null, null, null, null));
+		m_table.getInputMap(BPTable.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deletefiles");
+		m_table.getActionMap().put("deletefiles", BPAction.build("deletefiles").callback(this::onDeleteFile).getAction());
 		m_table.setBorder(null);
 		m_table.getColumnModel().getColumn(2).setCellRenderer(new BPTable.BPTableRendererFileSize());
 		m_table.getColumnModel().getColumn(3).setCellRenderer(new BPTable.BPTableRendererDateTime());
@@ -210,7 +214,6 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 							item.size += s;
 							return true;
 						});
-
 					}
 					else if (m_con instanceof BPDataContainerFileSystem)
 					{
@@ -461,6 +464,16 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		}
 	}
 
+	protected void onDeleteFile(ActionEvent e)
+	{
+		List<BPResource> ress = m_table.getSelectedDatas();
+		if (ress != null && ress.size() > 0)
+		{
+			BPGUICore.EVENTS_UI.trigger(m_channelid,
+					new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress.toArray(new BPResource[ress.size()]), BPFileActions.ACTION_DELETE, null }, UIUtil.getRouteContext(e.getSource())));
+		}
+	}
+
 	public final static class BPEditorFactoryFiles implements BPEditorFactory
 	{
 		public String[] getFormats()
@@ -613,7 +626,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	protected void onSelectionChanged(ListSelectionEvent e)
 	{
-		if (!e.getValueIsAdjusting()&& m_onsync)
+		if (!e.getValueIsAdjusting() && m_onsync)
 		{
 			if (!m_blocksync)
 			{

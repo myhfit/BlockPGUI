@@ -355,6 +355,29 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		setVisible(true);
 	}
 
+	public void setFilterWithExts(String[] exts)
+	{
+		setFilter(res ->
+		{
+			if (res.isLeaf())
+			{
+				if (exts == null || exts.length == 0)
+					return true;
+				String ext = res.getExt();
+				for (String e : exts)
+				{
+					if (e.equals(ext))
+						return true;
+				}
+				return false;
+			}
+			else
+			{
+				return true;
+			}
+		});
+	}
+
 	public void showOpen()
 	{
 		m_checkexist = CHECKEXITFLAG.BLOCKNOTEXIST;

@@ -19,33 +19,44 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import bp.BPCore;
 import bp.BPGUICore;
 import bp.compare.BPDataComparator;
 import bp.compare.BPDataComparatorRaw;
 import bp.compare.BPDataComparatorRaw.BPDataCompareResultRaw;
 import bp.config.UIConfigs;
 import bp.data.BPBytesHolder;
+import bp.data.BPDataContainerFactory;
 import bp.data.BPDataContainerOverlay;
 import bp.data.BPDataContainerRandomAccess;
 import bp.data.BPDataContainerRandomAccessBase;
 import bp.data.BPDataContainerRandomAccessBase.BPBlockCache;
 import bp.data.BPDataContainerRandomAccessOverlay;
+import bp.data.BPTreeDataContainer;
 import bp.env.BPEnvCommon;
+import bp.env.BPEnvEditors;
 import bp.env.BPEnvManager;
+import bp.format.BPFormatManager;
 import bp.res.BPResource;
+import bp.res.BPResourceDCRA;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceHolder;
 import bp.tool.BPToolGUIDataPipe;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.compare.BPComparableGUI;
+import bp.ui.container.BPToolBarSQ;
+import bp.ui.dialog.BPDialogSimple;
 import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
+import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPBytesCalcPane;
 import bp.ui.scomp.BPHexPane;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIStd;
+import bp.ui.util.UIUtil;
+import bp.util.ClassUtil;
 import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
@@ -63,6 +74,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	protected boolean m_needsave;
 	protected String m_id;
 	protected int m_channelid;
+	protected boolean m_fullscroll;
 	protected BPDataContainerRandomAccess m_con;
 
 	protected BPTextPane m_txtp;
@@ -87,6 +99,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 
 	public BPRawEditor()
 	{
+		m_fullscroll = ObjUtil.toBool(BPEnvManager.getEnvValue(BPEnvEditors.ENV_NAME_EDITORS, BPEnvEditors.ENVKEY_RAWEDITOR_FULLSCROLL), false);
 		m_txtp = new BPTextPane();
 		m_hexp = new BPHexPane();
 		m_scroll = new JScrollPane();
@@ -96,11 +109,16 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		JPanel panright2 = new JPanel();
 		BPLabel lblrrt = new BPLabel("PREVIEW");
 		BPLabel lblrlt = new BPLabel("CALC");
+		BPToolBarSQ tb = new BPToolBarSQ(true);
 
 		lblrlt.setForeground(UIConfigs.COLOR_TEXTHALF());
 		lblrlt.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 0)));
 		lblrrt.setForeground(UIConfigs.COLOR_TEXTHALF());
 		lblrrt.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 0)));
+
+		BPAction acttest = BPAction.build("teststruct").tooltip("Test Structure").callback(this::onTestStructure).vIcon(BPIconResV.PATHTREE()).getAction();
+		tb.setActions(new Action[] { BPAction.separator(), acttest });
+		tb.setBorderVertical(0);
 
 		m_calcp.setBackground(UIConfigs.COLOR_TEXTBG());
 		panright1.setBackground(UIConfigs.COLOR_TEXTBG());
@@ -120,6 +138,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_txtp.setFont(tfont);
 		lblrlt.setFont(tfont);
 		lblrrt.setFont(tfont);
+		m_hexp.setFullScroll(m_fullscroll);
 
 		setLayout(new BorderLayout());
 		m_panright.setLayout(new BorderLayout());
@@ -134,6 +153,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_panright.add(panright1, BorderLayout.EAST);
 		add(m_scroll, BorderLayout.CENTER);
 		add(m_panright, BorderLayout.EAST);
+		add(tb,BorderLayout.WEST);
 		m_readcb = this::onRead;
 		m_rawreadcb = this::onRawRead;
 		m_previewcb = this::onPreview;
@@ -196,6 +216,31 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		BPBytesHolder bh = new BPBytesHolder();
 		bh.setData(bs);
 		bind(bh);
+	}
+	
+	protected void onTestStructure(ActionEvent e)
+	{
+		BPTreeDataEditor<BPTreeDataContainer> editor=new BPTreeDataEditor<>();
+		String format=BPFormatManager.getFormatByExt(m_con.getResource().getExt()).getName();
+		BPDataContainerFactory fac = ClassUtil.findService(BPDataContainerFactory.class, f -> f.canHandle(format));
+		if(fac==null)
+		{
+			UIStd.info("Can't create DataContainer");
+			return;
+		}
+		BPTreeDataContainer tcon = fac.createContainer(null);
+		BPResource resori = m_con.getResource();
+		String tempid = BPCore.genID(BPCore.getFileContext());
+		BPResourceDCRA res = new BPResourceDCRA(m_con, null, resori.getExt(), tempid, tempid, true);
+		tcon.bind(res);
+		editor.bind(tcon);
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(editor, BPDialogSimple.COMMANDBAR_OKESCAPE, null);
+		dlg.setPreferredSize(UIUtil.getPercentDimension(0.6f, 0.6f));
+		dlg.setModal(true);
+		dlg.setTitle("Test Structure");
+		dlg.pack();
+		dlg.setLocationRelativeTo(this.getFocusCycleRootAncestor());
+		dlg.setVisible(true);
 	}
 
 	protected void onPreview(byte[] bs, Integer linesize)
@@ -559,11 +604,12 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_panright.setVisible(!nopreview);
 
 		validate();
+		updateUI();
 	}
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_onsync && !e.getValueIsAdjusting() && !m_blocksync)
+		if (m_onsync && (m_fullscroll || !e.getValueIsAdjusting()) && !m_blocksync)
 		{
 			int y = m_hexp.getScrollBar().getValue();
 			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_RAW, y));

@@ -32,6 +32,11 @@ public interface BPTreeFuncs
 
 	}
 
+	default void onDelete(BPTree tree, BPTreeNode node)
+	{
+
+	}
+
 	default void setTreeFilter(Predicate<?> filter)
 	{
 

@@ -335,6 +335,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	protected BPEditor<?> makeResultEditor(BPDataCompareResult r)
 	{
 		BPCodePanel rc = new BPCodePanel();
+		rc.getTextPanel().setText(r.toString());
 		rc.setID(BPCore.genID(BPCore.getFileContext()));
 		return rc;
 	}

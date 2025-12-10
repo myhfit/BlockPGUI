@@ -382,7 +382,11 @@ public class CommonUIOperations
 		if (issave)
 			dlg.showSave(exts);
 		else
+		{
+			if (exts != null && exts.length > 0)
+				dlg.setFilterWithExts(exts);
 			dlg.showOpen();
+		}
 		return dlg.getSelectedResource();
 	}
 
@@ -489,7 +493,8 @@ public class CommonUIOperations
 			{
 				flag = flag | res.delete();
 			}
-			CommonUIOperations.refreshPathTree(par, false);
+			if (flag)
+				CommonUIOperations.refreshPathTree(par, false);
 		}
 	}
 

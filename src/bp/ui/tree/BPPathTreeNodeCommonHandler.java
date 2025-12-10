@@ -1,5 +1,7 @@
 package bp.ui.tree;
 
+import java.util.function.Consumer;
+
 import bp.format.BPFormat;
 import bp.res.BPResource;
 import bp.ui.actions.BPPathTreeNodeActions;
@@ -12,10 +14,22 @@ import bp.ui.util.UIUtil;
 public class BPPathTreeNodeCommonHandler
 {
 	protected BPTreeComponent<? extends BPTree> m_tree;
+	protected Consumer<BPEventUIPathTree> m_cb;
 
 	public BPPathTreeNodeCommonHandler(BPTreeComponent<? extends BPTree> tree)
 	{
 		m_tree = tree;
+	}
+
+	public void setTree(BPTreeComponent<? extends BPTree> tree)
+	{
+		m_tree = tree;
+	}
+
+	public Consumer<BPEventUIPathTree> makeEventListener()
+	{
+		m_cb = this::onPathTreeEvent;
+		return m_cb;
 	}
 
 	public void onPathTreeEvent(BPEventUIPathTree event)

@@ -2,7 +2,10 @@ package bp.ui.actions;
 
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.swing.Action;
 
@@ -10,6 +13,8 @@ import bp.BPGUICore;
 import bp.project.BPProjectItemFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
+import bp.tool.BPTool;
+import bp.tool.BPToolGUI;
 import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
 import bp.ui.tree.BPTreeComponent;
@@ -121,9 +126,42 @@ public class BPPathTreeNodeActions
 		return rc;
 	}
 
+	public BPAction getOpenFileWithToolActionOld(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
+	{
+		BPAction rc = BPAction.build("Open With Tool...").callback(new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_OPENWITHTOOL)).mnemonicKey(KeyEvent.VK_W).getAction();
+		return rc;
+	}
+
 	public BPAction getOpenFileWithToolAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		BPAction rc = BPAction.build("Open With Tool...").callback(new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_OPENWITHTOOL)).mnemonicKey(KeyEvent.VK_S).getAction();
+		BPResource[] ress = tree.getSelectedLeafs(BPResource.class);
+		BPAction rc = BPAction.build("Open With Tool").mnemonicKey(KeyEvent.VK_W).getAction();
+		Supplier<Action[]> submenucb = () ->
+		{
+			Map<String, List<BPTool>> toolmap = new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
+			List<BPToolGUI> tools = new ArrayList<BPToolGUI>();
+			for (List<BPTool> ts : toolmap.values())
+			{
+				for (BPTool t : ts)
+				{
+					if (t instanceof BPToolGUI)
+					{
+						BPToolGUI tg = (BPToolGUI) t;
+						if (tg.canInput(BPResource.class))
+							tools.add(tg);
+					}
+				}
+			}
+			tools.sort((a, b) -> a.getName().compareTo(b.getName()));
+			List<Action> r2 = new ArrayList<Action>();
+			for (BPToolGUI tool : tools)
+			{
+				BPAction act = BPAction.build(tool.getName()).callback((e) -> tool.showTool(new Object[] { ress })).getAction();
+				r2.add(act);
+			}
+			return r2.toArray(new Action[r2.size()]);
+		};
+		rc.putValue(BPAction.SUB_ACTIONS_FUNC, submenucb);
 		return rc;
 	}
 

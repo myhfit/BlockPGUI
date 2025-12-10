@@ -26,6 +26,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 	protected BPPathTreeNodeActions m_actptree;
 	protected int m_channelid;
 	protected boolean m_skiproot;
+	protected boolean m_readonly;
 
 	public BPPathTreeLocalFuncs()
 	{
@@ -77,6 +78,11 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 	public String getRootPath()
 	{
 		return m_base;
+	}
+
+	public void setReadOnly(boolean flag)
+	{
+		m_readonly = flag;
 	}
 
 	public List<?> getRoots()
@@ -167,10 +173,13 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 					rc.add(m_actptree.getOpenFileWithToolAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-					rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
-					rc.add(BPAction.separator());
-					rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
-					rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					if (!m_readonly)
+					{
+						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
+						rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					}
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getRefreshResAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
@@ -184,16 +193,45 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 					rc.add(m_actptree.getOpenFileWithToolAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-					rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
-					rc.add(BPAction.separator());
-					rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
-					rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					if (!m_readonly)
+					{
+						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
+						rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					}
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
 				}
 			}
 		}
 		return rc;
+	}
+
+	protected BPResource[][] getResources(BPTree tree)
+	{
+		Object[][] respaths = ((BPTreeComponentBase) tree).getSelectedNodePaths();
+		BPResource[][] resarrs = new BPResource[respaths.length][];
+		for (int i = 0; i < respaths.length; i++)
+		{
+			Object[] respath = respaths[i];
+			BPResource[] resarr = new BPResource[respath.length];
+			System.arraycopy(respath, 0, resarr, 0, respath.length);
+			resarrs[i] = resarr;
+		}
+		return resarrs;
+	}
+
+	public void onDelete(BPTree tree, BPTreeNode node)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+			{
+				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_ACTION, new Object[] { getResources(tree), BPPathTreeNodeActions.ACTION_DELETES }));
+			}
+		}
 	}
 
 	public void onSelect(BPTree tree, BPTreeNode node)
@@ -222,7 +260,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 
 	public final static BPPathTreeLocalFuncs OnlySelect()
 	{
-		return new BPPathTreeLocalFuncs()
+		BPPathTreeLocalFuncs rc = new BPPathTreeLocalFuncs()
 		{
 			public List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)
 			{
@@ -233,10 +271,18 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 					if (!res.isLeaf())
 					{
 						rc.add(m_actptree.getNewFileOnlyDirAction(tree, res, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getRefreshResAction(tree, res, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
 					}
 				}
 				return rc;
 			}
 		};
+		rc.setReadOnly(true);
+		return rc;
 	}
 }

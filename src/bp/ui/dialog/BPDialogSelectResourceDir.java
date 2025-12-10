@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import javax.swing.Action;
@@ -25,13 +24,12 @@ import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
 import bp.res.BPResource;
 import bp.ui.actions.BPCommonDialogActions;
-import bp.ui.actions.BPPathTreeNodeActions;
 import bp.ui.tree.BPPathTreeLocalFuncs;
+import bp.ui.tree.BPPathTreeNodeCommonHandler;
 import bp.ui.tree.BPPathTreePanel;
+import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
 import bp.ui.tree.BPProjectsTreeFuncs;
 import bp.ui.tree.BPTreeFuncs;
-import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
-import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIUtil;
 
 public class BPDialogSelectResourceDir extends BPDialogCommon
@@ -47,7 +45,7 @@ public class BPDialogSelectResourceDir extends BPDialogCommon
 
 	protected BPPathTreePanel m_ptree;
 
-	protected Consumer<BPEventUIPathTree> m_ptreehandler;
+	protected BPPathTreeNodeCommonHandler m_ptreehandler;
 
 	protected void initBPEvents()
 	{
@@ -58,8 +56,8 @@ public class BPDialogSelectResourceDir extends BPDialogCommon
 
 	protected void initBPEventHandlers(BPEventChannelUI channelui)
 	{
-		m_ptreehandler = this::onPathTreeEvent;
-		channelui.on(BPEventUIPathTree.EVENTKEY_PATHTREE, m_ptreehandler);
+		m_ptreehandler = new BPPathTreeNodeCommonHandler(null);
+		channelui.on(BPEventUIPathTree.EVENTKEY_PATHTREE, m_ptreehandler.makeEventListener());
 	}
 
 	public void setFilter(Predicate<BPResource> filter)
@@ -90,6 +88,7 @@ public class BPDialogSelectResourceDir extends BPDialogCommon
 		funcs.setFilter((res) -> !res.isLeaf());
 		m_ptree.setPathTreeFuncs(funcs);
 		m_ptree.setEventChannelID(m_channelid);
+		m_ptreehandler.setTree(m_ptree.getTreeComponent());
 
 		JPanel mainpan = new JPanel();
 		mainpan.setLayout(new BorderLayout());
@@ -108,26 +107,6 @@ public class BPDialogSelectResourceDir extends BPDialogCommon
 
 		setTitle("Select Directory");
 		setModal(true);
-	}
-
-	protected void onPathTreeEvent(BPEventUIPathTree event)
-	{
-		switch (event.subkey)
-		{
-			case BPEventUIPathTree.NODE_ACTION:
-			{
-				switch (event.getActionName())
-				{
-					case BPPathTreeNodeActions.ACTION_NEWDIR:
-					{
-						BPResource res = event.getSelectedResource();
-						CommonUIOperations.showNewDirectory(res, m_ptree.getTreeComponent());
-						break;
-					}
-				}
-				break;
-			}
-		}
 	}
 
 	protected void onListMouseClick(MouseEvent e)

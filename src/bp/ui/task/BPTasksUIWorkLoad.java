@@ -1,9 +1,7 @@
 package bp.ui.task;
 
-import java.util.List;
-
 import bp.BPCore;
-import bp.task.BPTask;
+import bp.task.BPTaskManager;
 
 public class BPTasksUIWorkLoad extends BPTasksUI
 {
@@ -17,8 +15,8 @@ public class BPTasksUIWorkLoad extends BPTasksUI
 		return false;
 	}
 
-	protected List<BPTask<?>> listTasks()
+	protected BPTaskManager getTaskManager()
 	{
-		return BPCore.getWorkspaceContext().getWorkLoadManager().listTasks();
+		return BPCore.getWorkspaceContext().getWorkLoadManager();
 	}
 }

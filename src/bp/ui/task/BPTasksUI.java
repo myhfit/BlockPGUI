@@ -25,6 +25,7 @@ import bp.config.BPSetting;
 import bp.config.UIConfigs;
 import bp.event.BPEventCoreUI;
 import bp.task.BPTask;
+import bp.task.BPTaskManager;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
@@ -100,8 +101,10 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 		BPToolVIconButton btnstart = new BPToolVIconButton(BPAction.build("").callback(this::onStart).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)).tooltip("Start Task(F5)").vIcon(BPIconResV.START()).getAction(), this);
 		BPToolVIconButton btnstop = new BPToolVIconButton(BPAction.build("").callback(this::onStop).tooltip("Stop Task").vIcon(BPIconResV.STOP()).getAction(), this);
 		BPToolVIconButton btnedit = new BPToolVIconButton(BPAction.build("").callback(this::onEdit).tooltip("Edit Task").vIcon(BPIconResV.EDIT()).getAction(), this);
+		BPToolVIconButton btnmoveup = new BPToolVIconButton(BPAction.build("").callback(this::onMoveUp).tooltip("Move Up").vIcon(BPIconResV.TOUP()).getAction(), this);
+		BPToolVIconButton btnmovedown= new BPToolVIconButton(BPAction.build("").callback(this::onMoveDown).tooltip("Move Down").vIcon(BPIconResV.TODOWN()).getAction(), this);
 		int btnsize = (int) (16f * UIConfigs.UI_SCALE());
-		setupButtons(btnsize, btnadd, btndel, btnstart, btnstop, btnedit);
+		setupButtons(btnsize, btnadd, btndel, btnstart, btnstop, btnedit, btnmoveup);
 
 		m_tabtasks.setModel(m_model);
 		m_tabtasks.setDefaultRenderer(Float.class, new BPTable.BPTableRendererReplace(this::getCellComponent));
@@ -115,6 +118,12 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 			m_toolbar.add(btnstart);
 		}
 		m_toolbar.add(btnstop);
+		if (canModify())
+		{
+			m_toolbar.add(Box.createRigidArea(new Dimension(4, 4)));
+			m_toolbar.add(btnmoveup);
+			m_toolbar.add(btnmovedown);
+		}
 
 		setLayout(new BorderLayout());
 		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
@@ -140,7 +149,12 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 
 	protected List<BPTask<?>> listTasks()
 	{
-		return BPCore.listTasks();
+		return getTaskManager().listTasks();
+	}
+
+	protected BPTaskManager getTaskManager()
+	{
+		return BPCore.getWorkspaceContext().getTaskManager();
 	}
 
 	protected void onAdd(ActionEvent e)
@@ -230,6 +244,30 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 			if (!task.isRunning())
 				task.start();
 		}
+	}
+
+	protected void onMoveUp(ActionEvent e)
+	{
+		int pos = m_tabtasks.getSelectedRow();
+		if (pos <= 0)
+			return;
+		BPTask<?> task = m_tabtasks.getSelectedData();
+		getTaskManager().moveTask(task, -1);
+		BPCore.getWorkspaceContext().saveTasks();
+		initDatas();
+		m_tabtasks.setSelectionRows(new int[] { pos - 1 });
+	}
+
+	protected void onMoveDown(ActionEvent e)
+	{
+		int pos = m_tabtasks.getSelectedRow();
+		if (pos < 0 || pos == m_tabtasks.getRowCount() - 1)
+			return;
+		BPTask<?> task = m_tabtasks.getSelectedData();
+		getTaskManager().moveTask(task, 1);
+		BPCore.getWorkspaceContext().saveTasks();
+		initDatas();
+		m_tabtasks.setSelectionRows(new int[] { pos + 1 });
 	}
 
 	protected void onEdit(ActionEvent e)

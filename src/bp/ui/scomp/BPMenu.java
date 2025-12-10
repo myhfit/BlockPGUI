@@ -68,6 +68,7 @@ public class BPMenu extends JMenu
 
 		public void menuCanceled(MenuEvent e)
 		{
+			m_dynafunc = null;
 		}
 	}
 }

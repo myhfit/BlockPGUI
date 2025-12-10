@@ -20,6 +20,13 @@ public class BPToolGUIParallelEditor extends BPToolGUIBase<BPToolGUIParallelEdit
 	{
 		return getName();
 	}
+	
+	public boolean canInput(Class<?> cls)
+	{
+		if (BPResource.class.equals(cls))
+			return true;
+		return false;
+	}
 
 	protected void setFramePrefers(BPFrame f)
 	{
@@ -48,15 +55,20 @@ public class BPToolGUIParallelEditor extends BPToolGUIBase<BPToolGUIParallelEdit
 			boolean added = false;
 			if (params != null && params.length > 0)
 			{
-				Object objarr = params[0];
-				if (objarr instanceof BPResource[])
+				Object obj = params[0];
+				if (obj instanceof BPResource[])
 				{
-					p.batchAdd((BPResource[]) objarr, null);
+					p.batchAdd((BPResource[]) obj, null);
 					added = true;
 				}
-				else if (objarr instanceof BPEditor<?>[])
+				else if (obj instanceof BPResource)
 				{
-					for (BPEditor<?> editor : (BPEditor<?>[]) objarr)
+					p.batchAdd(new BPResource[] { (BPResource) obj }, null);
+					added = true;
+				}
+				else if (obj instanceof BPEditor<?>[])
+				{
+					for (BPEditor<?> editor : (BPEditor<?>[]) obj)
 					{
 						p.addEditor(editor);
 					}

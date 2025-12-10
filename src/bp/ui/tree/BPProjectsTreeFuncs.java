@@ -202,6 +202,32 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 		return rc;
 	}
 
+	protected BPResource[][] getResources(BPTree tree)
+	{
+		Object[][] respaths = ((BPTreeComponentBase) tree).getSelectedNodePaths();
+		BPResource[][] resarrs = new BPResource[respaths.length][];
+		for (int i = 0; i < respaths.length; i++)
+		{
+			Object[] respath = respaths[i];
+			BPResource[] resarr = new BPResource[respath.length];
+			System.arraycopy(respath, 0, resarr, 0, respath.length);
+			resarrs[i] = resarr;
+		}
+		return resarrs;
+	}
+
+	public void onDelete(BPTree tree, BPTreeNode node)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+			{
+				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_ACTION, new Object[] { getResources(tree), BPPathTreeNodeActions.ACTION_DELETES }));
+			}
+		}
+	}
+
 	public void onSelect(BPTree tree, BPTreeNode node)
 	{
 		if (node != null)

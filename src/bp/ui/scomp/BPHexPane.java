@@ -68,6 +68,7 @@ public class BPHexPane extends JPanel
 
 	protected boolean m_isdown;
 	protected int[] m_downpt;
+	protected boolean m_fullscroll;
 
 	protected JScrollBar m_sbar;
 
@@ -113,6 +114,11 @@ public class BPHexPane extends JPanel
 		m_chh = fm.getHeight();
 	}
 
+	public void setFullScroll(boolean flag)
+	{
+		m_fullscroll = flag;
+	}
+
 	public void setup(BiFunction<Long, Integer, byte[]> readcb, long len, BiConsumer<byte[], Integer> previewcb, BiConsumer<Long, Long> poscb)
 	{
 		m_readcb = readcb;
@@ -122,22 +128,34 @@ public class BPHexPane extends JPanel
 		updateView();
 	}
 
-	protected void onShowLocate(ActionEvent e)
+	public void onShowLocate(ActionEvent e)
 	{
-		String addr = UIStd.input("", "Address(hex)", "Input address");
-		StringBuilder sb = new StringBuilder();
-		for (char c : addr.toCharArray())
+		String addr = UIStd.input("", "Dec or 0x+Hex", "Input address");
+		long l = -1;
+		if (addr.startsWith("0x"))
 		{
-			if (c != ' ' && c < '0' || c > '9')
+			StringBuilder sb = new StringBuilder();
+			for (char c : addr.toCharArray())
 			{
-				UIStd.info("Address not correct");
-				return;
+				if (c == ' ' || (c > '0' && c < '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
+				{
+					UIStd.info("Address not correct");
+					return;
+				}
+				sb.append(c);
 			}
-			sb.append(c);
+			l = Long.parseLong(sb.toString(), 16);
 		}
-		long l = Long.parseLong(sb.toString(), 16);
-		setSelection(l, l);
-		updateView();
+		else
+		{
+			l = Long.parseLong(addr.trim(), 10);
+		}
+		if (l >= 0)
+		{
+			m_pos = l;
+			setSelection(l, l);
+			updateView();
+		}
 	}
 
 	public void ensurePosition(long pos)
@@ -170,7 +188,7 @@ public class BPHexPane extends JPanel
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (!e.getValueIsAdjusting())
+		if (m_fullscroll || !e.getValueIsAdjusting())
 		{
 			int s = m_sbar.getValue();
 			int h = getHeight();
