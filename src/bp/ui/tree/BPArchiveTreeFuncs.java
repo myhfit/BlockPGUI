@@ -225,9 +225,13 @@ public interface BPArchiveTreeFuncs extends BPTreeFuncs
 
 		public void onOpen(BPTree tree, BPTreeNode node)
 		{
-			ZipEntry entry = (ZipEntry) node.getUserObject();
-			if (!entry.isDirectory())
-				BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUIPathTree.makeActionEvent(BPPathTreeNodeActions.ACTION_OPENFILE, linkResource(entry)));
+			Object eobj = node.getUserObject();
+			if (eobj instanceof ZipEntry)
+			{
+				ZipEntry entry = (ZipEntry) eobj;
+				if (!entry.isDirectory())
+					BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUIPathTree.makeActionEvent(BPPathTreeNodeActions.ACTION_OPENFILE, linkResource(entry)));
+			}
 		}
 
 		public List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)

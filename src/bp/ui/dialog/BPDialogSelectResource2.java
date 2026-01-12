@@ -107,7 +107,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 				}
 				case BPEventUIPathTree.NODE_ACTION:
 				{
-					if (event.getActionName().equals(BPPathTreeNodeActions.ACTION_OPENFILE))
+					if (event.getActionName().equals(BPPathTreeNodeActions.ACTION_OPENFILE) || event.getActionName().equals(BPPathTreeNodeActions.ACTION_OPENRES))
 						callCommonAction(COMMAND_OK);
 					else
 						m_ptreehandler.onPathTreeEvent(event);

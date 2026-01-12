@@ -49,6 +49,8 @@ import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.form.BPFormPanelXYData;
 import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
+import bp.ui.parallel.BPSyncGUIController;
+import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTable;
 import bp.ui.table.BPTableFuncsResourceFiles;
@@ -80,11 +82,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	protected BPTable<BPResource> m_table;
 	protected BPTableFuncsResourceFiles m_tablefuncs;
 	protected Consumer<BPEventCoreUI> m_refreshpathhandler;
+	protected Consumer<BPEventUISyncEditor> m_synccb;
 	protected boolean m_navmode;
 	protected JScrollPane m_scroll;
-	protected Consumer<BPEventUISyncEditor> m_synccb;
-	protected volatile boolean m_onsync;
-	protected volatile boolean m_blocksync;
+	protected BPSyncGUIController m_syncobj;
 
 	protected String m_id;
 
@@ -131,6 +132,9 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		m_refreshpathhandler = this::onRefreshPathEvent;
 
+		m_synccb = this::onSyncEditor;
+		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
+
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_refreshpathhandler);
 	}
 
@@ -156,13 +160,16 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (!m_onsync)
-			return;
-		if (!m_blocksync)
+		if (m_syncobj.checkSyncAndNoBlock())
 		{
 			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
-			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_FILES_LIST, xy));
+			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_FILES_LIST, xy));
 		}
+	}
+
+	public BPSyncGUIController getSyncStatusController()
+	{
+		return m_syncobj;
 	}
 
 	public void copy()
@@ -373,9 +380,13 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	public void clearResource()
 	{
-		m_table.clearResource();
-		removeAll();
-		m_table = null;
+		m_syncobj.clearResource();
+		if (m_table != null)
+		{
+			m_table.clearResource();
+			removeAll();
+			m_table = null;
+		}
 		if (m_con != null)
 		{
 			m_con.close();
@@ -429,6 +440,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		m_channelid = channelid;
 		m_tablefuncs.setChannelID(channelid);
+		m_syncobj.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -539,23 +551,6 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		}
 	}
 
-	public void startSync()
-	{
-		if (m_synccb != null)
-			stopSync();
-		m_synccb = this::onSyncEditor;
-		BPGUICore.EVENTS_UI.on(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_onsync = true;
-	}
-
-	public void stopSync()
-	{
-		m_onsync = false;
-		if (m_synccb != null)
-			BPGUICore.EVENTS_UI.off(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_synccb = null;
-	}
-
 	public BPResource[] getSubResources(String[] path)
 	{
 		BPResource[] rc = new BPResource[path.length];
@@ -605,8 +600,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				if (!m_id.equals(id))
 				{
 					String[] sels = e.getSyncData();
-					m_blocksync = true;
-					try
+					m_syncobj.blockSync(() ->
 					{
 						int[] tcs = getFileIndex(ObjUtil.collectNotEmpty(getSubResources(sels)).toArray(new BPResource[0]));
 						if (tcs.length > 0)
@@ -614,11 +608,9 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 							m_table.setSelectionRows(tcs);
 							m_table.scrollRectToVisible(m_table.getCellRect(m_table.convertRowIndexToView(tcs[0]), 0, true));
 						}
-					}
-					finally
-					{
-						m_blocksync = false;
-					}
+						else
+							m_table.clearSelection();
+					});
 				}
 			}
 		}
@@ -626,30 +618,27 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	protected void onSelectionChanged(ListSelectionEvent e)
 	{
-		if (!e.getValueIsAdjusting() && m_onsync)
+		if (e.getValueIsAdjusting() && m_syncobj.checkSyncAndNoBlock())
 		{
-			if (!m_blocksync)
+			List<BPResource> ress = m_table.getSelectedDatas();
+			String[] resstrs = new String[ress.size()];
+			BPResource base = m_tablefuncs.getBaseResource();
+			if (base.isFileSystem() && !base.isLeaf())
 			{
-				List<BPResource> ress = m_table.getSelectedDatas();
-				String[] resstrs = new String[ress.size()];
-				BPResource base = m_tablefuncs.getBaseResource();
-				if (base.isFileSystem() && !base.isLeaf())
+				String basestr = ((BPResourceFileSystem) base).getFileFullName();
+				for (int i = 0; i < ress.size(); i++)
 				{
-					String basestr = ((BPResourceFileSystem) base).getFileFullName();
-					for (int i = 0; i < ress.size(); i++)
-					{
-						resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
-					}
-					BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+					resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
 				}
-				else
+				m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+			}
+			else
+			{
+				for (int i = 0; i < ress.size(); i++)
 				{
-					for (int i = 0; i < ress.size(); i++)
-					{
-						resstrs[i] = ress.get(i).getName();
-					}
-					BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+					resstrs[i] = ress.get(i).getName();
 				}
+				m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 			}
 		}
 	}

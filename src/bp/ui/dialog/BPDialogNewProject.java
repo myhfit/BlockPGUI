@@ -105,6 +105,7 @@ public class BPDialogNewProject extends BPDialogCommon
 		String path = (String) data.get("path");
 		BPResourceDirLocal dir = ((path == null) ? null : (BPResourceDirLocal) BPCore.getFileContext().getDir(path));
 		rc = m_lstfacs.getSelectedValue().create(getSelectedProjectType(), dir, (Map) data);
+		rc.initProjectDatas();
 		if (rc.canCache())
 			rc.startCache();
 		return rc;

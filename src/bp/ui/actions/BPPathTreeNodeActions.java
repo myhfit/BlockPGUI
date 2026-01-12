@@ -21,7 +21,7 @@ import bp.ui.tree.BPTreeComponent;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.EventUtil;
 
-public class BPPathTreeNodeActions
+public class BPPathTreeNodeActions extends BPTreeNodeActions
 {
 	public final static String ACTION_REFRESH = "refresh";
 	public final static String ACTION_NEWFILE = "newfile";

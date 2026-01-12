@@ -142,11 +142,6 @@ public class BPEditors extends BPTabbedContainerBase
 		open(file, null, null, null, null);
 	}
 
-	// public void open(BPResource res, BPFormat fformat, BPEditorFactory ffac)
-	// {
-	// open(res, fformat, ffac, null, null);
-	// }
-
 	public void open(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig config)
 	{
 		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();

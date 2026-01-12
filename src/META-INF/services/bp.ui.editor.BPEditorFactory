@@ -8,6 +8,7 @@ bp.ui.editor.BPEditorFactory$BPEditorFactoryXYData
 bp.ui.editor.BPEditorFactory$BPEditorFactoryJSONToXYData
 bp.ui.editor.BPEditorFactory$BPEditorFactoryTreeEditor
 bp.ui.editor.BPEditorFactory$BPEditorFactoryClient
+bp.ui.editor.BPEditorFactory$BPEditorFactoryParallel
 bp.ui.editor.BPJSONPanel$BPEditorFactoryJSON
 bp.ui.editor.BPArchivePanel$BPEditorFactoryArchive
 bp.ui.editor.BPCompareFileSystemPanel$BPEditorFactoryCompareFileSystem

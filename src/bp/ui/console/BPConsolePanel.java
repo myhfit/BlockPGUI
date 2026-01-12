@@ -20,6 +20,8 @@ public class BPConsolePanel extends BPCodePanel
 	{
 		m_scroll = new JScrollPane();
 		m_scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
+//		m_scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
+//		m_scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
 		initActions();
 		setLayout(new BorderLayout());
 		add(m_scroll, BorderLayout.CENTER);

@@ -19,6 +19,7 @@ import bp.remote.BPConnector;
 import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
+import bp.util.ObjUtil;
 
 public class BPCommandPane extends JPanel implements FocusListener
 {
@@ -108,6 +109,7 @@ public class BPCommandPane extends JPanel implements FocusListener
 			case KeyEvent.VK_ESCAPE:
 			{
 				setVisible(false);
+				m_popup.cancelPopup();
 				break;
 			}
 			case KeyEvent.VK_ENTER:
@@ -161,9 +163,17 @@ public class BPCommandPane extends JPanel implements FocusListener
 			m_txt.setText("");
 			BPConnector conn = m_conn;
 			BPCommandResult r = conn == null ? BPCore.callCommand(cmd) : conn.call(cmd);
-			if (r != null && r.data != null)
+			if (r != null )
 			{
-				UIStd.showData(r.data);
+				if(r.success)
+				{
+					if( r.data != null)
+						UIStd.showData(r.data);
+				}
+				else
+				{
+					UIStd.info("Run command failed" + (r.data == null ? "" : (":" + ObjUtil.toString(r.data))));
+				}
 			}
 		}
 	}

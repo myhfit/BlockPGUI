@@ -503,4 +503,34 @@ public interface BPEditorFactory
 			return false;
 		}
 	}
+	
+	public static class BPEditorFactoryParallel implements BPEditorFactory
+	{
+		public String[] getFormats()
+		{
+			return new String[] { BPFormatUnknown.FORMAT_NA };
+		}
+
+		public BPEditor<?> createEditor(BPFormat format, BPResource res, BPConfig options, Object... params)
+		{
+			return new BPParallelEditorPanel();
+		}
+
+		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
+		{
+			BPParallelEditorPanel pe = (BPParallelEditorPanel) editor;
+			pe.addEditor(null);
+			pe.addEditor(null);
+		}
+
+		public String getName()
+		{
+			return "Parallel Editor";
+		}
+
+		public boolean handleFormat(String formatkey)
+		{
+			return false;
+		}
+	}
 }

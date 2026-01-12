@@ -40,6 +40,8 @@ import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogSetting;
 import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
+import bp.ui.parallel.BPSyncGUIController;
+import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
@@ -60,15 +62,13 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	protected BPTextContainer m_con = null;
 	protected WeakReference<Consumer<String>> m_dynainfo = null;
 	protected Consumer<BPEventUISyncEditor> m_synccb;
+	protected BPSyncGUIController m_syncobj;
 
 	protected Action[] m_acts;
 	protected Action actcopy;
 	protected Action actcut;
 	protected Action actpaste;
 	protected Action actprocessor;
-
-	protected volatile boolean m_onsync;
-	protected volatile boolean m_blocksync;
 
 	protected int m_channelid;
 
@@ -83,8 +83,6 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 		m_txt = createTextPane();
 		m_scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		m_scroll.getViewport().add(m_txt);
-		m_scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
-		m_scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
 		m_txt.setOnPosChanged(this::onPosChanged);
 		initActions();
 		setLayout(new BorderLayout());
@@ -99,6 +97,13 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			m_txt.addMouseListener(new UIUtil.BPMouseListenerForPopup(this::onContextMenu));
 			m_txt.addKeyListener(new UIUtil.BPKeyListener(null, this::onCommonKeyDown, null));
 		}
+		if(m_scroll!=null)
+		{
+			m_scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
+			m_scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
+		}
+		m_synccb = this::onSyncEditor;
+		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 	}
 
 	protected void initActions()
@@ -303,6 +308,8 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	public void setChannelID(int channelid)
 	{
 		m_channelid = channelid;
+		if (m_syncobj != null)
+			m_syncobj.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -429,23 +436,6 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 		return new String[] { ".txt" };
 	}
 
-	public void startSync()
-	{
-		if (m_synccb != null)
-			stopSync();
-		m_synccb = this::onSyncEditor;
-		BPGUICore.EVENTS_UI.on(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_onsync = true;
-	}
-
-	public void stopSync()
-	{
-		m_onsync = false;
-		if (m_synccb != null)
-			BPGUICore.EVENTS_UI.off(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_synccb = null;
-	}
-
 	protected void onSyncEditor(BPEventUISyncEditor e)
 	{
 		if (BPEventUISyncEditor.SYNC_POS.equals(e.subkey))
@@ -455,9 +445,12 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 				String id = (String) e.datas[0];
 				if (!(getID().equals(id)))
 				{
-					int[] xy = e.getSyncData();
-					m_scroll.getHorizontalScrollBar().setValue(xy[0]);
-					m_scroll.getVerticalScrollBar().setValue(xy[1]);
+					m_syncobj.blockSync(() ->
+					{
+						int[] xy = e.getSyncData();
+						m_scroll.getHorizontalScrollBar().setValue(xy[0]);
+						m_scroll.getVerticalScrollBar().setValue(xy[1]);
+					});
 				}
 			}
 		}
@@ -465,10 +458,15 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_onsync)
+		if (m_syncobj != null && m_syncobj.checkSync())
 		{
 			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
 			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(getID(), SYNCPOSTYPE_TEXT, xy));
 		}
+	}
+	
+	public BPSyncGUIController getSyncStatusController()
+	{
+		return m_syncobj;
 	}
 }

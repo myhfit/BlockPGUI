@@ -240,9 +240,9 @@ public class BPTable<T> extends JTable
 			for (int i = 0; i < sels.length; i++)
 			{
 				int p = sels[i];
-				if (p >= l)
-					continue;
 				p = convertRowIndexToView(p);
+				if (p >= l || p < 0)
+					continue;
 				if (i == 0)
 				{
 					setRowSelectionInterval(p, p);
@@ -253,6 +253,14 @@ public class BPTable<T> extends JTable
 				}
 			}
 		}
+	}
+
+	public int[] converRowIndecies(int[] sels, boolean toview)
+	{
+		int[] rc = new int[sels.length];
+		for (int i = 0; i < sels.length; i++)
+			rc[i] = toview ? convertRowIndexToView(sels[i]) : convertRowIndexToModel(sels[i]);
+		return rc;
 	}
 
 	public int getSelectedModelColumn()

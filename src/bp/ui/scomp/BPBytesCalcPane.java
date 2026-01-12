@@ -31,6 +31,8 @@ public class BPBytesCalcPane extends JPanel
 	protected BPTextField m_txtascii;
 	protected BPTextField m_txtutf8;
 
+	protected boolean m_bigendian = true;
+
 	public BPBytesCalcPane()
 	{
 		m_txtbin = new BPTextField();
@@ -76,7 +78,7 @@ public class BPBytesCalcPane extends JPanel
 		add(m_txtfloat64);
 		add(Box.createVerticalGlue());
 	}
-	
+
 	protected void addStrut()
 	{
 		add(Box.createVerticalStrut(8));
@@ -116,7 +118,12 @@ public class BPBytesCalcPane extends JPanel
 
 	protected boolean isLE()
 	{
-		return true;
+		return m_bigendian;
+	}
+
+	public void setLE(boolean flag)
+	{
+		m_bigendian = flag;
 	}
 
 	protected final static Number toFloatNumber(byte[] bs, boolean isle, int len)

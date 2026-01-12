@@ -20,7 +20,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
-import bp.BPGUICore;
 import bp.compare.BPDataComparator;
 import bp.compare.BPDataComparatorRaw;
 import bp.compare.BPDataComparatorRaw.BPDataCompareResultRaw;
@@ -49,10 +48,13 @@ import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
+import bp.ui.parallel.BPSyncGUIController;
+import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPBytesCalcPane;
 import bp.ui.scomp.BPHexPane;
 import bp.ui.scomp.BPLabel;
+import bp.ui.scomp.BPSwitchPanel;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
@@ -89,9 +91,8 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	protected WeakReference<Consumer<String>> m_dynainfo;
 	protected BiConsumer<String, Boolean> m_statechangedcb;
 	protected Consumer<BPEventUISyncEditor> m_synccb;
-
-	protected volatile boolean m_onsync;
-	protected volatile boolean m_blocksync;
+	
+	protected BPSyncGUIController m_syncobj;
 
 	protected BPBlockCache m_cache;
 
@@ -107,24 +108,28 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_panright = new JPanel();
 		JPanel panright1 = new JPanel();
 		JPanel panright2 = new JPanel();
+		JPanel panright11 = new JPanel();
 		BPLabel lblrrt = new BPLabel("PREVIEW");
 		BPLabel lblrlt = new BPLabel("CALC");
 		BPToolBarSQ tb = new BPToolBarSQ(true);
+		BPSwitchPanel swrlt = new BPSwitchPanel();
 
 		lblrlt.setForeground(UIConfigs.COLOR_TEXTHALF());
-		lblrlt.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 0)));
 		lblrrt.setForeground(UIConfigs.COLOR_TEXTHALF());
 		lblrrt.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 0)));
+		panright11.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 0)));
 
-		BPAction acttest = BPAction.build("teststruct").tooltip("Test Structure").callback(this::onTestStructure).vIcon(BPIconResV.PATHTREE()).getAction();
-		tb.setActions(new Action[] { BPAction.separator(), acttest });
+		tb.setActions(makeToolBarActions());
 		tb.setBorderVertical(0);
 
 		m_calcp.setBackground(UIConfigs.COLOR_TEXTBG());
 		panright1.setBackground(UIConfigs.COLOR_TEXTBG());
 		panright2.setBackground(UIConfigs.COLOR_TEXTBG());
-		m_scroll.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
+		panright11.setBackground(UIConfigs.COLOR_TEXTBG());
+		swrlt.setBackground(UIConfigs.COLOR_TEXTBG());
+		m_scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		m_scroll.setViewportView(m_hexp);
+		m_panright.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 		m_txtp.setPreferredSize(new Dimension(300, 200));
 		m_txtp.setBorder(null);
 		m_txtp.setEditable(false);
@@ -138,14 +143,19 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_txtp.setFont(tfont);
 		lblrlt.setFont(tfont);
 		lblrrt.setFont(tfont);
+		swrlt.setup(new Object[] { "BE", "LE" }, null, (i, c) -> c.setFont(tfont));
+		swrlt.setSelectedIndex(0);
 		m_hexp.setFullScroll(m_fullscroll);
 
 		setLayout(new BorderLayout());
 		m_panright.setLayout(new BorderLayout());
 		panright1.setLayout(new BorderLayout());
 		panright2.setLayout(new BorderLayout());
+		panright11.setLayout(new BorderLayout());
 
-		panright1.add(lblrlt, BorderLayout.NORTH);
+		panright11.add(lblrlt, BorderLayout.WEST);
+		panright11.add(swrlt, BorderLayout.EAST);
+		panright1.add(panright11, BorderLayout.NORTH);
 		panright1.add(m_calcp, BorderLayout.CENTER);
 		panright2.add(lblrrt, BorderLayout.NORTH);
 		panright2.add(m_txtp, BorderLayout.CENTER);
@@ -153,14 +163,26 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_panright.add(panright1, BorderLayout.EAST);
 		add(m_scroll, BorderLayout.CENTER);
 		add(m_panright, BorderLayout.EAST);
-		add(tb,BorderLayout.WEST);
+		add(tb, BorderLayout.WEST);
 		m_readcb = this::onRead;
 		m_rawreadcb = this::onRawRead;
 		m_previewcb = this::onPreview;
 		m_synccb = this::onSyncEditor;
+		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 
 		m_hexp.setContextActions(makeContextActions());
 		m_hexp.getScrollBar().addAdjustmentListener(this::onScroll);
+	}
+
+	protected Action[] makeToolBarActions()
+	{
+		BPAction acttest = BPAction.build("teststruct").tooltip("Test Structure").callback(this::onTestStructure).vIcon(BPIconResV.PATHTREE()).getAction();
+		List<Action> rc = ObjUtil.makeList(BPAction.separator(), acttest);
+		Action[] extacts = BPEditorActionManager.getBarActions(this);
+		if (extacts != null)
+			for (Action act : extacts)
+				rc.add(act);
+		return rc.toArray(new Action[rc.size()]);
 	}
 
 	public BPComponentType getComponentType()
@@ -217,13 +239,13 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		bh.setData(bs);
 		bind(bh);
 	}
-	
+
 	protected void onTestStructure(ActionEvent e)
 	{
-		BPTreeDataEditor<BPTreeDataContainer> editor=new BPTreeDataEditor<>();
-		String format=BPFormatManager.getFormatByExt(m_con.getResource().getExt()).getName();
+		BPTreeDataEditor<BPTreeDataContainer> editor = new BPTreeDataEditor<>();
+		String format = BPFormatManager.getFormatByExt(m_con.getResource().getExt()).getName();
 		BPDataContainerFactory fac = ClassUtil.findService(BPDataContainerFactory.class, f -> f.canHandle(format));
-		if(fac==null)
+		if (fac == null)
 		{
 			UIStd.info("Can't create DataContainer");
 			return;
@@ -542,6 +564,11 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		}
 	}
 
+	public Action[] getActBarActions()
+	{
+		return new Action[0];
+	}
+
 	public void setID(String id)
 	{
 		m_id = id;
@@ -555,6 +582,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public void setChannelID(int channelid)
 	{
 		m_channelid = channelid;
+		m_syncobj.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -567,11 +595,8 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_calcp.setBytes(m_hexp.getSelectedBytes());
 		sendDynamicInfo(start >= 0 && end >= 0 ? (BPHexPane.getHEXStr(start) + " - " + BPHexPane.getHEXStr(end)) : "");
 
-		if (m_onsync && !m_blocksync)
-		{
-			long[] sels = new long[] { start, end };
-			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_RAW, sels));
-		}
+		if (m_syncobj.checkSyncAndNoBlock())
+			m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_RAW, new long[] { start, end }));
 	}
 
 	protected void sendDynamicInfo(String info)
@@ -609,31 +634,16 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_onsync && (m_fullscroll || !e.getValueIsAdjusting()) && !m_blocksync)
-		{
-			int y = m_hexp.getScrollBar().getValue();
-			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_RAW, y));
-		}
+		if (m_syncobj.checkSyncAndNoBlock() && (m_fullscroll || !e.getValueIsAdjusting()))
+			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_RAW, m_hexp.getScrollBar().getValue()));
 	}
 
-	public void startSync()
+	public void startSyncStatus()
 	{
-		if (m_synccb != null)
-			stopSync();
-		m_synccb = this::onSyncEditor;
-		BPGUICore.EVENTS_UI.on(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_onsync = true;
+		m_syncobj.startSync();
 
 		if (!m_nopreview)
 			toggleRightPanel();
-	}
-
-	public void stopSync()
-	{
-		m_onsync = false;
-		if (m_synccb != null)
-			BPGUICore.EVENTS_UI.off(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_synccb = null;
 	}
 
 	protected void onSyncEditor(BPEventUISyncEditor e)
@@ -645,16 +655,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 				String id = (String) e.datas[0];
 				if (!m_id.equals(id))
 				{
-					m_blocksync = true;
-					try
-					{
-						int y = e.getSyncData();
-						m_hexp.getScrollBar().setValue(y);
-					}
-					finally
-					{
-						m_blocksync = false;
-					}
+					m_syncobj.blockSync(() -> m_hexp.getScrollBar().setValue(e.getSyncData()));
 				}
 			}
 		}
@@ -666,19 +667,19 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 				if (!m_id.equals(id))
 				{
 					long[] sels = e.getSyncData();
-					m_blocksync = true;
-					try
+					m_syncobj.blockSync(() ->
 					{
 						m_hexp.setSelection(sels[0], sels[1]);
 						m_hexp.repaint();
-					}
-					finally
-					{
-						m_blocksync = false;
-					}
+					});
 				}
 			}
 		}
+	}
+	
+	public BPSyncGUIController getSyncStatusController()
+	{
+		return m_syncobj;
 	}
 
 	public BPDataComparator<BPDataContainerRandomAccess, BPDataCompareResultRaw> getComparator()

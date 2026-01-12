@@ -12,5 +12,10 @@ public interface BPProjectsTreeNodeActionFactory
 {
 	List<Action> getActions(BPTreeComponent<BPTree> tree, BPResource res, int channelid);
 
+	default boolean callOpen(BPTree tree, BPResource res, int channelid)
+	{
+		return false;
+	}
+
 	void register(BiConsumer<String, BPProjectsTreeNodeActionFactory> regfunc);
 }

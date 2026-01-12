@@ -147,9 +147,10 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 					if (resfs.isDirectory())
 					{
 						rc.add(m_actptree.getNewFileInProjectAction(tree, res, m_channelid));
-						rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
-						rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
+						rc.add(m_actptree.getOpenResourceAction(tree, res, m_channelid));
+						rc.add(m_actptree.getOpenResourceAsAction(tree, res, m_channelid));
 						rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
+						rc.add(m_actptree.getOpenFileWithToolAction(tree, res, m_channelid));
 						rc.add(BPAction.separator());
 						rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
 						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
@@ -161,9 +162,10 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 					}
 					else if (resfs.isFile())
 					{
-						rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
-						rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
+						rc.add(m_actptree.getOpenResourceAction(tree, res, m_channelid));
+						rc.add(m_actptree.getOpenResourceAsAction(tree, res, m_channelid));
 						rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
+						rc.add(m_actptree.getOpenFileWithToolAction(tree, res, m_channelid));
 						rc.add(BPAction.separator());
 						rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
 						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
@@ -174,8 +176,8 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 				}
 				else if (res instanceof BPResourceHolder)
 				{
-					rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
-					rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
+					rc.add(m_actptree.getOpenResourceAction(tree, res, m_channelid));
+					rc.add(m_actptree.getOpenResourceAsAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
 				}
@@ -247,6 +249,8 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 			BPResource res = (BPResource) node.getUserObject();
 			if (res != null)
 			{
+				if (res.isProjectResource() && res.fullHandleAction() && BPProjectsTreeNodeActionManager.callOpen(tree, res, m_channelid))
+					return;
 				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_OPEN, res));
 			}
 		}

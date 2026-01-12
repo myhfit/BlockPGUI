@@ -2,7 +2,24 @@ package bp.ui.parallel;
 
 public interface BPSyncGUI
 {
-	void startSync();
+	default void startSyncStatus()
+	{
+		BPSyncGUIController c = getSyncStatusController();
+		if (c != null)
+			c.startSync();
+	}
 
-	void stopSync();
+	default void stopSyncStatus()
+	{
+		BPSyncGUIController c = getSyncStatusController();
+		if (c != null)
+			c.stopSync();
+	}
+
+	BPSyncGUIController getSyncStatusController();
+
+	default BPSyncGUIController getSyncActionController()
+	{
+		return null;
+	}
 }

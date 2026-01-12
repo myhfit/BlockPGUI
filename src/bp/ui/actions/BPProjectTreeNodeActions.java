@@ -5,7 +5,7 @@ import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeComponent;
 import bp.ui.util.EventUtil;
 
-public class BPProjectTreeNodeActions
+public class BPProjectTreeNodeActions extends BPTreeNodeActions
 {
 	public final static String ACTION_PRJ_OVERVIEW = "prj_overview";
 	public final static String ACTION_PRJ_STATISTICS = "prj_stats";

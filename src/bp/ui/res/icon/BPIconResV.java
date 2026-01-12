@@ -43,6 +43,7 @@ public class BPIconResV
 	private static BPVIcon S_ICON_MORE;
 	private static BPVIcon S_ICON_RECTSEL;
 	private static BPVIcon S_ICON_FIND;
+	private static BPVIcon S_ICON_IMG;
 
 	public final static BPVIcon BP()
 	{
@@ -113,10 +114,10 @@ public class BPIconResV
 				int x1 = x0 + w - 1;
 				int y1 = y0 + h - 1;
 				int w0 = w / 4;
-				int gx0 = x0 + 1;
-				int gx1 = x1 - 1;
-				int gy0 = y0 + 1;
-				int gy1 = y1 - 1;
+				int gx0 = x0 + 2;
+				int gx1 = x1 - 2;
+				int gy0 = y0 + 2;
+				int gy1 = y1 - 2;
 				g.drawLine(gx0, gy0, gx1, gy0);
 				g.drawLine(gx0, gy0, gx0, gy1 - w0);
 				g.drawLine(gx1, gy0, gx1 - w0, gy0 + w0);
@@ -733,5 +734,28 @@ public class BPIconResV
 			};
 		}
 		return S_ICON_FIND;
+	}
+	
+	public final static BPVIcon IMG()
+	{
+		if (S_ICON_IMG == null)
+		{
+			S_ICON_IMG = (g, x0, y0, w, h) ->
+			{
+				int x1 = x0 + w - 1;
+				int y1 = y0 + h - 1;
+				int x05 = (x0 + x1) / 2;
+				int y05 = (y0 + y1) / 2;
+				int y075 = y1 - ((y0 + y1) / 4);
+
+				g.drawLine(x0, y0, x0, y1);
+				g.drawLine(x0, y1, x1, y1);
+				g.drawLine(x1, y0, x1, y1);
+				g.drawLine(x0, y0, x1, y0);
+				g.drawLine(x0, y075, x05, y05);
+				g.drawLine(x05, y05, x1, y075);
+			};
+		}
+		return S_ICON_IMG;
 	}
 }

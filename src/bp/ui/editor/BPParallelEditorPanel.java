@@ -30,12 +30,15 @@ import bp.compare.BPDataComparator.BPDataCompareResult;
 import bp.config.BPConfig;
 import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
+import bp.data.BPTextContainer;
+import bp.data.BPTextContainerBase;
 import bp.event.BPEventChannelUI;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.res.BPResourceDirLocal;
 import bp.res.BPResourceFileLocal;
+import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
 import bp.tool.BPToolGUI;
 import bp.tool.BPToolGUIParallelEditor;
@@ -54,6 +57,7 @@ import bp.ui.scomp.BPGUIInfoPanel;
 import bp.ui.scomp.BPPopupComboList;
 import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
 import bp.ui.scomp.BPTextField;
+import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
 import bp.util.FileUtil;
 import bp.util.LogicUtil;
@@ -76,11 +80,13 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	protected JPanel m_mainp;
 	protected List<BPEditorSubPanel> m_eps;
 	protected BPToolBarSQ m_toolbar;
-	protected Action m_actsync;
+	protected Action m_actsyncstatus;
+	protected Action m_actsyncaction;
 
 	public BPParallelEditorPanel()
 	{
 		m_eps = new ArrayList<BPEditorSubPanel>();
+		m_editable = true;
 		initBPEvents();
 		initUI();
 	}
@@ -103,9 +109,11 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		m_mainp = new JPanel();
 		BPAction actadd = BPAction.build("add").tooltip("Add").vIcon(BPIconResV.ADD()).callback(this::onAdd).getAction();
 		BPAction actcompare = BPAction.build("compare").tooltip("Compare").vIcon(BPIconResV.LEFTRIGHT()).callback(this::onCompare).getAction();
-		m_actsync = BPAction.build("sync").tooltip("Toggle Sync Status").vIcon(BPIconResV.REFRESH()).callback(this::onToggleSync).getAction();
-		m_actsync.putValue(Action.SELECTED_KEY, true);
-		Action[] acts = new Action[] { actadd, actcompare, m_actsync };
+		m_actsyncstatus = BPAction.build("syncstatus").tooltip("Toggle Sync Status").vIcon(BPIconResV.REFRESH()).callback(this::onToggleSyncStatus).getAction();
+		m_actsyncaction = BPAction.build("syncaction").tooltip("Toggle Sync Action").vIcon(BPIconResV.REFRESH()).callback(this::onToggleSyncAction).getAction();
+		m_actsyncstatus.putValue(Action.SELECTED_KEY, true);
+		m_actsyncaction.putValue(Action.SELECTED_KEY, false);
+		Action[] acts = new Action[] { actadd, actcompare, BPAction.separator(), m_actsyncstatus, m_actsyncaction };
 		m_toolbar.setActions(acts);
 
 		m_toolbar.setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_STRONGBORDER()), new EmptyBorder(1, 1, 1, 0)));
@@ -187,6 +195,11 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	{
 	}
 
+	public String getEditorName()
+	{
+		return "Parallel Editor" + (m_id == null ? "" : (" " + m_id));
+	}
+
 	public void init2Editor()
 	{
 		addEditor(null);
@@ -201,14 +214,30 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		ep.setEditorIndex(newindex);
 		m_eps.add(ep);
 
-		changeGridSize(m_eps.size());
-		if (m_eps.size() > 1)
-			ep.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_TEXTQUARTER()));
+		refreshGrid();
 		if (editor != null)
 			ep.setEditor(editor);
 		m_mainp.add(ep);
 		m_mainp.updateUI();
 		return ep;
+	}
+	
+	protected void refreshGridEditorBorder(int row, int col)
+	{
+		if (row == 1 && col == 1)
+		{
+			m_eps.get(0).setBorder(null);
+			return;
+		}
+
+		int r, c;
+		for (int i = 0; i < m_eps.size(); i++)
+		{
+			BPEditorSubPanel ep = m_eps.get(i);
+			r = i / col;
+			c = i - (r * col);
+			ep.setBorder(new MatteBorder(0, 0, r < row - 1 ? 1 : 0, c < col - 1 ? 1 : 0, UIConfigs.COLOR_TEXTQUARTER()));
+		}
 	}
 
 	public void batchAdd(BPResource[] ress, Function<BPResource, BPEditor<?>> editorcb)
@@ -250,24 +279,55 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		{
 			m_eps.remove(index);
 			m_mainp.remove(index);
-			changeGridSize(m_eps.size());
-			if (index < s - 1)
+			for (int i = index; i < s - 1; i++)
 			{
-				for (int i = index; i < s - 1; i++)
-				{
-					m_eps.get(i).setEditorIndex(i);
-				}
+				m_eps.get(i).setEditorIndex(i);
 			}
+			refreshGrid();
 		}
 		updateUI();
 	}
+	
+	public void refreshGrid()
+	{
+		int[] cr = calcGridCR(m_eps.size());
+		changeGridSize(cr[1], cr[0]);
+		refreshGridEditorBorder(cr[1], cr[0]);
+	}
 
-	protected void changeGridSize(int s)
+	protected void changeGridSize(int r,int c)
+	{
+		GridLayout gl = (GridLayout) m_mainp.getLayout();
+		gl.setRows(r);
+		gl.setColumns(c);
+	}
+	
+	protected int[] calcGridCR(int s)
 	{
 		if (s < 2)
 			s = 2;
-		GridLayout gl = (GridLayout) m_mainp.getLayout();
-		gl.setColumns(s);
+		int r = 1;
+		int c = s;
+		int w = getWidth();
+		int h = getHeight();
+		if (w != 0 && h != 0)
+		{
+			float ratio = (float) w / (float) h;
+			c = (int) Math.ceil(Math.sqrt((float) s * ratio));
+			r = (int) Math.ceil((float) s / (float) c);
+			c = (s + r - 1) / r;
+		}
+		return new int[] { c, r };
+	}
+
+	public void forEachEditor(Consumer<BPEditor<?>> cb)
+	{
+		for (BPEditorSubPanel ep : m_eps)
+		{
+			BPEditor<?> e = ep.getEditor();
+			if (e != null)
+				cb.accept(e);
+		}
 	}
 
 	public void clearResource()
@@ -340,10 +400,16 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		return rc;
 	}
 
-	protected void onToggleSync(ActionEvent e)
+	protected void onToggleSyncStatus(ActionEvent e)
 	{
-		boolean v = !ObjUtil.toBool(m_actsync.getValue(Action.SELECTED_KEY), false);
-		m_actsync.putValue(Action.SELECTED_KEY, v);
+		boolean v = !ObjUtil.toBool(m_actsyncstatus.getValue(Action.SELECTED_KEY), false);
+		m_actsyncstatus.putValue(Action.SELECTED_KEY, v);
+		forEachEditor(editor -> LogicUtil.IFC(editor instanceof BPSyncGUI, () -> LogicUtil.IFC(v, () -> ((BPSyncGUI) editor).startSyncStatus(), () -> ((BPSyncGUI) editor).stopSyncStatus()), null));
+	}
+
+	protected void onToggleSyncAction(ActionEvent e)
+	{
+
 	}
 
 	protected class BPEditorSubPanel extends JPanel
@@ -433,7 +499,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			if (editor != null)
 			{
 				if (editor instanceof BPSyncGUI)
-					((BPSyncGUI) editor).stopSync();
+					((BPSyncGUI) editor).stopSyncStatus();
 				editor.clearResource();
 			}
 		}
@@ -542,7 +608,82 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 
 		public void onSave(ActionEvent e)
 		{
-			m_editor.save();
+			BPEditor<?> editor=m_editor;
+			if (!(editor instanceof BPViewer))
+				return;
+			BPDataContainer con = ((BPViewer<?>) editor).getDataContainer();
+			if (con == null)
+				return;
+			BPResource res = con.getResource();
+			if (res == null || res.isFileSystem() && ((BPResourceFileSystem) res).getTempID() != null)
+				saveAs();
+			else
+			{
+				editor.save();
+				BPResource respar = res.getParentResource();
+				CommonUIOperations.refreshPathTree(respar, false);
+				CommonUIOperations.refreshResourceCache(respar);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		protected void saveAs()
+		{
+			BPEditor<?> editor = m_editor;
+			BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+			String[] exts = null;
+			String rext = LogicUtil.CHAIN_NN(editor, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource(), r -> ((BPResource) r).getExt());
+			if (rext != null)
+				exts = new String[] { rext };
+			else
+				exts = editor.getExts();
+			dlg.showSave(exts);
+			BPResource file = dlg.getSelectedResource();
+			if (file != null)
+			{
+				boolean success = false;
+				String newid = file.getID();
+				if (editor instanceof BPTextEditor)
+				{
+					BPTextContainer con = new BPTextContainerBase();
+					con.bind(file);
+					((BPViewer<BPTextContainer>) editor).bind(con, true);
+					editor.setID(newid);
+					try
+					{
+						editor.save();
+						success = true;
+					}
+					finally
+					{
+					}
+				}
+				else
+				{
+					BPDataContainer con = editor.createDataContainer(file);
+					if (con == null)
+					{
+						UIStd.info("This Editor can't Save as");
+						return;
+					}
+					((BPViewer<BPDataContainer>) editor).bind(con, true);
+					editor.setID(newid);
+					try
+					{
+						editor.save();
+						success = true;
+					}
+					finally
+					{
+					}
+				}
+				if (success)
+				{
+					BPResource respar = file.getParentResource();
+					CommonUIOperations.refreshPathTree(respar, false);
+					CommonUIOperations.refreshResourceCache(respar);
+				}
+			}
 		}
 
 		protected List<BPCacheDataResource> listRes(String txt)
@@ -589,7 +730,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			if (oldeditor != null)
 			{
 				if (oldeditor instanceof BPSyncGUI)
-					((BPSyncGUI) oldeditor).stopSync();
+					((BPSyncGUI) oldeditor).stopSyncStatus();
 				oldeditor.clearResource();
 				oldeditor.setOnDynamicInfo(null);
 				oldeditor.setOnStateChanged(null);
@@ -609,7 +750,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 				add(editor.getComponent(), BorderLayout.CENTER);
 				m_paninfo.setEditorInfo(editor.getEditorInfo());
 				if (editor instanceof BPSyncGUI)
-					((BPSyncGUI) editor).startSync();
+					((BPSyncGUI) editor).startSyncStatus();
 			}
 			updateUI();
 		}
@@ -637,7 +778,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 					BPViewer<?> v = (BPViewer<?>) editor;
 					String resname = LogicUtil.CHAIN_NN(v, v2 -> ((BPViewer<?>) v2).getDataContainer(), dc -> ((BPDataContainer) dc).getResource(), res -> ((BPResource) res).getName());
 					if (resname == null)
-						rc = "untitled";
+						rc = LogicUtil.NVL(editor.getEditorName(), "untitled");
 					else
 						rc = resname;
 				}

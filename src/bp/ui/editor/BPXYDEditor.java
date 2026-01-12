@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -27,7 +26,6 @@ import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
-import bp.BPGUICore;
 import bp.compare.BPDataComparator;
 import bp.compare.BPDataComparatorXY;
 import bp.compare.BPDataComparatorXY.BPDataCompareResultXY;
@@ -50,6 +48,8 @@ import bp.ui.compare.BPComparableGUI;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
+import bp.ui.parallel.BPSyncGUIController;
+import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPRowFilter;
 import bp.ui.scomp.BPTable.BPTableModel;
@@ -82,8 +82,8 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	protected BPTable<BPXData> m_table;
 	protected BPToolBarSQ m_toolbar;
 	protected BPTextField m_txtfilter;
-	protected volatile boolean m_onsync;
-	protected volatile boolean m_blocksync;
+	
+	protected BPSyncGUIController m_syncobj;
 
 	protected BPActionHolder m_acts;
 
@@ -133,7 +133,15 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		add(m_scroll, BorderLayout.CENTER);
 		add(toppnl, BorderLayout.NORTH);
 
+		initListeners();
+	}
+
+	protected void initListeners()
+	{
 		m_txtfilter.getDocument().addDocumentListener(new UIUtil.BPDocumentChangedHandler(this::onFilterChanged));
+
+		m_synccb = this::onSyncEditor;
+		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 	}
 
 	public BPComponentType getComponentType()
@@ -296,6 +304,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	public void setChannelID(int channelid)
 	{
 		m_channelid = channelid;
+		m_syncobj.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -361,7 +370,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_funcs.setUserDeletable(true);
 		m_model = new BPTableModel<BPXData>(m_funcs);
 		m_model.setShowLineNum(true);
-		m_model.setDatas(new ArrayList<BPXData>(data.getDatas()));
+		m_model.setDatas(data.getDatas());
 		m_table.setModel(m_model);
 		m_table.initRowSorter();
 
@@ -435,7 +444,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	public void clearResource()
 	{
-		stopSync();
+		stopSyncStatus();
 		if (m_con != null)
 			unbind();
 		if (m_model != null)
@@ -453,37 +462,17 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_onsync)
+		if (m_syncobj.checkSyncAndNoBlock())
 		{
 			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
-			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_XY, xy));
+			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_XY, xy));
 		}
 	}
 
 	protected void onSelectionChanged(ListSelectionEvent e)
 	{
-		if (m_onsync && !m_blocksync)
-		{
-			int[] sels = m_table.getSelectedRows();
-			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_XY, sels));
-		}
-	}
-
-	public void startSync()
-	{
-		if (m_synccb != null)
-			stopSync();
-		m_synccb = this::onSyncEditor;
-		BPGUICore.EVENTS_UI.on(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_onsync = true;
-	}
-
-	public void stopSync()
-	{
-		m_onsync = false;
-		if (m_synccb != null)
-			BPGUICore.EVENTS_UI.off(m_channelid, BPEventUISyncEditor.EVENTKEY_SYNC_EDITOR, m_synccb);
-		m_synccb = null;
+		if (m_syncobj.checkSyncAndNoBlock())
+			m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_XY, m_table.converRowIndecies(m_table.getSelectedRows(), false)));
 	}
 
 	protected void onSyncEditor(BPEventUISyncEditor e)
@@ -496,8 +485,11 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 				if (!m_id.equals(id))
 				{
 					int[] xy = e.getSyncData();
-					m_scroll.getHorizontalScrollBar().setValue(xy[0]);
-					m_scroll.getVerticalScrollBar().setValue(xy[1]);
+					m_syncobj.blockSync(() ->
+					{
+						m_scroll.getHorizontalScrollBar().setValue(xy[0]);
+						m_scroll.getVerticalScrollBar().setValue(xy[1]);
+					});
 				}
 			}
 		}
@@ -511,19 +503,19 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 					int[] sels = e.getSyncData();
 					if (sels.length > 0)
 					{
-						m_blocksync = true;
-						try
+						m_syncobj.blockSync(() ->
 						{
 							m_table.setSelectionRows(sels);
 							m_table.scrollRectToVisible(m_table.getCellRect(sels[0], 0, true));
-						}
-						finally
-						{
-							m_blocksync = false;
-						}
+						});
 					}
 				}
 			}
 		}
+	}
+
+	public BPSyncGUIController getSyncStatusController()
+	{
+		return m_syncobj;
 	}
 }

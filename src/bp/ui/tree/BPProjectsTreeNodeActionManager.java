@@ -73,4 +73,12 @@ public class BPProjectsTreeNodeActionManager
 		}
 		return rc;
 	}
+
+	public static boolean callOpen(BPTree tree, BPResource res, int channelid)
+	{
+		BPProjectsTreeNodeActionFactory fac = getFactory(res);
+		if (fac != null)
+			return fac.callOpen(tree, res, channelid);
+		return false;
+	}
 }

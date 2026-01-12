@@ -227,6 +227,11 @@ public class BPPopupComboList extends JPopupMenu
 	{
 		return (List<Object>) m_controllerref.exec(c -> c.listfunc.apply(txt));
 	}
+	
+	public void cancelPopup()
+	{
+		hidePopup();
+	}
 
 	protected void hidePopup()
 	{

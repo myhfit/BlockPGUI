@@ -108,15 +108,20 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 	public List<Action> getActions(BPTable<BPResource> table, List<BPResource> datas, int[] rows, int r, int c)
 	{
 		List<Action> rc = new ArrayList<Action>();
-		rc.add(m_acts.getNewFileAction(m_base.get(), m_channelid));
-		rc.add(m_acts.getOpenFileAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
-		rc.add(m_acts.getOpenFileAsAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
-		rc.add(m_acts.getOpenFileExternalAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
-		rc.add(BPAction.separator());
-		rc.add(m_acts.getDeleteResourcesAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
-		rc.add(m_acts.getRenameResAction(datas.get(0), m_channelid));
-		rc.add(BPAction.separator());
-		rc.add(m_acts.getPropertyAction(datas.toArray(new BPResource[datas.size()]), m_channelid));
+		if (datas.size() > 0)
+		{
+			BPResource[] dataarr = datas.toArray(new BPResource[datas.size()]);
+			rc.add(m_acts.getNewFileAction(m_base.get(), m_channelid));
+			rc.add(m_acts.getOpenFileAction(dataarr, m_channelid));
+			rc.add(m_acts.getOpenFileAsAction(dataarr, m_channelid));
+			rc.add(m_acts.getOpenFileExternalAction(dataarr, m_channelid));
+			rc.add(m_acts.getOpenFileWithToolAction(dataarr, m_channelid));
+			rc.add(BPAction.separator());
+			rc.add(m_acts.getDeleteResourcesAction(dataarr, m_channelid));
+			rc.add(m_acts.getRenameResAction(datas.get(0), m_channelid));
+			rc.add(BPAction.separator());
+			rc.add(m_acts.getPropertyAction(dataarr, m_channelid));
+		}
 		return rc;
 	}
 }

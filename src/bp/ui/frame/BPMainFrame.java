@@ -68,6 +68,7 @@ import bp.ui.actions.BPMainFrameActions;
 import bp.ui.actions.BPMainPathTreeActions;
 import bp.ui.actions.BPPathTreeNodeActions;
 import bp.ui.actions.BPProjectTreeNodeActions;
+import bp.ui.actions.BPTreeNodeActions;
 import bp.ui.container.BPEditors;
 import bp.ui.container.BPEditors.BPEventUIEditors;
 import bp.ui.container.BPRoutableContainer;
@@ -645,7 +646,8 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			}
 			case BPEventUIPathTree.NODE_ACTION:
 			{
-				switch (event.getActionName())
+				String actionname=event.getActionName();
+				switch (actionname)
 				{
 					case BPPathTreeNodeActions.ACTION_NEWFILE:
 					{
@@ -672,6 +674,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						openResource(event.getSelectedResource(), new BPFormatProject(), null, true, null);
 						break;
 					}
+					case BPTreeNodeActions.ACTION_OPENRES:
 					case BPPathTreeNodeActions.ACTION_OPENFILE:
 					{
 						BPResource res = event.getSelectedResource();
@@ -695,18 +698,19 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 							else if (fres.isDirectory())
 								openDir(((BPResourceDir) res).getFileFullName(), format, fac, false, null);
 						}
-						else if (res instanceof BPResourceHolder)
+						else if (res instanceof BPResourceHolder || BPTreeNodeActions.ACTION_OPENRES.equals(actionname))
 						{
 							openResource(((BPResourceHolder) res), format, fac, false, null);
 						}
 						break;
 					}
+					case BPTreeNodeActions.ACTION_OPENRESAS:
 					case BPPathTreeNodeActions.ACTION_OPENFILEAS:
 					{
 						BPResource res = event.getSelectedResource();
 						if (res.isFileSystem())
 							openFileAs(((BPResourceFileSystem) res).getFileFullName(), ((BPResourceFileSystem) res).isDirectory());
-						else if (res instanceof BPResourceHolder)
+						else if (res instanceof BPResourceHolder || BPTreeNodeActions.ACTION_OPENRES.equals(actionname))
 							openResourcesAs(new BPResource[] { res });
 						break;
 					}
@@ -729,7 +733,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						}
 						if (fres != null)
 						{
-							switch (event.getActionName())
+							switch (actionname)
 							{
 								case BPPathTreeNodeActions.ACTION_OPENEXTERNAL_SYSTEM:
 									CommonUIOperations.openExternal(fres);
@@ -1384,7 +1388,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		if (!isVisible())
 		{
 			removeSystemTray();
-			m_editorinfo.clearResources();
+			m_editorinfo.clearResource();
 			ThreadGroup tg = ThreadUtil.exitCleanThreadGroup;
 			Thread[] ts = new Thread[tg.activeCount()];
 			tg.enumerate(ts);

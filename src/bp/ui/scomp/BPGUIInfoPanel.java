@@ -101,7 +101,7 @@ public class BPGUIInfoPanel extends JPanel
 		m_lbleditord.setText(info);
 	}
 
-	public void clearResources()
+	public void clearResource()
 	{
 		if (m_timer != null)
 		{

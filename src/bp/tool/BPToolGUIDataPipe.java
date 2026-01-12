@@ -95,7 +95,6 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			m_scrollpipes.setBorder(new EmptyBorder(0, 0, 0, 0));
 			sp.setBorder(new EmptyBorder(0, 0, 0, 0));
 			toolbar.setBorderHorizontal(0);
-//			toolbar.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()));
 			psrc.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_STRONGBORDER()));
 			m_lbltype.setMinimumSize(new Dimension(0, UIUtil.scale(UIConfigs.BAR_HEIGHT_VICON())));
 			m_lbltype.setPreferredSize(new Dimension(0, UIUtil.scale(UIConfigs.BAR_HEIGHT_VICON())));
