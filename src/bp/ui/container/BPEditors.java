@@ -24,6 +24,7 @@ import bp.res.BPResourceFile;
 import bp.res.BPResourceFileSystem;
 import bp.ui.BPComponent;
 import bp.ui.BPViewer;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditorFactory;
@@ -34,6 +35,7 @@ import bp.ui.scomp.BPTabBar;
 import bp.ui.scomp.BPTabBar.Tab;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
+import bp.ui.util.UIUtil;
 import bp.util.LogicUtil;
 
 public class BPEditors extends BPTabbedContainerBase
@@ -246,7 +248,7 @@ public class BPEditors extends BPTabbedContainerBase
 	public void showSwitchEditor()
 	{
 		List<BPTabBar.Tab> tabs = m_tabbar.getTabs();
-		BPTabBar.Tab seltab = UIStd.select(tabs, "BlockP - Select Editor", (tab) -> ((BPTabBar.Tab) tab).title + " (" + ((BPTabBar.Tab) tab).id + ")");
+		BPTabBar.Tab seltab = UIStd.select(tabs, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SELEDITOR), tab -> ((BPTabBar.Tab) tab).title + " (" + ((BPTabBar.Tab) tab).id + ")");
 		if (seltab != null)
 		{
 			switchTab(seltab.id);

@@ -6,8 +6,12 @@ import java.util.function.Consumer;
 import bp.BPCore;
 import bp.context.BPFileContext;
 import bp.core.BPCommandHandlerGUICore;
+import bp.locale.BPLocaleHelpers;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelperCommon;
 import bp.ui.frame.BPMainFrameIFC;
 import bp.ui.util.UIStd;
+import bp.ui.util.UIUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
 
@@ -31,6 +35,7 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 	public void install(BPFileContext context)
 	{
 		BPCore.addCommandHandler(new BPCommandHandlerGUICore());
+		BPLocaleHelpers.registerHelper(BPActionHelperCommon.ACTIONHELPER_PACK_MAIN, new BPActionHelperCommon());
 	}
 
 	public void setup(BPMainFrameIFC mainframe)
@@ -46,7 +51,7 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 
 	private static void err_u(String str)
 	{
-		UIStd.textarea(str, "BlockP - error", false);
+		UIStd.textarea(str, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_ERR), false);
 	}
 
 	private static String prompt_u(String str)
@@ -56,6 +61,6 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 
 	private static String select_u(String[] strs)
 	{
-		return UIStd.select(Arrays.asList(strs), "BlockP - select", null);
+		return UIStd.select(Arrays.asList(strs), UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SEL), null);
 	}
 }

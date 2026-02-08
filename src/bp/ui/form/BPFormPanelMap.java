@@ -15,8 +15,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellEditor;
 
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPKVTable;
 import bp.ui.scomp.BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable;
 import bp.ui.scomp.BPKVTable.KV;
@@ -124,8 +125,8 @@ public class BPFormPanelMap extends BPFormPanel
 	protected List<Action> makeToolBarActions()
 	{
 		List<Action> rc = new ArrayList<Action>();
-		BPAction actadd = BPAction.build("add").callback(this::onAdd).vIcon(BPIconResV.ADD()).getAction();
-		BPAction actdel = BPAction.build("del").callback(this::onDel).vIcon(BPIconResV.DEL()).getAction();
+		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDel);
 		rc.add(BPAction.separator());
 		rc.add(actadd);
 		rc.add(actdel);

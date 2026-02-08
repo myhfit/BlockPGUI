@@ -2,12 +2,9 @@ package bp.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
@@ -87,13 +84,6 @@ public class BPJSONPanel extends BPCodeAndPreviewPanel<BPTreeComponent<BPTree>>
 		m_canpreview = true;
 
 		initPreview();
-	}
-
-	protected void initActions()
-	{
-		super.initActions();
-		List<Action> acts = new CopyOnWriteArrayList<Action>(m_acts);
-		m_acts = acts.toArray(new Action[acts.size()]);
 	}
 
 	protected Object getInitPreviewData()

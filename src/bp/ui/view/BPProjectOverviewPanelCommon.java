@@ -20,7 +20,8 @@ import bp.config.UIConfigs;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
 import bp.ui.actions.BPAction;
-import bp.ui.res.icon.BPIconResV;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPToolVIconButton;
 import bp.ui.util.UIUtil;
@@ -87,7 +88,7 @@ public class BPProjectOverviewPanelCommon extends JPanel implements BPProjectOve
 
 	protected Action[] getResourceActions(BPResource res)
 	{
-		BPAction actopen = BPAction.build("open").callback((e) -> openResource(res)).vIcon(BPIconResV.START()).getAction();
+		BPAction actopen = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNOPEN, e -> openResource(res));
 		Action[] rc = new Action[] { actopen };
 		return rc;
 	}

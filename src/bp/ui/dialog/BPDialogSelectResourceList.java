@@ -23,8 +23,9 @@ import bp.event.BPEventCoreUI;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
 import bp.ui.scomp.BPTree;
@@ -131,7 +132,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 
 		JPanel leftpan = new JPanel();
 		BPToolBarSQ toollst = new BPToolBarSQ();
-		BPAction actdelete = BPAction.build("del").vIcon(BPIconResV.DEL()).callback(this::onDelete).getAction();
+		BPAction actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDelete);
 		FlowLayout fl = new FlowLayout();
 		fl.setAlignment(FlowLayout.CENTER);
 		fl.setVgap(0);
@@ -158,7 +159,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
 
-		setTitle("BlockP - Select Resource List");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_RES, BPActionConstCommon.TXT_LIST));
 		setModal(true);
 	}
 
@@ -241,7 +242,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 			if (node != null)
 			{
 				BPResource res = (BPResource) node.getUserObject();
-				BPAction actadd = BPAction.build("Add").callback((e) -> BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(RES_ADD, res))).getAction();
+				BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUADD, e -> BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(RES_ADD, res)));
 				rc.add(actadd);
 			}
 			return rc;
@@ -261,7 +262,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 			if (node != null)
 			{
 				BPResource res = (BPResource) node.getUserObject();
-				BPAction actadd = BPAction.build("Add").callback((e) -> BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(RES_ADD, res))).getAction();
+				BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUADD, e -> BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(RES_ADD, res)));
 				rc.add(actadd);
 			}
 			return rc;

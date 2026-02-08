@@ -24,6 +24,15 @@ public class BPMenu extends JMenu
 		super(text);
 		setFont(new Font(UIConfigs.MENU_FONT_NAME(), Font.PLAIN, UIConfigs.MENUFONT_SIZE()));
 	}
+	
+	public BPMenu(Action act)
+	{
+		super((String) act.getValue(Action.NAME));
+		Integer vi = (Integer) act.getValue(Action.MNEMONIC_KEY);
+		if (vi != null)
+			setMnemonic(vi);
+		setFont(new Font(UIConfigs.MENU_FONT_NAME(), Font.PLAIN, UIConfigs.MENUFONT_SIZE()));
+	}
 
 	protected JMenuItem createActionComponent(Action a)
 	{

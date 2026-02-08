@@ -3,14 +3,11 @@ package bp.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -21,11 +18,11 @@ import bp.context.BPWorkspaceContext;
 import bp.script.BPScript;
 import bp.script.BPScriptBase;
 import bp.script.BPScriptManager;
-import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPList;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
@@ -53,8 +50,8 @@ public class BPDialogScriptManager extends BPDialogCommon
 
 		m_lstbar = new BPToolBarSQ();
 		m_lstbar.setBarHeight(20);
-		Action newscaction = BPAction.build("+").callback(this::onCreateScript).vIcon(BPIconResV.ADD()).getAction();
-		Action delscaction = BPAction.build("-").callback(this::onRemoveScript).vIcon(BPIconResV.DEL()).getAction();
+		Action newscaction = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onCreateScript);
+		Action delscaction = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onRemoveScript);
 		m_lstbar.setActions(new Action[] { newscaction, delscaction });
 		m_lstbar.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_STRONGBORDER()));
 
@@ -68,8 +65,8 @@ public class BPDialogScriptManager extends BPDialogCommon
 
 		BPToolBarSQ tbright = new BPToolBarSQ();
 		tbright.setBarHeight(20);
-		Action actsave = BPAction.build("save").callback(this::onSaveScript).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)).tooltip("Save(Ctrl+S)").vIcon(BPIconResV.SAVE()).getAction();
-		Action actrun = BPAction.build("run").callback(this::onRunScript).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)).tooltip("Run(F5)").vIcon(BPIconResV.START()).getAction();
+		Action actsave = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSAVE, BPActionConstCommon.ACT_BTNSAVE_ACC, this::onSaveScript);
+		Action actrun = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNRUN, BPActionConstCommon.ACT_BTNRUN_ACC, this::onRunScript);
 		tbright.setActions(new Action[] { actsave, actrun }, this.getRootPane());
 		tbright.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_STRONGBORDER()));
 		m_rightpan = new JPanel(new BorderLayout());

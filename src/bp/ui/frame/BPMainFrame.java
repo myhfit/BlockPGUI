@@ -7,7 +7,6 @@ import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -63,6 +62,8 @@ import bp.res.BPResourceHolder;
 import bp.tool.BPTool;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.actions.BPFileActions;
 import bp.ui.actions.BPMainFrameActions;
 import bp.ui.actions.BPMainPathTreeActions;
@@ -175,15 +176,15 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_acttree = new BPMainPathTreeActions(this);
 
 		m_mnubar = new JMenuBar();
-		JMenu mnufile = new BPMenu("File");
-		JMenu mnunew = new BPMenu("New");
-		m_mnuedit = new BPMenu("Edit");
-		JMenu mnuview = new BPMenu("View");
-		JMenu mnutool = new BPMenu("Tool");
-		JMenu mnumainui = new BPMenu("Main Frame");
-		JMenu mnunav = new BPMenu("Navigate");
-		m_mnushortcuts = new BPMenu("Shortcut");
-		JMenu mnuhelp = new BPMenu("Help");
+		JMenu mnufile = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILE, null));
+		JMenu mnufilenew = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEW, null));
+		m_mnuedit = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUEDIT, null));
+		JMenu mnuview = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEW, null));
+		JMenu mnutool = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUTOOL, null));
+		JMenu mnumainui = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUMAINUI, null));
+		JMenu mnunav = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAV, null));
+		m_mnushortcuts = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSHORTCUTS, null));
+		JMenu mnuhelp = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUHELP, null));
 
 		mnufile.setName("file");
 		mnutool.setName("tool");
@@ -220,20 +221,20 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_ptree.refreshContextPath();
 
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
+//
+//		mnufile.setMnemonic(KeyEvent.VK_F);
+//		mnunew.setMnemonic(KeyEvent.VK_N);
+//		m_mnuedit.setMnemonic(KeyEvent.VK_E);
+//		mnuview.setMnemonic(KeyEvent.VK_V);
+//		mnumainui.setMnemonic(KeyEvent.VK_M);
+//		mnunav.setMnemonic(KeyEvent.VK_N);
+//		mnuhelp.setMnemonic(KeyEvent.VK_H);
 
-		mnufile.setMnemonic(KeyEvent.VK_F);
-		mnunew.setMnemonic(KeyEvent.VK_N);
-		m_mnuedit.setMnemonic(KeyEvent.VK_E);
-		mnuview.setMnemonic(KeyEvent.VK_V);
-		mnumainui.setMnemonic(KeyEvent.VK_M);
-		mnunav.setMnemonic(KeyEvent.VK_N);
-		mnuhelp.setMnemonic(KeyEvent.VK_H);
+		mnufilenew.add(m_actmain.filenewfile);
+		mnufilenew.add(m_actmain.filenewproject);
+		mnufilenew.add(m_actmain.fileneweditor);
 
-		mnunew.add(m_actmain.filenewfile);
-		mnunew.add(m_actmain.filenewproject);
-		mnunew.add(m_actmain.fileneweditor);
-
-		mnufile.add(mnunew);
+		mnufile.add(mnufilenew);
 		mnufile.add(m_actmain.fileopen);
 		mnufile.add(m_actmain.fileopenas);
 		mnufile.add(m_actmain.fileopenfolder);
@@ -418,9 +419,9 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	protected void initToolMenu(JMenu mnutool)
 	{
-		mnutool.add(BPAction.build("Scripts ...").callback((e) -> showScriptManager()).getAction());
-		mnutool.add(BPAction.build("Extensions ...").callback((e) -> showExtensionManager()).getAction());
-		mnutool.add(BPAction.build("Modules ...").callback((e) -> showModuleManager()).getAction());
+		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCRIPTS, e -> showScriptManager()));
+		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUEXTS, e -> showExtensionManager()));
+		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUMODS, e -> showModuleManager()));
 
 		Map<String, List<BPTool>> toolmap = new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
 		List<String> keys = new ArrayList<String>(toolmap.keySet());
@@ -432,10 +433,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		{
 			JMenu mnu = new BPMenu(key);
 			List<BPTool> tools = toolmap.get(key);
-			tools.sort((a, b) ->
-			{
-				return a.getName().compareToIgnoreCase(b.getName());
-			});
+			tools.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
 			for (BPTool tool : tools)
 			{
 				Action act = BPAction.build(tool.getName()).callback((e) -> tool.run()).getAction();

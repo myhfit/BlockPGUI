@@ -19,10 +19,10 @@ import javax.swing.border.MatteBorder;
 import bp.config.UIConfigs;
 import bp.data.BPSLData;
 import bp.task.BPTask;
-import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogNewTask;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPBoxButtons;
 import bp.ui.scomp.BPToolVIconButton;
 import bp.util.ObjUtil;
@@ -60,8 +60,7 @@ public class BPFormPanelTaskSerial extends BPFormPanelTask
 		JPanel tpan = new JPanel();
 		JPanel tpan2 = new JPanel();
 		JPanel panpm = new JPanel();
-		BPToolVIconButton btnadd = new BPToolVIconButton(BPAction.build("").vIcon(BPIconResV.ADD()).callback(this::onAdd).getAction());
-
+		BPToolVIconButton btnadd = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd));
 		m_lsttasks.setRenderer(this::renderTask);
 		m_lsttasks.setClickHandler(this::onClickTask);
 

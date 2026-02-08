@@ -4,14 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Window;
-import java.awt.event.KeyEvent;
 import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -27,8 +25,9 @@ import bp.res.BPResourceDir;
 import bp.res.BPResourceFactory;
 import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.actions.BPPathTreeNodeActions;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPTextField;
 import bp.ui.tree.BPPathTreeComputerFuncs;
@@ -156,11 +155,11 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		m_filebox = new BPTextField();
 		m_ptreehandler = new BPPathTreeNodeCommonHandler(m_ptree.getTreeComponent());
 
-		m_actprjres = BPAction.build("Project Tree").callback(e -> switchPathTreeFunc(2)).tooltip("Project Tree").vIcon(BPIconResV.PRJSTREE()).getAction();
-		m_actfileres = BPAction.build("Path Tree").callback(e -> switchPathTreeFunc(1)).tooltip("Path Tree").vIcon(BPIconResV.PATHTREE()).getAction();
-		m_actcfileres = BPAction.build("Computer Tree").callback(e -> switchPathTreeFunc(3)).tooltip("Computer Path Tree").vIcon(BPIconResV.PATHTREE_COMPUTER()).getAction();
-		m_actspres = BPAction.build("Special").callback(e -> switchPathTreeFunc(4)).tooltip("Special").vIcon(BPIconResV.PATHTREE_SPECIAL()).getAction();
-		m_actlocate = BPAction.build("Goto").callback(e -> showLocate()).tooltip("Goto(F6)").vIcon(BPIconResV.TORIGHT()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)).getAction();
+		m_actprjres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PRJTREE, e -> switchPathTreeFunc(2));
+		m_actfileres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PATHTREE, e -> switchPathTreeFunc(1));
+		m_actcfileres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_COMPUTERTREE, e -> switchPathTreeFunc(3));
+		m_actspres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_SPTREE, e -> switchPathTreeFunc(4));
+		m_actlocate = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNGOTO, BPActionConstCommon.ACT_BTNGOTO_ACC, e -> showLocate());
 		m_acts = new Action[] { m_actprjres, m_actfileres, m_actcfileres, m_actspres, null, m_actlocate };
 		m_ptree.setToolBarActions(m_acts);
 		m_actprjres.putValue(Action.SELECTED_KEY, true);
@@ -196,7 +195,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
 
-		setTitle("BlockP - Select Resource");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_RES));
 		setModal(true);
 	}
 

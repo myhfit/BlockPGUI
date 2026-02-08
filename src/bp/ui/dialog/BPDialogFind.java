@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.function.Function;
 
@@ -14,11 +13,12 @@ import javax.swing.BoxLayout;
 import javax.swing.ComboBoxEditor;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.actions.BPCommonDialogActions;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPComboBox;
@@ -109,9 +109,9 @@ public class BPDialogFind extends BPDialogCommon
 		BPCommonDialogActions dlgacts = new BPCommonDialogActions(this);
 		dlgacts.actioncancel.putValue(Action.NAME, "Close");
 		dlgacts.actioncancel.putValue(Action.MNEMONIC_KEY, null);
-		Action actfind = BPAction.build("Find").callback(this::onFind).mnemonicKey(KeyEvent.VK_F).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK)).getAction();
-		Action actreplace = BPAction.build("Replace").callback(this::onReplace).mnemonicKey(KeyEvent.VK_R).getAction();
-		Action actreplaceall = BPAction.build("ReplaceAll").callback(this::onReplaceAll).mnemonicKey(KeyEvent.VK_A).getAction();
+		Action actfind = BPActionHelpers.getAction(BPActionConstCommon.FDLG_FIND, this::onFind);
+		Action actreplace = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACE, this::onReplace);
+		Action actreplaceall = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACEALL, this::onReplaceAll);
 		setCommandBar(new Action[] { actfind, actreplace, actreplaceall, BPAction.separator(), BPAction.separator(), dlgacts.actioncancel });
 		setTitle("Search/Replace");
 	}

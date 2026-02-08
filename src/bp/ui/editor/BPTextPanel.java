@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
@@ -22,7 +23,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.Caret;
 
 import bp.BPCore;
-import bp.BPGUICore;
 import bp.config.BPSetting;
 import bp.config.PredefinedDataPipes;
 import bp.data.BPDataPipes;
@@ -36,6 +36,8 @@ import bp.res.BPResource;
 import bp.res.BPResourceByteArray;
 import bp.res.BPResourceHolder;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogSetting;
 import bp.ui.parallel.BPEventUISyncEditor;
@@ -45,6 +47,7 @@ import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
+import bp.util.ObjUtil;
 import bp.util.TextUtil;
 
 public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextContainer>, BPSyncGUI
@@ -63,17 +66,21 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	protected WeakReference<Consumer<String>> m_dynainfo = null;
 	protected Consumer<BPEventUISyncEditor> m_synccb;
 	protected BPSyncGUIController m_syncobj;
+	protected AdjustmentListener m_scrollcb;
 
 	protected Action[] m_acts;
-	protected Action actcopy;
-	protected Action actcut;
-	protected Action actpaste;
-	protected Action actprocessor;
+	protected Action m_actcopy;
+	protected Action m_actcut;
+	protected Action m_actpaste;
+	protected Action m_actprocessor;
 
 	protected int m_channelid;
 
 	public BPTextPanel()
 	{
+		m_scrollcb = this::onScroll;
+		m_synccb = this::onSyncEditor;
+		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 		init();
 	}
 
@@ -97,21 +104,21 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			m_txt.addMouseListener(new UIUtil.BPMouseListenerForPopup(this::onContextMenu));
 			m_txt.addKeyListener(new UIUtil.BPKeyListener(null, this::onCommonKeyDown, null));
 		}
-		if(m_scroll!=null)
+		if (m_scroll != null)
 		{
-			m_scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
-			m_scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
+			m_scroll.getHorizontalScrollBar().removeAdjustmentListener(m_scrollcb);
+			m_scroll.getHorizontalScrollBar().addAdjustmentListener(m_scrollcb);
+			m_scroll.getVerticalScrollBar().removeAdjustmentListener(m_scrollcb);
+			m_scroll.getVerticalScrollBar().addAdjustmentListener(m_scrollcb);
 		}
-		m_synccb = this::onSyncEditor;
-		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 	}
 
 	protected void initActions()
 	{
-		actcopy = BPAction.build("Copy").callback(this::onCopy).mnemonicKey(KeyEvent.VK_C).getAction();
-		actcut = BPAction.build("Cut").callback(this::onCut).mnemonicKey(KeyEvent.VK_T).getAction();
-		actpaste = BPAction.build("Paste").callback(this::onPaste).mnemonicKey(KeyEvent.VK_P).getAction();
-		actprocessor = BPAction.build("Processor").getAction();
+		m_actcopy = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCOPY, this::onCopy);
+		m_actcut = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCUT, this::onCut);
+		m_actpaste = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUPASTE, this::onPaste);
+		m_actprocessor = BPActionHelpers.getAction(BPActionConstCommon.TXT_PROCESSOR, null);
 		List<Action> actps = new ArrayList<Action>();
 		List<BPDataProcessor<?, ?>> ps = BPDataProcessorManager.getDataProcessors(BPFormatText.FORMAT_TEXT);
 		for (BPDataProcessor<?, ?> p : ps)
@@ -123,9 +130,9 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 				actps.add(actp);
 			}
 		}
-		actprocessor.putValue(BPAction.SUB_ACTIONS, actps.toArray(new Action[actps.size()]));
+		m_actprocessor.putValue(BPAction.SUB_ACTIONS, actps.toArray(new Action[actps.size()]));
 
-		BPAction actpdps = BPAction.build("DataPipes").getAction();
+		BPAction actpdps = BPActionHelpers.getAction(BPActionConstCommon.TXT_DATAPIPES, null);
 		List<Action> actsub = new ArrayList<Action>();
 		List<String[]> pdps = PredefinedDataPipes.getDataPipes();
 		for (String[] pdp : pdps)
@@ -150,8 +157,27 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			actsub.add(actpdp);
 		}
 		actpdps.putValue(BPAction.SUB_ACTIONS, actsub.toArray(new Action[actsub.size()]));
-
-		m_acts = new Action[] { actcopy, actcut, actpaste, actprocessor, actpdps };
+		
+		List<Action> rc = new ArrayList<>();
+		mergeActions(rc, makeActionsAtPos(0));
+		rc.addAll(ObjUtil.makeList(m_actcopy, m_actcut, m_actpaste));
+		mergeActions(rc, makeActionsAtPos(1));
+		rc.add(BPAction.separator());
+		mergeActions(rc, makeActionsAtPos(2));
+		rc.add(m_actprocessor);
+		rc.add(actpdps);
+		m_acts = rc.toArray(new Action[rc.size()]);
+	}
+	
+	protected void mergeActions(List<Action> acts, List<Action> b)
+	{
+		if (b != null)
+			acts.addAll(b);
+	}
+	
+	protected List<Action> makeActionsAtPos(int pos)
+	{
+		return null;
 	}
 
 	protected BPTextPane createTextPane()
@@ -455,13 +481,18 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			}
 		}
 	}
+	
+	protected int getScrollYPos()
+	{
+		return m_scroll.getVerticalScrollBar().getValue(); 
+	}
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_syncobj != null && m_syncobj.checkSync())
+		if (m_syncobj != null && m_syncobj.checkSyncAndNoBlock())
 		{
-			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
-			BPGUICore.EVENTS_UI.trigger(m_channelid, BPEventUISyncEditor.syncPosition(getID(), SYNCPOSTYPE_TEXT, xy));
+			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), getScrollYPos() };
+			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(getID(), SYNCPOSTYPE_TEXT, xy));
 		}
 	}
 	

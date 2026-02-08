@@ -25,10 +25,11 @@ import bp.config.UIConfigs;
 import bp.schedule.BPSchedule;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.form.BPFormManager;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPToolVIconButton;
@@ -76,11 +77,11 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 		m_tabschedules.setTableFont();
 		m_pgselcolor = UIManager.getColor("Table.selectionBackground");
 
-		BPToolVIconButton btnadd = new BPToolVIconButton(BPAction.build("").callback(this::onAdd).tooltip("Add Schedule").vIcon(BPIconResV.ADD()).getAction());
-		BPToolVIconButton btndel = new BPToolVIconButton(BPAction.build("").callback(this::onDel).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0)).tooltip("Remove Schedule(Del)").vIcon(BPIconResV.DEL()).getAction(), this);
-		BPToolVIconButton btnedit = new BPToolVIconButton(BPAction.build("").callback(this::onEdit).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0)).tooltip("Edit Schedule(F4)").vIcon(BPIconResV.EDIT()).getAction(), this);
-		BPToolVIconButton btnenable = new BPToolVIconButton(BPAction.build("").callback(this::onEnable).tooltip("Enable Schedule").vIcon(BPIconResV.START()).getAction(), this);
-		BPToolVIconButton btndisable = new BPToolVIconButton(BPAction.build("").callback(this::onDisable).tooltip("Disable Schedule").vIcon(BPIconResV.STOP()).getAction(), this);
+		BPToolVIconButton btnadd = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd));
+		BPToolVIconButton btndel = new BPToolVIconButton((BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel)), this);
+		BPToolVIconButton btnedit = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit, ab -> ab.acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0))), this);
+		BPToolVIconButton btnenable = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNENABLE, this::onEnable), this);
+		BPToolVIconButton btndisable = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDISABLE, this::onDisable), this);
 		int btnsize = (int) (16f * UIConfigs.UI_SCALE());
 		setupButtons(btnsize, btnadd, btndel, btnedit, btnenable, btndisable);
 
@@ -276,10 +277,10 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 		public List<Action> getActions(BPTable<BPSchedule> table, List<BPSchedule> datas, int[] rows, int r, int c)
 		{
 			List<Action> rc = new ArrayList<Action>();
-			BPAction actdel = BPAction.build("Delete").callback((e) -> m_sdsuiref.run((ui) -> ui.deleteSelectedSchedules())).getAction();
-			BPAction actedit = BPAction.build("Edit").callback((e) -> m_sdsuiref.run((ui) -> ui.editSelectedSchedule())).getAction();
-			BPAction actenable = BPAction.build("Enable").callback((e) -> m_sdsuiref.run((ui) -> ui.enableSelectedSchedules())).getAction();
-			BPAction actdisable = BPAction.build("Disable").callback((e) -> m_sdsuiref.run((ui) -> ui.disableSelectedSchedules())).getAction();
+			BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDEL, e -> m_sdsuiref.run(ui -> ui.deleteSelectedSchedules()));
+			BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUEDIT, e -> m_sdsuiref.run(ui -> ui.editSelectedSchedule()));
+			BPAction actenable = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUENABLE, e -> m_sdsuiref.run(ui -> ui.enableSelectedSchedules()));
+			BPAction actdisable = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDISABLE, e -> m_sdsuiref.run(ui -> ui.disableSelectedSchedules()));
 			rc.add(actenable);
 			rc.add(actdisable);
 			rc.add(BPAction.separator());

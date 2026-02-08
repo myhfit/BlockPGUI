@@ -19,6 +19,7 @@ import bp.event.BPEventCoreUI;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFile;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPTextField;
 import bp.ui.tree.BPPathTreeLocalFuncs;
@@ -120,7 +121,7 @@ public class BPDialogSelectFile extends BPDialogCommon
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
 
-		setTitle("BlockP - Select File");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FILE));
 		setModal(true);
 	}
 

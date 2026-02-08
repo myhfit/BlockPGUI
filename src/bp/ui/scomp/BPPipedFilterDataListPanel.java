@@ -22,8 +22,9 @@ import bp.res.BPResource;
 import bp.res.BPResourceIO;
 import bp.transform.BPTransformerRuleFilter;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.util.CommonUIOperations;
 import bp.util.IOUtil;
 import bp.util.JSONUtil;
@@ -51,9 +52,9 @@ public class BPPipedFilterDataListPanel<DATA> extends JPanel
 		m_mainpan = new JPanel();
 		JPanel mp = new JPanel();
 		BPToolBarSQ toolbar = new BPToolBarSQ();
-		BPAction actadd = BPAction.build("add").callback(this::onAdd).vIcon(BPIconResV.ADD()).tooltip("Push").getAction();
-		BPAction actdel = BPAction.build("del").callback(this::onBack).vIcon(BPIconResV.KILL()).tooltip("Pop").getAction();
-		BPAction actsave = BPAction.build("save").callback(this::onSave).vIcon(BPIconResV.SAVE()).tooltip("Save").getAction();
+		BPAction actadd = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_PUSH, this::onAdd);
+		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_POP, this::onBack);
+		BPAction actsave = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSAVE, this::onSave);
 		toolbar.setBorderHorizontal(2);
 		toolbar.setActions(new Action[] { actadd, actdel, BPAction.separator(), actsave });
 

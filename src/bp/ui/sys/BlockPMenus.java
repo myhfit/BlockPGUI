@@ -11,6 +11,8 @@ import bp.BPGUICore;
 import bp.config.ShortCuts;
 import bp.config.ShortCuts.ShortCutData;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.scomp.BPMenu;
 import bp.ui.scomp.BPMenuItem.BPMenuItemInTray;
@@ -63,7 +65,7 @@ public class BlockPMenus
 			mnupar.add(act);
 		}
 		mnushortcuts.addSeparator();
-		Action actsetting = BPAction.build("Edit Shortcuts...").callback(e ->
+		Action actsetting = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCSEDITSCS, e ->
 		{
 			BPDialogForm dlg = new BPDialogForm();
 			dlg.setup(ShortCuts.class.getName(), BPGUICore.CONFIGS_SC);
@@ -77,7 +79,7 @@ public class BlockPMenus
 				if (refreshcb != null)
 					refreshcb.run();
 			}
-		}).getAction();
+		});
 		mnushortcuts.add(actsetting);
 	}
 

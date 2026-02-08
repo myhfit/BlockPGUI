@@ -41,6 +41,8 @@ import bp.task.BPTask;
 import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
 import bp.ui.BPComponent;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommonCategoryView;
@@ -92,7 +94,7 @@ public class CommonUIOperations
 		String rc = null;
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
 		dlg.setScope(BPDialogSelectResource2.SELECTSCOPE.COMPUTER);
-		dlg.setTitle("BlockP - Select File");
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FILE));
 		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
@@ -558,7 +560,7 @@ public class CommonUIOperations
 		BPDialogCommonCategoryView<String, Object> dlg = new BPDialogCommonCategoryView<String, Object>();
 		dlg.setup(cats, null, ctt, false);
 		dlg.setCommandBarMode(BPDialogCommonCategoryView.COMMANDBAR_OKESCAPE);
-		dlg.setTitle("BlockP - System Info");
+		dlg.setTitle(BPGUICore.S_BP_TITLE + " - " + BPActionHelpers.getValue(BPActionConstCommon.TXT_SYSINFO, null, null));
 		dlg.setVisible(true);
 	}
 

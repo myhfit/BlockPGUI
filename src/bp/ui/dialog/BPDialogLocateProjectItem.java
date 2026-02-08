@@ -26,6 +26,7 @@ import bp.project.BPResourceProject;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceOverlay;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPCommonDialogActions;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
@@ -85,7 +86,7 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 		m_acts.actionok.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
 		setCommandBar(new Action[] { m_acts.actionok, m_acts.actioncancel });
 
-		setTitle("BlockP - Select Project Item");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_PRJITEM));
 		setModal(true);
 	}
 

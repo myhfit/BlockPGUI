@@ -9,9 +9,10 @@ import bp.BPCore;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPKVTable.KV;
 
 public class BPFormPanelPredefinedDataPipes extends BPFormPanelMapOrdered
@@ -29,7 +30,7 @@ public class BPFormPanelPredefinedDataPipes extends BPFormPanelMapOrdered
 	protected List<Action> makeToolBarActions()
 	{
 		List<Action> rc = super.makeToolBarActions();
-		BPAction actedit = BPAction.build("Edit").callback(this::onEdit).vIcon(BPIconResV.EDIT()).getAction();
+		BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit);
 		rc.add(BPAction.separator());
 		rc.add(BPAction.separator());
 		rc.add(actedit);

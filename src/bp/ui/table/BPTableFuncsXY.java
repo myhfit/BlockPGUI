@@ -1,6 +1,5 @@
 package bp.ui.table;
 
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +21,8 @@ import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
@@ -94,11 +95,11 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		List<Action> rc = new ArrayList<Action>();
 		if (rows != null && rows.length > 0)
 		{
-			BPAction actview = BPAction.build("View").mnemonicKey(KeyEvent.VK_V).callback((e) -> view(table, datas, rows)).getAction();
-			BPAction actedit = BPAction.build("Edit").mnemonicKey(KeyEvent.VK_E).callback((e) -> edit(table, datas, rows)).getAction();
-			BPAction actviewcell = BPAction.build("View Cell").callback((e) -> viewcell(table, datas, rows, r, c)).getAction();
-			BPAction acteditcell = BPAction.build("Edit Cell").callback((e) -> editcell(table, datas, rows, r, c)).getAction();
-			BPAction actdel = BPAction.build("Delete").mnemonicKey(KeyEvent.VK_D).callback((e) -> delete(table, datas, rows)).getAction();
+			BPAction actview = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUVIEW, e -> view(table, datas, rows));
+			BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUEDIT, e -> edit(table, datas, rows));
+			BPAction actviewcell = BPActionHelpers.getActionWithAlias(BPActionConstCommon.CTX_MNUVIEW, BPActionConstCommon.CTX_MNUVIEW_CELL, e -> viewcell(table, datas, rows, r, c));
+			BPAction acteditcell = BPActionHelpers.getActionWithAlias(BPActionConstCommon.CTX_MNUEDIT, BPActionConstCommon.CTX_MNUEDIT_CELL, e -> editcell(table, datas, rows, r, c));
+			BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDEL, e -> delete(table, datas, rows));
 			rc.add(actview);
 			rc.add(actedit);
 			rc.add(BPAction.separator());
@@ -129,15 +130,16 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 					rc.add(BPAction.separator());
 
 					{
-						BPAction acttrans = BPAction.build("Transform Cell").getAction();
+						BPAction acttrans = BPActionHelpers.getAction(BPActionConstCommon.XYTBL_CTX_MNUTRANSCELL, null);
 						List<Action> actsub = new ArrayList<Action>();
 						Map<String, BPTransformer<?>> ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOSTRING);
 						if (ts != null && ts.size() > 0)
 						{
+							String tarfix = ">" + BPActionHelpers.getValue(BPActionConstCommon.TXT_TEXT, null, null);
 							for (String tkey : ts.keySet())
 							{
 								BPTransformer t = ts.get(tkey);
-								BPAction acttt = BPAction.build(tkey + ">Text").getAction();
+								BPAction acttt = BPAction.build(tkey + tarfix).getAction();
 								actsub.add(acttt);
 								List<Action> actss = new ArrayList<Action>();
 								ServiceLoader<BPDataEndpointFactory> facs = ClassUtil.getServices(BPDataEndpointFactory.class);
@@ -159,10 +161,11 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 						ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOBYTEARRAY);
 						if (ts != null && ts.size() > 0)
 						{
+							String tarfix = ">" + BPActionHelpers.getValue(BPActionConstCommon.TXT_BYTEARR, null, null);
 							for (String tkey : ts.keySet())
 							{
 								BPTransformer t = ts.get(tkey);
-								BPAction acttt = BPAction.build(tkey + ">byte[]").getAction();
+								BPAction acttt = BPAction.build(tkey + tarfix).getAction();
 								actsub.add(acttt);
 								List<Action> actss = new ArrayList<Action>();
 								ServiceLoader<BPDataEndpointFactory> facs = ClassUtil.getServices(BPDataEndpointFactory.class);
@@ -186,7 +189,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 					}
 
 					{
-						BPAction actpdps = BPAction.build("DataPipes").getAction();
+						BPAction actpdps = BPActionHelpers.getAction(BPActionConstCommon.TXT_DATAPIPES, null);
 						List<Action> actsub = new ArrayList<Action>();
 						List<String[]> pdps = PredefinedDataPipes.getDataPipes();
 						for (String[] pdp : pdps)

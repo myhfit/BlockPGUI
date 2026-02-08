@@ -1,9 +1,13 @@
 package bp.ui.editor;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -18,6 +22,7 @@ import javax.swing.border.MatteBorder;
 import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
 import bp.data.BPDataContainerFactory;
+import bp.data.BPMData.BPMDataWMapOrdered;
 import bp.data.BPTreeData;
 import bp.data.BPTreeData.BPTreeDataObj;
 import bp.data.BPTreeDataContainer;
@@ -26,16 +31,20 @@ import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.ui.BPViewer;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHolder;
 import bp.ui.actions.BPTreeDataCloneActions;
 import bp.ui.actions.BPTreeDataEditorActions;
 import bp.ui.container.BPToolBarSQ;
+import bp.ui.dialog.BPDialogForm;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
 import bp.ui.tree.BPTreeComponentBase;
 import bp.ui.tree.BPTreeFuncsObject;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
+import bp.util.JSONUtil;
 
 public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel implements BPEditor<JPanel>, BPViewer<CON>
 {
@@ -255,6 +264,52 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 
 	public void delete()
 	{
+	}
+
+	@SuppressWarnings("unchecked")
+	public void showEditKV(ActionEvent e)
+	{
+		Object obj=m_treedata.getRoot();
+		if(obj==null||!(obj instanceof Map))
+		{
+			return;
+		}
+		Map<String,Object> kv=(Map<String, Object>) obj;
+		BPDialogForm dlg = new BPDialogForm();
+		dlg.setEditable(true);
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_EDIT));
+		BPMDataWMapOrdered w = new BPMDataWMapOrdered(kv);
+		dlg.setup(w.getClass().getName(), w);
+		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
+		dlg.pack();
+		dlg.setLocationRelativeTo(null);
+		dlg.setVisible(true);
+		if (dlg.getActionResult() == BPDialogForm.COMMAND_OK)
+		{
+			swapData(null, null, dlg.getFormData());
+			m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(m_treedata.getRoot())));
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public void grabKeys(ActionEvent e)
+	{
+		Object obj = m_treedata.getRoot();
+		if (obj == null || !(obj instanceof Map))
+		{
+			return;
+		}
+		Map<String, Object> kv = (Map<String, Object>) obj;
+		List<String> keys = new ArrayList<String>(kv.keySet());
+		UIStd.info(JSONUtil.encode(keys));
+	}
+
+	protected void swapData(Object par, Object key, Object newdata)
+	{
+		if (par == null)
+		{
+			m_treedata.setRoot(newdata);
+		}
 	}
 
 	public void showClone(ActionEvent e)

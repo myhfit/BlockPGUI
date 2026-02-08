@@ -54,8 +54,6 @@ public class BPFormPanelXYData extends BPFormPanel
 		JScrollPane scroll = new JScrollPane(m_table);
 		JPanel pnl = new JPanel();
 		BPToolBarSQ tb = new BPToolBarSQ(true);
-//		BPAction actadd = BPAction.build("add").callback(this::onAdd).vIcon(BPIconResV.ADD()).getAction();
-//		BPAction actdel = BPAction.build("del").callback(this::onDel).vIcon(BPIconResV.DEL()).getAction();
 		tb.setActions(new Action[] { BPAction.separator() });
 		tb.setBorderVertical(0);
 		m_tb = tb;

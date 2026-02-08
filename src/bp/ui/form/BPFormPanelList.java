@@ -13,8 +13,9 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
 import bp.ui.util.UIStd;
@@ -84,8 +85,8 @@ public class BPFormPanelList extends BPFormPanel
 		JScrollPane scroll = new JScrollPane(m_list);
 		JPanel pnl = new JPanel();
 		BPToolBarSQ tb = new BPToolBarSQ(true);
-		BPAction actadd = BPAction.build("add").callback(this::onAdd).vIcon(BPIconResV.ADD()).getAction();
-		BPAction actdel = BPAction.build("del").callback(this::onDel).vIcon(BPIconResV.DEL()).getAction();
+		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDel);
 		tb.setActions(new Action[] { BPAction.separator(), actadd, actdel });
 		tb.setBorderVertical(0);
 		m_tb = tb;

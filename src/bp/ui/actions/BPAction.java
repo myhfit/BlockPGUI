@@ -120,5 +120,4 @@ public class BPAction extends AbstractAction
 			return action;
 		}
 	}
-
 }

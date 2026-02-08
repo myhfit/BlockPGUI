@@ -41,15 +41,21 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.event.BPEventUI;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConst;
+import bp.ui.actions.BPActionHelpers;
+import bp.ui.actions.BPActionConst.BPActionVerb;
 import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.scomp.BPCodeLinePanel;
@@ -57,6 +63,7 @@ import bp.ui.scomp.BPEditorPane;
 import bp.ui.scomp.BPMenu;
 import bp.ui.scomp.BPMenuItem;
 import bp.util.LockUtil;
+import bp.util.ObjUtil;
 import bp.util.Std;
 
 public class UIUtil
@@ -106,6 +113,29 @@ public class UIUtil
 			}
 		});
 	}
+	
+	public final static String wrapBPTitles(BPActionConst... keys)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append(BPGUICore.S_BP_TITLE);
+		sb.append(" -");
+		for (BPActionConst key : keys)
+		{
+			sb.append(" ");
+			sb.append((String) BPActionHelpers.getValue(key, null, null));
+		}
+		return sb.toString();
+	}
+
+	public final static String wrapBPTitle(BPActionConst key)
+	{
+		return wrapBPTitle(key, null, BPActionVerb.NAME);
+	}
+
+	public final static String wrapBPTitle(BPActionConst key, BPActionConst alias, BPActionVerb verb)
+	{
+		return BPGUICore.S_BP_TITLE + " - " + BPActionHelpers.getValue(key, alias, verb);
+	}
 
 	public final static Color mix(Color c1, Color c2, int alpha)
 	{
@@ -132,6 +162,12 @@ public class UIUtil
 		Font f = comp.getFont();
 		Font f2 = new Font(mono ? "monospaced" : f.getName(), bold ? Font.BOLD : 0, f.getSize() + delta);
 		comp.setFont(f2);
+	}
+
+	public final static int getScrollBarPosCheckMax(JScrollBar sb)
+	{
+		int m = sb.getValue();
+		return ((m + sb.getVisibleAmount()) >= sb.getMaximum()) ? Integer.MAX_VALUE : m;
 	}
 
 	public final static Color mix2Plain(Color c1, Color c2, int alpha)
@@ -700,5 +736,22 @@ public class UIUtil
 				});
 			}
 		}
+	}
+
+	public final static String getKeyStrokeText(KeyStroke ks)
+	{
+		String str = ks.toString();
+		if (str.indexOf(" ") > -1)
+		{
+			str = str.replace("pressed ", "");
+			String[] arr = str.split(" ");
+			for (int i = 0; i < arr.length - 1; i++)
+			{
+				String v0 = arr[i];
+				arr[i] = v0.substring(0, 1).toUpperCase() + v0.substring(1);
+			}
+			str = ObjUtil.joinArray(arr, "+", null, false);
+		}
+		return str;
 	}
 }

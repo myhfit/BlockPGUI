@@ -18,6 +18,7 @@ import javax.swing.KeyStroke;
 
 import bp.config.UIConfigs;
 import bp.ui.res.icon.BPVIcon;
+import bp.ui.util.UIUtil;
 import bp.ui.util.UIUtil.ActionRunnable;
 
 public class BPToolVIconButton extends JComponent implements MouseListener
@@ -55,8 +56,6 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 		String tooltip = (String) action.getValue(Action.SHORT_DESCRIPTION);
 		setEnabled(action.isEnabled());
 		action.addPropertyChangeListener(this::onPropChanged);
-		if (tooltip != null)
-			setToolTipText(tooltip);
 		m_act = new ActionRunnable(action);
 		KeyStroke ks = (KeyStroke) action.getValue(Action.ACCELERATOR_KEY);
 		if (ks != null)
@@ -65,6 +64,12 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 				accparent.registerKeyboardAction(action, (KeyStroke) action.getValue(Action.ACCELERATOR_KEY), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 			else
 				registerKeyboardAction(action, (KeyStroke) action.getValue(Action.ACCELERATOR_KEY), JComponent.WHEN_IN_FOCUSED_WINDOW);
+		}
+		if (tooltip != null)
+		{
+			if (ks != null && !tooltip.endsWith(")"))
+				tooltip += "(" + UIUtil.getKeyStrokeText(ks) + ")";
+			setToolTipText(tooltip);
 		}
 		setButtonSize(UIConfigs.BUTTON_SIZE());
 	}

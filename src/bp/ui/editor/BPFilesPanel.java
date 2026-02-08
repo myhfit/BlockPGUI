@@ -42,6 +42,8 @@ import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceHolder;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.actions.BPFileActions;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSimple;
@@ -51,7 +53,6 @@ import bp.ui.parallel.BPEventUISyncEditor;
 import bp.ui.parallel.BPSyncGUI;
 import bp.ui.parallel.BPSyncGUIController;
 import bp.ui.parallel.BPSyncGUIControllerBase;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTable;
 import bp.ui.table.BPTableFuncsResourceFiles;
 import bp.ui.util.UIStd;
@@ -115,8 +116,8 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		scroll.setViewportView(m_table);
 		m_scroll = scroll;
 
-		BPAction actrefresh = BPAction.build("Refresh").callback((e) -> refresh()).vIcon(BPIconResV.REFRESH()).tooltip("Refresh").getAction();
-		BPAction actstat = BPAction.build("Stat").callback((e) -> stat()).vIcon(BPIconResV.MORE()).tooltip("Statistics").getAction();
+		BPAction actrefresh = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNREFRESH, e -> refresh());
+		BPAction actstat = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTAT, e -> stat());
 		m_toolbar.setActions(new Action[] { BPAction.separator(), actrefresh, BPAction.separator(), actstat }, this);
 
 		scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);

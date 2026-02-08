@@ -3,7 +3,6 @@ package bp.ui.actions;
 import javax.swing.Action;
 
 import bp.ui.editor.BPXYDEditor;
-import bp.ui.res.icon.BPIconResV;
 
 public class BPXYDEditorActions implements BPActionHolder
 {
@@ -15,9 +14,9 @@ public class BPXYDEditorActions implements BPActionHolder
 	public BPXYDEditorActions(BPXYDEditor<?> editor)
 	{
 		m_editor = editor;
-		actnewline = BPAction.build("New Line").callback((e) -> m_editor.newLine()).vIcon(BPIconResV.ADD()).tooltip("Create New Line").getAction();
-		actdelete = BPAction.build("Delete").callback((e) -> m_editor.delete()).vIcon(BPIconResV.DEL()).tooltip("Delete").getAction();
-		actclone = BPAction.build("Clone").callback(m_editor::showClone).vIcon(BPIconResV.CLONE()).tooltip("Clone Data").getAction();
+		actnewline = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_NEWLINE, e -> m_editor.newLine());
+		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, e -> m_editor.delete());
+		actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, m_editor::showClone);
 	}
 
 	public Action[] getActions()

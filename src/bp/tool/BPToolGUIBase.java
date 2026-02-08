@@ -9,6 +9,9 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JPanel;
 
+import bp.BPGUICore;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.frame.BPFrame;
 
 public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> implements BPToolGUI
@@ -58,7 +61,7 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 	protected BPFrameTool buildFrame()
 	{
 		BPFrameTool f = new BPFrameTool();
-		f.setTitle("BlockP Tool - " + getSubTitle());
+		f.setTitle(BPGUICore.S_BP_TITLE + " " + BPActionHelpers.getValue(BPActionConstCommon.TXT_TOOL, null, null) + " - " + getSubTitle());
 		return f;
 	}
 

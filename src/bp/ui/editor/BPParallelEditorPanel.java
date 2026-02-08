@@ -44,6 +44,8 @@ import bp.tool.BPToolGUI;
 import bp.tool.BPToolGUIParallelEditor;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.compare.BPComparableGUI;
 import bp.ui.container.BPEditors.BPEventUIEditors;
 import bp.ui.container.BPToolBarSQ;
@@ -52,6 +54,7 @@ import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.event.BPResourceOperationCommonHandler;
 import bp.ui.parallel.BPSyncGUI;
+import bp.ui.parallel.BPSyncGUIController;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPGUIInfoPanel;
 import bp.ui.scomp.BPPopupComboList;
@@ -107,10 +110,12 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	{
 		m_toolbar = new BPToolBarSQ();
 		m_mainp = new JPanel();
-		BPAction actadd = BPAction.build("add").tooltip("Add").vIcon(BPIconResV.ADD()).callback(this::onAdd).getAction();
-		BPAction actcompare = BPAction.build("compare").tooltip("Compare").vIcon(BPIconResV.LEFTRIGHT()).callback(this::onCompare).getAction();
-		m_actsyncstatus = BPAction.build("syncstatus").tooltip("Toggle Sync Status").vIcon(BPIconResV.REFRESH()).callback(this::onToggleSyncStatus).getAction();
-		m_actsyncaction = BPAction.build("syncaction").tooltip("Toggle Sync Action").vIcon(BPIconResV.REFRESH()).callback(this::onToggleSyncAction).getAction();
+		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actcompare = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCOMPARE, this::onCompare);
+		m_actsyncstatus = BPAction.build("syncstatus").tooltip("Toggle Sync Status").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.ALT_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK)).vIcon(BPIconResV.REFRESH())
+				.callback(this::onToggleSyncStatus).getAction();
+		m_actsyncaction = BPAction.build("syncaction").tooltip("Toggle Sync Action").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK)).vIcon(BPIconResV.REFRESH())
+				.callback(this::onToggleSyncAction).getAction();
 		m_actsyncstatus.putValue(Action.SELECTED_KEY, true);
 		m_actsyncaction.putValue(Action.SELECTED_KEY, false);
 		Action[] acts = new Action[] { actadd, actcompare, BPAction.separator(), m_actsyncstatus, m_actsyncaction };
@@ -409,7 +414,17 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 
 	protected void onToggleSyncAction(ActionEvent e)
 	{
-
+		boolean v = !ObjUtil.toBool(m_actsyncaction.getValue(Action.SELECTED_KEY), false);
+		m_actsyncaction.putValue(Action.SELECTED_KEY, v);
+		forEachEditor(editor ->
+		{
+			if (editor instanceof BPSyncGUI)
+			{
+				BPSyncGUIController c = ((BPSyncGUI) editor).getSyncActionController();
+				if (c != null)
+					LogicUtil.IFC(v, () -> c.startSync(), () -> c.stopSync());
+			}
+		});
 	}
 
 	protected class BPEditorSubPanel extends JPanel
@@ -511,10 +526,10 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 
 		protected Action[] getEditorAction(BPEditor<?> editor)
 		{
-			BPAction actcreate = BPAction.build("create").tooltip("Create Editor").vIcon(BPIconResV.ADD()).callback(this::createEditor).getAction();
-			BPAction actopen = BPAction.build("open").tooltip("Open").vIcon(BPIconResV.DOC()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)).callback(this::loadEditor).getAction();
-			m_actsave = BPAction.build("save").tooltip("Save").vIcon(BPIconResV.SAVE()).callback(this::onSave).getAction();
-			BPAction actclose = BPAction.build("close").tooltip("Close").vIcon(BPIconResV.KILL()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK)).callback(e -> removeEditor(m_editorindex)).getAction();
+			BPAction actcreate = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_CREATEEDITOR, this::createEditor);
+			BPAction actopen = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNOPEN, BPActionConstCommon.ACT_BTNOPEN_ACC, this::loadEditor);
+			m_actsave = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSAVE, BPActionConstCommon.ACT_BTNSAVE_ACC, this::onSave);
+			BPAction actclose = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNCLOSETAB, BPActionConstCommon.ACT_BTNCLOSETAB_ACC, e -> removeEditor(m_editorindex));
 			return new Action[] { actcreate, actopen, m_actsave, actclose };
 		}
 

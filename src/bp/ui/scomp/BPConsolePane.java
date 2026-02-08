@@ -6,7 +6,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -20,6 +19,7 @@ import javax.swing.text.EditorKit;
 import javax.swing.text.Element;
 
 import bp.console.BPConsole;
+import bp.event.BPEventConsumerList;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.Std;
@@ -31,7 +31,8 @@ public class BPConsolePane extends BPCodePane
 	 */
 	private static final long serialVersionUID = 1328914152525782442L;
 
-	protected WeakReference<Consumer<String>> m_onenter;
+	protected BPEventConsumerList<String> m_doenter;
+	protected BPEventConsumerList<String> m_onentersync;
 
 	protected boolean[] m_funckeys = new boolean[256];
 
@@ -48,6 +49,9 @@ public class BPConsolePane extends BPCodePane
 		m_notifycb = this::onConsoleChanged;
 		m_cononenter = this::onConsoleEnter;
 		m_appendlock = new AtomicBoolean(false);
+
+		m_doenter = new BPEventConsumerList<String>();
+		m_onentersync = new BPEventConsumerList<String>();
 	}
 
 	protected void initFunctionKeys()
@@ -66,12 +70,6 @@ public class BPConsolePane extends BPCodePane
 			DataFlavor df = DataFlavor.stringFlavor;
 			if (tf.isDataFlavorSupported(df))
 			{
-				WeakReference<Consumer<String>> onenterref = m_onenter;
-				Consumer<String> onenter = null;
-				if (onenterref != null)
-				{
-					onenter = onenterref.get();
-				}
 				try
 				{
 					String cmd = getCommandLine();
@@ -88,10 +86,8 @@ public class BPConsolePane extends BPCodePane
 							if (i < lines.length - 1)
 							{
 								getConsoleDocument().append("\n", false);
-								if (onenter != null)
-								{
-									onenter.accept(line);
-								}
+								m_doenter.accept(line);
+								m_onentersync.accept(line);
 							}
 						}
 					}
@@ -122,7 +118,7 @@ public class BPConsolePane extends BPCodePane
 	{
 		console.setNotify(m_notifycb);
 		m_console = console;
-		setOnEnter(m_cononenter);
+		addOnEnter(m_cononenter);
 	}
 
 	public BPConsole getConsole()
@@ -178,24 +174,33 @@ public class BPConsolePane extends BPCodePane
 		e.consume();
 	}
 
-	public void setOnEnter(Consumer<String> callback)
+	public void addOnEnter(Consumer<String> callback)
 	{
-		m_onenter = new WeakReference<Consumer<String>>(callback);
+		m_doenter.addConsumer(callback);
+	}
+
+	public void addOnEnterSync(Consumer<String> callback)
+	{
+		m_onentersync.addConsumer(callback);
 	}
 
 	protected void onEnter()
 	{
 		String cmd = getCommandLine();
 		getConsoleDocument().append("\n", true);
-		WeakReference<Consumer<String>> onenterref = m_onenter;
-		if (onenterref != null)
-		{
-			Consumer<String> onenter = onenterref.get();
-			if (onenter != null)
-			{
-				onenter.accept(cmd);
-			}
-		}
+		m_doenter.accept(cmd);
+		m_onentersync.accept(cmd);
+	}
+	
+	public void runClear()
+	{
+		getConsoleDocument().clear();
+	}
+
+	public void runCommandFromOutside(String cmd)
+	{
+		getConsoleDocument().append(cmd+"\n", true);
+		m_doenter.accept(cmd);
 	}
 
 	public void clearResource()

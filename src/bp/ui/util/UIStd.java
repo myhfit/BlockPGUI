@@ -27,6 +27,7 @@ import bp.data.BPMData.BPMDataWMap;
 import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
 import bp.task.BPTask;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogCommonCategoryView;
@@ -62,7 +63,7 @@ public class UIStd
 				rawe = r2;
 			}
 		}
-		textarea(rawe.getClass().getSimpleName() + ":" + rawe.getMessage(), "BlockP - error", false);
+		textarea(rawe.getClass().getSimpleName() + ":" + rawe.getMessage(), UIUtil.wrapBPTitles(BPActionConstCommon.TXT_ERR), false);
 	}
 
 	public final static void info_small(String message)

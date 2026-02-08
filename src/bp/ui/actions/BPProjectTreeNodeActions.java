@@ -16,11 +16,11 @@ public class BPProjectTreeNodeActions extends BPTreeNodeActions
 
 	public BPAction getOverviewAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Overview...").callback(new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PRJ_OVERVIEW)).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOVERVIEW, new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PRJ_OVERVIEW));
 	}
 
 	public BPAction getStatsAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Statistics...").callback(new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PRJ_STATISTICS)).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUSTATISTICS, new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PRJ_STATISTICS));
 	}
 }

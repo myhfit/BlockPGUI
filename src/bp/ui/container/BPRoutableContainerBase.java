@@ -16,8 +16,8 @@ import javax.swing.border.MatteBorder;
 
 import bp.config.UIConfigs;
 import bp.ui.BPComponent;
-import bp.ui.actions.BPAction;
-import bp.ui.res.icon.BPIconResV;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.scomp.BPRouteBar;
 import bp.ui.scomp.BPToolVIconButton;
 
@@ -70,7 +70,7 @@ public class BPRoutableContainerBase extends JPanel implements BPRoutableContain
 	{
 		tb.setLayout(new BoxLayout(tb, BoxLayout.X_AXIS));
 		tb.setBorder(new EmptyBorder(0, 2, 0, 4));
-		tb.add(new BPToolVIconButton(BPAction.build("back").callback(this::onBack).vIcon(BPIconResV.TOUP()).getAction()));
+		tb.add(new BPToolVIconButton(BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNUP, BPActionConstCommon.ACT_BTNUP_BACK, this::onBack)));
 	}
 
 	protected void onBack(ActionEvent e)

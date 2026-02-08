@@ -30,6 +30,8 @@ import javax.swing.KeyStroke;
 
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil;
@@ -502,8 +504,8 @@ public class BPHexPane extends JPanel
 
 	public void setContextActions(List<Action> actions)
 	{
-		Action actcopy = BPAction.build("Copy(Hex)").callback(this::onCopy).getAction();
-		Action actcopytext = BPAction.build("Copy(Text)").callback(this::onCopyText).getAction();
+		Action actcopy = BPActionHelpers.getAction(BPActionConstCommon.RAWET_CTX_MNUCOPYHEX, this::onCopy);
+		Action actcopytext = BPActionHelpers.getAction(BPActionConstCommon.RAWET_CTX_MNUCOPYTEXT, this::onCopyText);
 		List<Action> acts = new ArrayList<Action>();
 		acts.add(actcopy);
 		acts.add(actcopytext);

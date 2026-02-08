@@ -1,6 +1,8 @@
 package bp.ui.actions;
 
 import java.awt.event.ActionEvent;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,8 @@ import javax.swing.Action;
 import bp.BPCore;
 import bp.BPGUICore;
 import bp.data.BPData;
+import bp.data.BPDataContainer;
+import bp.data.BPDataContainerBase;
 import bp.data.BPTextContainer;
 import bp.data.BPTextContainerBase;
 import bp.data.BPTreeData;
@@ -24,7 +28,9 @@ import bp.res.BPResource;
 import bp.res.BPResourceHolder;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
+import bp.util.BPPDUtil;
 import bp.util.JSONUtil;
+import bp.util.Std;
 
 public interface BPDataActionFactory
 {
@@ -47,22 +53,26 @@ public interface BPDataActionFactory
 					{
 						case XY:
 						{
-							Action actclonetemp = BPAction.build("Temp").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYData, loaddatafunc)).getAction();
-							Action actclonewin = BPAction.build("New Editor").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYDataToNewEditor, loaddatafunc)).getAction();
+							Action actclonetemp = BPActionHelpers.getAction(BPActionConstCommon.TXT_TEMP, new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYData, loaddatafunc));
+							Action actclonewin = BPActionHelpers.getAction(BPActionConstCommon.TXT_NEWEDITOR, new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYDataToNewEditor, loaddatafunc));
 							Action actclonejson = BPAction.build("JSON").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYDataToJSON, loaddatafunc)).getAction();
+							Action actclonebppd = BPAction.build("BPPD").callback(new DataActionProcessor<BPXYData>((BPXYData) data, BPDataActionFactoryCommon::cloneXYDataToBPPD, loaddatafunc)).getAction();
 							acts.add(actclonetemp);
 							acts.add(actclonewin);
 							acts.add(actclonejson);
+							acts.add(actclonebppd);
 							break;
 						}
 						case T:
 						{
-							Action actclonetemp = BPAction.build("Temp").callback(new DataActionProcessor<BPTreeData>((BPTreeData) data, BPDataActionFactoryCommon::cloneTreeData, loaddatafunc)).getAction();
-							Action actclonewin = BPAction.build("New Editor").callback(new DataActionProcessor<BPTreeData>((BPTreeData) data, BPDataActionFactoryCommon::cloneTreeDataToNewEditor, loaddatafunc)).getAction();
+							Action actclonetemp = BPActionHelpers.getAction(BPActionConstCommon.TXT_TEMP, new DataActionProcessor<BPTreeData>((BPTreeData) data, BPDataActionFactoryCommon::cloneTreeData, loaddatafunc));
+							Action actclonewin = BPActionHelpers.getAction(BPActionConstCommon.TXT_NEWEDITOR, new DataActionProcessor<BPTreeData>((BPTreeData) data, BPDataActionFactoryCommon::cloneTreeDataToNewEditor, loaddatafunc));
 							Action actclonejson = BPAction.build("JSON").callback(new DataActionProcessor<BPTreeData>((BPTreeData) data, BPDataActionFactoryCommon::cloneTreeDataToJSON, loaddatafunc)).getAction();
+							Action actclonebppd = BPAction.build("BPPD").callback(new DataActionProcessor<BPTreeData>((BPTreeData) data, BPDataActionFactoryCommon::cloneTreeDataToBPPD, loaddatafunc)).getAction();
 							acts.add(actclonetemp);
 							acts.add(actclonewin);
 							acts.add(actclonejson);
+							acts.add(actclonebppd);
 							break;
 						}
 						default:
@@ -119,6 +129,38 @@ public interface BPDataActionFactory
 				{
 					con.bind(file);
 					con.writeAllText(JSONUtil.encode(xydata.toMapList()));
+					UIStd.info("Cloned to " + file.toString() + " finished");
+				}
+				finally
+				{
+					con.close();
+				}
+			}
+		}
+
+		private final static void cloneXYDataToBPPD(BPXYData xydata, ActionEvent event)
+		{
+			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "bppd" });
+			if (file != null)
+			{
+				BPDataContainer con = new BPDataContainerBase();
+				con.open();
+				try
+				{
+					con.bind(file);
+					con.useOutputStream(out ->
+					{
+						try (BufferedOutputStream bos = new BufferedOutputStream(out))
+						{
+							BPPDUtil.write(bos, xydata.toMapList());
+							UIStd.info("Cloned to " + file.toString() + " finished");
+						}
+						catch (IOException e)
+						{
+							Std.err(e);
+						}
+						return true;
+					});
 				}
 				finally
 				{
@@ -139,6 +181,38 @@ public interface BPDataActionFactory
 				{
 					con.bind(file);
 					con.writeAllText(JSONUtil.encode(treedata.getRoot()));
+					UIStd.info("Cloned to " + file.toString() + " finished");
+				}
+				finally
+				{
+					con.close();
+				}
+			}
+		}
+
+		private final static void cloneTreeDataToBPPD(BPTreeData treedata, ActionEvent event)
+		{
+			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "bppd" });
+			if (file != null)
+			{
+				BPDataContainer con = new BPDataContainerBase();
+				con.open();
+				try
+				{
+					con.bind(file);
+					con.useOutputStream(out ->
+					{
+						try (BufferedOutputStream bos = new BufferedOutputStream(out))
+						{
+							BPPDUtil.write(bos, treedata.getRoot());
+							UIStd.info("Cloned to " + file.toString() + " finished");
+						}
+						catch (IOException e)
+						{
+							Std.err(e);
+						}
+						return true;
+					});
 				}
 				finally
 				{

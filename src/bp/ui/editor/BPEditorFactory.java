@@ -404,6 +404,7 @@ public interface BPEditorFactory
 
 			BPDataContainerFactory fac = ClassUtil.findService(BPDataContainerFactory.class, f -> f.canHandle(f2.getName()));
 			BPTreeDataContainer con = fac.createContainer(null);
+			con.setOrderedMap(true);
 			if (options != null)
 			{
 				LogicUtil.VLF(((String) options.get("encoding")), TextUtil::checkNotEmpty, e ->

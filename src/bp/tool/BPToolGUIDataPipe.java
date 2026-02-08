@@ -18,7 +18,6 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
-import bp.BPGUICore;
 import bp.config.BPSetting;
 import bp.config.UIConfigs;
 import bp.data.BPDataConsumer;
@@ -28,9 +27,10 @@ import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPCodePane;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPList;
@@ -44,7 +44,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 {
 	public String getName()
 	{
-		return "Data Pipe Tool";
+		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_DPTOOL, null, null);
 	}
 
 	protected BPToolGUIContextDataPipe createToolContext()
@@ -76,13 +76,13 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			JPanel ppipes = new JPanel();
 			m_lbltype = new BPLabel();
 			BPToolBarSQ toolbar = new BPToolBarSQ();
-			Action actrun = BPAction.build("run").tooltip("Run").vIcon(BPIconResV.START()).callback(this::onRunPipe).getAction();
-			Action actaddtf = BPAction.build("add tf").tooltip("Add Transformer").vIcon(BPIconResV.ADD()).callback(this::onAddTransformer).getAction();
-			Action actaddep = BPAction.build("add ep").tooltip("Add Endpoint").vIcon(BPIconResV.ADD()).callback(this::onAddEndpoint).getAction();
-			Action actconfig = BPAction.build("config").tooltip("Config").vIcon(BPIconResV.EDIT()).callback(this::onConfigConsumer).getAction();
-			Action actup = BPAction.build("moveup").tooltip("Move Up").vIcon(BPIconResV.TOUP()).callback(this::onMoveUp).getAction();
-			Action actdown = BPAction.build("movedown").tooltip("Move Down").vIcon(BPIconResV.TODOWN()).callback(this::onMoveDown).getAction();
-			Action actdelitem = BPAction.build("del").tooltip("Remove").vIcon(BPIconResV.DEL()).callback(this::onDelItem).getAction();
+			Action actrun = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNRUN, this::onRunPipe);
+			Action actaddtf = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_ADDTF, this::onAddTransformer);
+			Action actaddep = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_ADDEP, this::onAddEndpoint);
+			Action actconfig = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCONFIG, this::onConfigConsumer);
+			Action actup = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp);
+			Action actdown = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown);
+			Action actdelitem = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDelItem);
 
 			toolbar.setActions(new Action[] { actaddtf, actaddep, BPAction.separator(), actdelitem, BPAction.separator(), actup, actdown, BPAction.separator(), actconfig, actrun });
 
@@ -283,13 +283,13 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 		protected void onAddTransformer(ActionEvent e)
 		{
 			List<BPTransformerFactory> facs = BPTransformerManager.getTransformerFacs(null);
-			BPTransformerFactory fac = UIStd.select(facs, BPGUICore.S_BP_TITLE + " - Select Transformer", obj -> ((BPTransformerFactory) obj).getName());
+			BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), obj -> ((BPTransformerFactory) obj).getName());
 			if (fac != null)
 			{
 				List<String> fts = new ArrayList<String>(fac.getFunctionTypes());
 				if (fts.size() > 0)
 				{
-					String ft = (fts.size() == 1) ? fts.get(0) : UIStd.select(fts, BPGUICore.S_BP_TITLE + " - Select Function", null);
+					String ft = (fts.size() == 1) ? fts.get(0) : UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FUNC), null);
 					if (ft != null)
 					{
 						BPTransformer<?> tf = fac.createTransformer(ft);
@@ -309,11 +309,11 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			List<BPDataEndpointFactory> facs = new ArrayList<BPDataEndpointFactory>();
 			for (BPDataEndpointFactory fac : loader)
 				facs.add(fac);
-			BPDataEndpointFactory fac = UIStd.select(facs, BPGUICore.S_BP_TITLE + " - Select Transformer", obj -> ((BPDataEndpointFactory) obj).getName());
+			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), obj -> ((BPDataEndpointFactory) obj).getName());
 			if (fac != null)
 			{
 				List<String> fts = fac.getSupportedFormats();
-				String ft = UIStd.select(fts, BPGUICore.S_BP_TITLE + " - Select Format", null);
+				String ft = UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FORMAT), null);
 				if (ft != null)
 				{
 					BPDataConsumer<?> dc = fac.create(ft);

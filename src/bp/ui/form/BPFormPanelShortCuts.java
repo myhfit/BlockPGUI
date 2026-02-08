@@ -9,9 +9,10 @@ import javax.swing.Action;
 import bp.config.BPSetting;
 import bp.config.ShortCuts;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.shortcut.BPShortCut;
 import bp.ui.shortcut.BPShortCutFactory;
@@ -35,7 +36,7 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 	protected List<Action> makeToolBarActions()
 	{
 		List<Action> rc = super.makeToolBarActions();
-		BPAction actedit = BPAction.build("Edit").callback(this::onEdit).vIcon(BPIconResV.EDIT()).getAction();
+		BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit);
 		rc.add(BPAction.separator());
 		rc.add(BPAction.separator());
 		rc.add(actedit);

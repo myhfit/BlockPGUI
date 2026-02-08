@@ -1,6 +1,5 @@
 package bp.ui.actions;
 
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,9 +46,9 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 
 	public BPAction getNewFileAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		BPAction rc = BPAction.build("New").mnemonicKey(KeyEvent.VK_N).getAction();
-		BPAction actnewfile = BPAction.build("File").callback((e) -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWFILE, res))).mnemonicKey(KeyEvent.VK_F).getAction();
-		BPAction actnewdir = BPAction.build("Directory").callback((e) -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWDIR, res))).mnemonicKey(KeyEvent.VK_D).getAction();
+		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEW, null);
+		BPAction actnewfile = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEWFILE, e -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWFILE, res)));
+		BPAction actnewdir = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEWDIR, e -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWDIR, res)));
 		Action[] actchd = new Action[] { actnewfile, actnewdir };
 		rc.putValue(BPAction.SUB_ACTIONS, actchd);
 		return rc;
@@ -57,8 +56,8 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 
 	public BPAction getNewFileOnlyDirAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		BPAction rc = BPAction.build("New").mnemonicKey(KeyEvent.VK_N).getAction();
-		BPAction actnewdir = BPAction.build("Directory").callback((e) -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWDIR, res))).mnemonicKey(KeyEvent.VK_D).getAction();
+		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEW, null);
+		BPAction actnewdir = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEWDIR, e -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWDIR, res)));
 		Action[] actchd = new Action[] { actnewdir };
 		rc.putValue(BPAction.SUB_ACTIONS, actchd);
 		return rc;
@@ -76,9 +75,9 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 				prj = (BPResourceProject) obj;
 			}
 		}
-		BPAction rc = BPAction.build("New").mnemonicKey(KeyEvent.VK_N).getAction();
-		BPAction actnewfile = BPAction.build("File").callback((e) -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWFILE, res))).mnemonicKey(KeyEvent.VK_F).getAction();
-		BPAction actnewdir = BPAction.build("Directory").callback((e) -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWDIR, res))).mnemonicKey(KeyEvent.VK_D).getAction();
+		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEW, null);
+		BPAction actnewfile = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEWFILE, e -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWFILE, res)));
+		BPAction actnewdir = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUNEWDIR, e -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_NEWDIR, res)));
 		Action[] actchd = null;
 		if (prj == null)
 		{
@@ -107,20 +106,20 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 
 	public BPAction getOpenFileAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Open").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENFILE)).mnemonicKey(KeyEvent.VK_O).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPEN, new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENFILE));
 	}
 
 	public BPAction getOpenFileAsAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Open As...").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENFILEAS)).mnemonicKey(KeyEvent.VK_A).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENAS, new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENFILEAS));
 	}
 
 	public BPAction getOpenFileExternalAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		BPAction rc = BPAction.build("Open External").getAction();
-		BPAction actopensys = BPAction.build("Open").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_O).getAction();
-		BPAction acteditsys = BPAction.build("Edit").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_EDITEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_E).getAction();
-		BPAction actprintsys = BPAction.build("Print").callback(new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_PRINTEXTERNAL_SYSTEM)).mnemonicKey(KeyEvent.VK_P).getAction();
+		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXT, null);
+		BPAction actopensys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTSYS, new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_OPENEXTERNAL_SYSTEM));
+		BPAction acteditsys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTEDIT, new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_EDITEXTERNAL_SYSTEM));
+		BPAction actprintsys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTPRINT, new EventUtil.EventConsumerMakePathTreeAction(res, channelid, ACTION_PRINTEXTERNAL_SYSTEM));
 		Action[] actchd = new Action[] { actopensys, acteditsys, actprintsys };
 		rc.putValue(BPAction.SUB_ACTIONS, actchd);
 		return rc;
@@ -128,14 +127,14 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 
 	public BPAction getOpenFileWithToolActionOld(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		BPAction rc = BPAction.build("Open With Tool...").callback(new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_OPENWITHTOOL)).mnemonicKey(KeyEvent.VK_W).getAction();
+		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENTOOL, new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_OPENWITHTOOL));
 		return rc;
 	}
 
 	public BPAction getOpenFileWithToolAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
 		BPResource[] ress = tree.getSelectedLeafs(BPResource.class);
-		BPAction rc = BPAction.build("Open With Tool").mnemonicKey(KeyEvent.VK_W).getAction();
+		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENTOOL, null);
 		Supplier<Action[]> submenucb = () ->
 		{
 			Map<String, List<BPTool>> toolmap = new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
@@ -181,39 +180,31 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 			System.arraycopy(respath, 0, resarr, 0, respath.length);
 			resarrs[i] = resarr;
 		}
-		return BPAction.build("Delete").callback(new EventUtil.EventConsumerNodeAction(resarrs, channelid, ACTION_DELETES)).mnemonicKey(KeyEvent.VK_D).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDEL, new EventUtil.EventConsumerNodeAction(resarrs, channelid, ACTION_DELETES));
 	}
 
 	public BPAction getRenameResAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Rename").callback(new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_RENAME)).mnemonicKey(KeyEvent.VK_M).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNURENAME, new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_RENAME));
 	}
 
 	public BPAction getRefreshResAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Refresh").callback((e) -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_REFRESH, res))).mnemonicKey(KeyEvent.VK_R).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUREFRESH, e -> BPGUICore.EVENTS_UI.trigger(channelid, BPEventUIPathTree.makeActionEvent(ACTION_REFRESH, res)));
 	}
 
 	public BPAction getPropertyAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Properties...").callback(new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PROPERTIES)).mnemonicKey(KeyEvent.VK_P).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUPROP, new EventUtil.EventConsumerNodeAction(new BPResource[] { res }, channelid, ACTION_PROPERTIES));
 	}
 
 	public BPAction getCopyAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
 	{
-		return BPAction.build("Copy").callback(new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_COPY)).mnemonicKey(KeyEvent.VK_C).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCOPY, new EventUtil.EventConsumerNodeAction(tree.getSelectedLeafs(BPResource.class), channelid, ACTION_COPY));
 	}
-
-	// public BPAction getCopyToAction(BPTreeComponent<BPTree> tree, BPResource
-	// res, int channelid)
-	// {
-	// return BPAction.build("Copy To...").callback(new
-	// EventUtil.EventConsumerNodeAction(getSelectedResources(tree), channelid,
-	// ACTION_COPYTO)).getAction();
-	// }
 
 	public BPAction getCopyToAction(BPTreeComponent<BPTree> tree, BPResource[] ress, int channelid)
 	{
-		return BPAction.build("Copy To...").callback(new EventUtil.EventConsumerNodeAction(ress, channelid, ACTION_COPYTO)).getAction();
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCOPYTO, new EventUtil.EventConsumerNodeAction(ress, channelid, ACTION_COPYTO));
 	}
 }

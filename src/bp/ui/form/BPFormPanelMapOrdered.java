@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.swing.Action;
 
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPKVTable.KV;
 
@@ -26,14 +28,28 @@ public class BPFormPanelMapOrdered extends BPFormPanelMap
 	protected List<Action> makeToolBarActions()
 	{
 		List<Action> rc = super.makeToolBarActions();
-		BPAction actup = BPAction.build("Move Up").callback(this::onMoveUp).vIcon(BPIconResV.TOUP()).getAction();
-		BPAction actdown = BPAction.build("Move Down").callback(this::onMoveDown).vIcon(BPIconResV.TODOWN()).getAction();
+		BPAction actadd2 = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_INSERT, this::onInsert, b -> b.vIcon(BPIconResV.TORIGHT()));
+		BPAction actup = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp);
+		BPAction actdown = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown);
+		rc.add(0, actadd2);
 		rc.add(BPAction.separator());
 		rc.add(BPAction.separator());
 		rc.add(actup);
 		rc.add(BPAction.separator());
 		rc.add(actdown);
 		return rc;
+	}
+	
+	protected void onInsert(ActionEvent e)
+	{
+		int si = m_tabkvs.getSelectedRow();
+		if (si < 0)
+		{
+			onAdd(e);
+			return;
+		}
+		m_tabkvs.getBPTableModel().getDatas().add(si, new KV());
+		m_tabkvs.getBPTableModel().fireTableDataChanged();
 	}
 
 	protected void onMoveUp(ActionEvent e)

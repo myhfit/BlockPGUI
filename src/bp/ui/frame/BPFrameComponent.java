@@ -3,7 +3,6 @@ package bp.ui.frame;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -17,7 +16,6 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
@@ -33,6 +31,8 @@ import bp.res.BPResourceFileSystem;
 import bp.ui.BPComponent;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPEditors.BPEventUIEditors;
 import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.editor.BPEditor;
@@ -94,10 +94,10 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		m_mnuactbar = new JPanel();
 
 		mnufile.setMnemonic(KeyEvent.VK_F);
-		m_actsave = BPAction.build("Save").callback(e -> save()).mnemonicKey(KeyEvent.VK_S).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK)).getAction();
-		BPAction actclose = BPAction.build("Close").callback(e -> dispose()).mnemonicKey(KeyEvent.VK_X).getAction();
-		BPAction acttogglerightpan = BPAction.build("Toggle Right Panel").callback(e -> toggleRightPanel()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.ALT_DOWN_MASK)).getAction();
-		BPAction actfullscreen = BPAction.build("FullScreen").callback(e -> fullScreen()).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0)).getAction();
+		m_actsave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, e -> save());
+		BPAction actclose = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECLOSE, e -> dispose());
+		BPAction acttogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, e -> toggleRightPanel());
+		BPAction actfullscreen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWFULLSCREEN, e -> fullScreen());
 
 		FlowLayout fl = new FlowLayout(FlowLayout.RIGHT);
 		fl.setVgap(0);

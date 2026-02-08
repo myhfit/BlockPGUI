@@ -95,6 +95,8 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	{
 		m_adddatafunc = this::onAddData;
 		m_setupqueryfunc = this::onSetupXY;
+		m_synccb = this::onSyncEditor;
+		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 		init();
 	}
 
@@ -139,9 +141,6 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	protected void initListeners()
 	{
 		m_txtfilter.getDocument().addDocumentListener(new UIUtil.BPDocumentChangedHandler(this::onFilterChanged));
-
-		m_synccb = this::onSyncEditor;
-		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 	}
 
 	public BPComponentType getComponentType()

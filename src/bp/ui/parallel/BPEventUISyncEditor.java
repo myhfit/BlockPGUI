@@ -7,6 +7,7 @@ public class BPEventUISyncEditor extends BPEventUI
 	public final static String EVENTKEY_SYNC_EDITOR = "E_UI_SYNC_EDITOR";
 	public final static String SYNC_POS = "syncpos";
 	public final static String SYNC_SELECTION = "syncselection";
+	public final static String SYNC_ACTION = "syncaction";
 
 	public BPEventUISyncEditor(String subkey, Object[] datas)
 	{
@@ -34,5 +35,10 @@ public class BPEventUISyncEditor extends BPEventUI
 	public static BPEventUISyncEditor syncSelection(String id, String seltype, Object sel)
 	{
 		return new BPEventUISyncEditor(SYNC_SELECTION, new Object[] { id, seltype, sel });
+	}
+
+	public static BPEventUISyncEditor syncAction(String id, String actionname, Object... ps)
+	{
+		return new BPEventUISyncEditor(SYNC_ACTION, new Object[] { id, actionname, ps });
 	}
 }

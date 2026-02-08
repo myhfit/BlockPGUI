@@ -14,7 +14,6 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -24,9 +23,10 @@ import bp.config.UIConfigs;
 import bp.data.BPDataConsumer.BPDataConsumerDataHolder;
 import bp.transform.BPTransformerRuleFilter;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil.WeakRefGo;
 
@@ -79,7 +79,7 @@ public class BPFilterDataListPanel<DATA> extends JPanel
 		JPanel pantxt = new JPanel();
 		m_pansetting = new BPToolBarSQ();
 
-		m_actsetting = BPAction.build("settings").callback(this::onSettingRule).vIcon(BPIconResV.EDIT()).tooltip("Settings").getAction();
+		m_actsetting = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSETTINGS, this::onSettingRule);
 		m_panact.setActions(makeTopActions());
 		m_panact.setPreferredSize(null);
 		m_pansetting.setPreferredSize(null);
@@ -131,8 +131,8 @@ public class BPFilterDataListPanel<DATA> extends JPanel
 
 	protected Action[] makeTopActions()
 	{
-		BPAction acttoggledetail = BPAction.build("toggledetail").callback(this::toggleDetail).vIcon(BPIconResV.DROPDOWN()).tooltip("Toggle detail").getAction();
-		BPAction actfilter = BPAction.build("run").callback(this::doFilter).vIcon(BPIconResV.START()).tooltip("Run(F5)").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)).getAction();
+		BPAction acttoggledetail = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNTOGGLE, BPActionConstCommon.ACT_BTNTOGGLE_DETAIL, this::toggleDetail);
+		BPAction actfilter = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNRUN, BPActionConstCommon.ACT_BTNRUN_ACC, this::doFilter);
 		return new Action[] { actfilter, acttoggledetail };
 	}
 
@@ -147,12 +147,15 @@ public class BPFilterDataListPanel<DATA> extends JPanel
 
 	protected void onFilterChanged(ItemEvent e)
 	{
-		BPTransformerRuleFilter<DATA> tf = getSelectedFilter();
-		if (tf.getSetting() != null)
-			m_pansetting.setActions(new Action[] { m_actsetting });
-		else
-			m_pansetting.setActions(new Action[] {});
-		m_pantop.updateUI();
+		if (e.getStateChange() == ItemEvent.SELECTED)
+		{
+			BPTransformerRuleFilter<DATA> tf = getSelectedFilter();
+			if (tf.getSetting() != null)
+				m_pansetting.setActions(new Action[] { m_actsetting });
+			else
+				m_pansetting.setActions(new Action[] {});
+			m_pantop.updateUI();
+		}
 	}
 
 	protected void onSettingRule(ActionEvent e)

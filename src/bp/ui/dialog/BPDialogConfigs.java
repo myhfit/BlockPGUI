@@ -13,6 +13,7 @@ import javax.swing.event.ListSelectionEvent;
 import bp.BPCore;
 import bp.config.BPConfig;
 import bp.config.UIConfigs;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPList;
@@ -53,7 +54,7 @@ public class BPDialogConfigs extends BPDialogCommon
 		scroll.setViewportView(m_lstcfgs);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-		setTitle("BlockP - Configs");
+		setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_CONFIGS));
 
 		setLayout(new BorderLayout());
 		add(scroll, BorderLayout.WEST);
