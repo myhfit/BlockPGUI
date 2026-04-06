@@ -20,6 +20,8 @@ import bp.config.BPConfigSimple;
 import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFactory;
@@ -167,7 +169,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 		m_filebox.setMonoFont();
 		lblfilename.setLabelFont();
-		lblfilename.setText("Filename:");
+		lblfilename.setText(BPLocaleHelpers.getValue(BPLocaleConstCC.FILENAME) + ":");
 		lblfilename.setOpaque(false);
 		lblfilename.setBackground(UIConfigs.COLOR_TEXTBG());
 		lblfilename.setBorder(new CompoundBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 2)));
@@ -195,7 +197,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
 
-		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_RES));
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.RES));
 		setModal(true);
 	}
 

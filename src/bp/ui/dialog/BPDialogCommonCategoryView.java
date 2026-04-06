@@ -128,7 +128,7 @@ public class BPDialogCommonCategoryView<T, V> extends BPDialogCommon
 				if (value instanceof BPData)
 				{
 					BPData bd = (BPData) value;
-					BPDataStructure st = bd.getDataStruture();
+					BPDataStructure st = bd.getDataStructure();
 					if (st == BPDataStructure.M)
 						form.showData(((BPMData) value).getMappedData(), m_editable);
 					else if (st == BPDataStructure.Y)

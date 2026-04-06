@@ -6,6 +6,7 @@ public class BPIconResV
 {
 	private static BPVIcon S_ICON_BP;
 	private static BPVIcon S_ICON_CLOSE;
+	private static BPVIcon S_ICON_OPEN;
 	private static BPVIcon S_ICON_DROPDOWN;
 	private static BPVIcon S_ICON_REFRESH;
 	private static BPVIcon S_ICON_SAVE;
@@ -71,6 +72,30 @@ public class BPIconResV
 			};
 		}
 		return S_ICON_CLOSE;
+	}
+	
+	public final static BPVIcon OPEN()
+	{
+		if (S_ICON_OPEN == null)
+		{
+			S_ICON_OPEN = (g, x0, y0, w, h) ->
+			{
+				int x1 = x0 + w - 1;
+				int y1 = y0 + h - 2;
+				int k = w / 3 - 1;
+				int x05 = x0 + ((w - 1) / 3);
+				int y025 = y0 + ((h - 1) / 4);
+				g.drawLine(x0, y1, x0 + k, y1 - k);
+				g.drawLine(x0 + k, y1 - k, x1, y1 - k);
+				g.drawLine(x1 - k, y1, x1, y1 - k);
+				g.drawLine(x0, y1, x1 - k, y1);
+				g.drawLine(x0, y025, x0, y1);
+				g.drawLine(x0, y025, x1 - k, y025);
+				g.drawLine(x1 - k, y025, x1 - k, y1-k);
+				g.drawRect(x0 + 1, y0 + 1, x05 - x0, y025 - y0 - 1);
+			};
+		}
+		return S_ICON_OPEN;
 	}
 
 	public final static BPVIcon UPDOWN()

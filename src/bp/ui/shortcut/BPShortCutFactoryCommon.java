@@ -10,6 +10,7 @@ public class BPShortCutFactoryCommon implements BPShortCutFactory
 		regfunc.accept(BPShortCutEditorNewWindow.SCKEY_EDITORNW, this);
 		regfunc.accept(BPShortCutConsole.SCKEY_CONSOLE, this);
 		regfunc.accept(BPShortCutSimpleRun.SCKEY_SIMPLERUN, this);
+		regfunc.accept(BPShortCutResource.SCKEY_RES, this);
 	}
 
 	public BPShortCut createShortCut(String key)
@@ -37,7 +38,19 @@ public class BPShortCutFactoryCommon implements BPShortCutFactory
 				rc = new BPShortCutSimpleRun();
 				break;
 			}
+			case BPShortCutResource.SCKEY_RES:
+			{
+				rc = new BPShortCutResource();
+				break;
+			}
 		}
 		return rc;
+	}
+
+	public boolean canExpand(String key)
+	{
+		if (BPShortCutResource.SCKEY_RES.equals(key))
+			return true;
+		return false;
 	}
 }

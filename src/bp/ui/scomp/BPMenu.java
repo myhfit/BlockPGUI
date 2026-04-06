@@ -4,12 +4,14 @@ import java.awt.Font;
 import java.util.function.Supplier;
 
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import bp.config.UIConfigs;
+import bp.ui.util.UIUtil;
 
 public class BPMenu extends JMenu
 {
@@ -24,7 +26,7 @@ public class BPMenu extends JMenu
 		super(text);
 		setFont(new Font(UIConfigs.MENU_FONT_NAME(), Font.PLAIN, UIConfigs.MENUFONT_SIZE()));
 	}
-	
+
 	public BPMenu(Action act)
 	{
 		super((String) act.getValue(Action.NAME));
@@ -50,6 +52,8 @@ public class BPMenu extends JMenu
 
 		protected Supplier<Action[]> m_dynafunc;
 		protected boolean m_queried;
+		protected boolean m_cc;
+		protected boolean m_oow;
 
 		public BPMenuDynamic(String text, Supplier<Action[]> dynafunc)
 		{
@@ -58,21 +62,38 @@ public class BPMenu extends JMenu
 			addMenuListener(this);
 		}
 
+		public void setOutOfWindow(boolean flag)
+		{
+			m_oow = flag;
+		}
+
+		public void setClearOnClose(boolean flag)
+		{
+			m_cc = flag;
+		}
+
 		public void menuSelected(MenuEvent e)
 		{
 			if (!m_queried)
 			{
 				m_queried = true;
 				Action[] acts = m_dynafunc.get();
-				for (Action act : acts)
+				if (acts != null)
 				{
-					add(act);
+					JComponent[] subs = UIUtil.makeMenuItems(acts, m_oow);
+					for (JComponent sub : subs)
+						add(sub);
 				}
 			}
 		}
 
 		public void menuDeselected(MenuEvent e)
 		{
+			if (m_cc)
+			{
+				m_queried = false;
+				removeAll();
+			}
 		}
 
 		public void menuCanceled(MenuEvent e)

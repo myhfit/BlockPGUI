@@ -18,7 +18,6 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 
-import bp.BPGUICore;
 import bp.config.BPSetting;
 import bp.config.BPSettingItem;
 import bp.data.BPDataConsumer;
@@ -32,6 +31,7 @@ import bp.data.BPDiagram.BPDiagramNode;
 import bp.data.BPJSONContainerBase;
 import bp.data.BPMContainer;
 import bp.id.SerialIDGenerator;
+import bp.locale.BPLocaleConstCC;
 import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
@@ -383,13 +383,13 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 	protected void onCreateTransformer(ActionEvent e)
 	{
 		List<BPTransformerFactory> facs = BPTransformerManager.getTransformerFacs(null);
-		BPTransformerFactory fac = UIStd.select(facs, BPGUICore.S_BP_TITLE + " - Select Transformer", obj -> ((BPTransformerFactory) obj).getName());
+		BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), obj -> ((BPTransformerFactory) obj).getName());
 		if (fac != null)
 		{
 			List<String> fts = new ArrayList<String>(fac.getFunctionTypes());
 			if (fts.size() > 0)
 			{
-				String ft = (fts.size() == 1) ? fts.get(0) : UIStd.select(fts, BPGUICore.S_BP_TITLE + " - Select Function", null);
+				String ft = (fts.size() == 1) ? fts.get(0) : UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FUNCTION), null);
 				if (ft != null)
 				{
 					BPTransformer<?> tf = fac.createTransformer(ft);
@@ -411,11 +411,11 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		List<BPDataEndpointFactory> facs = new ArrayList<BPDataEndpointFactory>();
 		for (BPDataEndpointFactory fac : loader)
 			facs.add(fac);
-		BPDataEndpointFactory fac = UIStd.select(facs, BPGUICore.S_BP_TITLE + " - Select Transformer", obj -> ((BPDataEndpointFactory) obj).getName());
+		BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), obj -> ((BPDataEndpointFactory) obj).getName());
 		if (fac != null)
 		{
 			List<String> fts = fac.getSupportedFormats();
-			String ft = UIStd.select(fts, BPGUICore.S_BP_TITLE + " - Select Format", null);
+			String ft = UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FORMAT), null);
 			if (ft != null)
 			{
 				BPDataConsumer<?> dc = fac.create(ft);

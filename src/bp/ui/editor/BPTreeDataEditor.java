@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ import bp.data.BPTreeData;
 import bp.data.BPTreeData.BPTreeDataObj;
 import bp.data.BPTreeDataContainer;
 import bp.data.BPTreeDataHolder;
+import bp.data.BPXYData;
+import bp.data.BPXYData.BPXYDataList;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
@@ -37,6 +40,7 @@ import bp.ui.actions.BPTreeDataCloneActions;
 import bp.ui.actions.BPTreeDataEditorActions;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
+import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
 import bp.ui.tree.BPTreeComponentBase;
@@ -45,6 +49,7 @@ import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
 import bp.util.JSONUtil;
+import bp.util.ObjUtil;
 
 public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel implements BPEditor<JPanel>, BPViewer<CON>
 {
@@ -264,6 +269,36 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 
 	public void delete()
 	{
+	}
+
+	@SuppressWarnings("unchecked")
+	public void showEditXY(ActionEvent e)
+	{
+		Object obj = m_treedata.getRoot();
+		if (obj == null || !(obj instanceof Collection))
+		{
+			return;
+		}
+
+		String key = ClassUtil.tryLoopSuperClass(c -> BPFormManager.hasForm(c.getName()) ? c.getName() : null, BPXYDataList.class, BPXYData.class);
+		BPDialogForm dlg = new BPDialogForm();
+		dlg.setEditable(true);
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_EDIT));
+		{
+			BPXYDataList xydata = new BPXYDataList(true);
+			xydata.fromMapList((List<Map<String, Object>>) obj);
+			dlg.setup(key, ObjUtil.makeMap("_xydata", xydata));
+		}
+		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
+		dlg.pack();
+		dlg.setLocationRelativeTo(null);
+		dlg.setVisible(true);
+		if (dlg.getActionResult() == BPDialogForm.COMMAND_OK)
+		{
+			BPXYData xydata = (BPXYData) dlg.getFormData().get("_xydata");
+			swapData(null, null, xydata.toMapList());
+			m_tree.setModel(new BPTreeModel(new BPTreeFuncsObject(m_treedata.getRoot())));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

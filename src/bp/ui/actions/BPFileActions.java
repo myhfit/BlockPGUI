@@ -132,4 +132,18 @@ public class BPFileActions
 	{
 		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUPROP, new EventUtil.EventConsumerResourceOPAction(ress, channelid, ACTION_PROPERTIES));
 	}
+
+	public List<BPAction> getActions(BPResource res, int channelid)
+	{
+		List<BPAction> rc = new ArrayList<BPAction>();
+		if (!res.isLeaf())
+			rc.add(getNewFileAction(res, channelid));
+		rc.add(getOpenFileAction(new BPResource[] { res }, channelid));
+		rc.add(getOpenFileAsAction(new BPResource[] { res }, channelid));
+		rc.add(getOpenFileExternalAction(new BPResource[] { res }, channelid));
+		rc.add(getOpenFileWithToolAction(new BPResource[] { res }, channelid));
+		rc.add(BPAction.separator());
+		rc.add(getPropertyAction(new BPResource[] { res }, channelid));
+		return rc;
+	}
 }

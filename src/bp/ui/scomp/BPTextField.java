@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -14,6 +15,8 @@ import javax.swing.undo.UndoManager;
 
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.util.UIUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
@@ -39,6 +42,7 @@ public class BPTextField extends JTextField
 		getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "onRedoKey");
 		getActionMap().put("onUndoKey", BPAction.build("").callback(this::onUndoKey).getAction());
 		getActionMap().put("onRedoKey", BPAction.build("").callback(this::onRedoKey).getAction());
+		UIUtil.setupContextMenu(this, this::getContextMenuActions);
 	}
 
 	public void setDefaultBorder()
@@ -140,5 +144,13 @@ public class BPTextField extends JTextField
 			if (super.canRedo())
 				super.redo();
 		}
+	}
+
+	protected <C extends BPTextField> Action[] getContextMenuActions(C comp, Object source)
+	{
+		Action actcopy = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCOPY, e -> copy());
+		Action actcut = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCUT, e -> cut());
+		Action actpaste = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUPASTE, e -> paste());
+		return new Action[] { actcopy, actcut, actpaste };
 	}
 }

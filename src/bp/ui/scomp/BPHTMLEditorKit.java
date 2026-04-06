@@ -25,18 +25,30 @@ public class BPHTMLEditorKit extends HTMLEditorKit
 
 	// private static final ViewFactory defaultFactory = new BPHTMLFactory();
 
+	protected boolean m_fscale;
+
+	public void setForceScale(boolean flag)
+	{
+		m_fscale = flag;
+	}
+
 	public Document createDefaultDocument()
 	{
-		StyleSheet styles = getStyleSheet();
-		StyleSheet ss = new BPHTMLStyleSheet();
-
-		ss.addStyleSheet(styles);
-
-		HTMLDocument doc = new HTMLDocument(ss);
-		doc.setParser(getParser());
-		doc.setAsynchronousLoadPriority(4);
-		doc.setTokenThreshold(100);
-		return doc;
+		if (m_fscale)
+		{
+			StyleSheet styles = getStyleSheet();
+			StyleSheet ss = new BPHTMLStyleSheet();
+			ss.addStyleSheet(styles);
+			HTMLDocument doc = new HTMLDocument(ss);
+			doc.setParser(getParser());
+			doc.setAsynchronousLoadPriority(4);
+			doc.setTokenThreshold(100);
+			return doc;
+		}
+		else
+		{
+			return super.createDefaultDocument();
+		}
 	}
 
 	// public ViewFactory getViewFactory()

@@ -15,9 +15,11 @@ import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.scomp.BPMenu;
+import bp.ui.scomp.BPMenu.BPMenuDynamic;
 import bp.ui.scomp.BPMenuItem.BPMenuItemInTray;
 import bp.ui.shortcut.BPShortCut;
 import bp.ui.shortcut.BPShortCutManager;
+import bp.ui.util.UIUtil;
 
 public class BlockPMenus
 {
@@ -54,22 +56,39 @@ public class BlockPMenus
 				}
 				mnuname = strs[strs.length - 1];
 			}
-			Action act = BPAction.build(mnuname).callback(e ->
+			if (sc.canexpand)
 			{
-				ShortCutData sc2 = ShortCuts.getShortCut(scname);
-				BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
-				if (bsc != null)
-					bsc.run();
-			}).getAction();
-			act.putValue("scname", scname);
-			mnupar.add(act);
+				BPMenuDynamic mnudyna = new BPMenuDynamic(mnuname, () ->
+				{
+					ShortCutData sc2 = ShortCuts.getShortCut(scname);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					if (bsc != null)
+						return bsc.expand();
+					else
+						return null;
+				});
+				mnudyna.setClearOnClose(true);
+				mnupar.add(mnudyna);
+			}
+			else
+			{
+				Action act = BPAction.build(mnuname).callback(e ->
+				{
+					ShortCutData sc2 = ShortCuts.getShortCut(scname);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					if (bsc != null)
+						bsc.run();
+				}).getAction();
+				act.putValue("scname", scname);
+				mnupar.add(act);
+			}
 		}
 		mnushortcuts.addSeparator();
 		Action actsetting = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCSEDITSCS, e ->
 		{
 			BPDialogForm dlg = new BPDialogForm();
 			dlg.setup(ShortCuts.class.getName(), BPGUICore.CONFIGS_SC);
-			dlg.setTitle("BlockP - ShortCuts");
+			dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.MF_MNUSHORTCUTS));
 			dlg.setVisible(true);
 			Map<String, Object> formdata = dlg.getFormData();
 			if (formdata != null)
@@ -119,15 +138,33 @@ public class BlockPMenus
 				}
 				mnuname = strs[strs.length - 1];
 			}
-			BPMenuItemInTray newmnu = new BPMenuItemInTray(mnuname);
-			newmnu.addActionListener(e ->
+			if (sc.canexpand)
 			{
-				ShortCutData sc2 = ShortCuts.getShortCut(scname);
-				BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
-				if (bsc != null)
-					bsc.run();
-			});
-			mnupar.add(newmnu);
+				BPMenuDynamic mnudyna = new BPMenuDynamic(mnuname, () ->
+				{
+					ShortCutData sc2 = ShortCuts.getShortCut(scname);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					if (bsc != null)
+						return bsc.expand();
+					else
+						return null;
+				});
+				mnudyna.setClearOnClose(true);
+				mnudyna.setOutOfWindow(true);
+				mnupar.add(mnudyna);
+			}
+			else
+			{
+				BPMenuItemInTray newmnu = new BPMenuItemInTray(mnuname);
+				newmnu.addActionListener(e ->
+				{
+					ShortCutData sc2 = ShortCuts.getShortCut(scname);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					if (bsc != null)
+						bsc.run();
+				});
+				mnupar.add(newmnu);
+			}
 		}
 	}
 }

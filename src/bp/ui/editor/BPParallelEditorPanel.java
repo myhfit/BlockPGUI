@@ -42,6 +42,7 @@ import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
 import bp.tool.BPToolGUI;
 import bp.tool.BPToolGUIParallelEditor;
+import bp.ui.BPComponent;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
@@ -85,6 +86,8 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	protected BPToolBarSQ m_toolbar;
 	protected Action m_actsyncstatus;
 	protected Action m_actsyncaction;
+	
+	protected Consumer<BPEventUIResourceOperation> m_editorresopcb;
 
 	public BPParallelEditorPanel()
 	{
@@ -104,6 +107,8 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		BPEventChannelUI channelui = new BPEventChannelUI();
 		m_pchid = BPGUICore.EVENTS_UI.addChannel(channelui);
 		m_pch = channelui;
+		m_editorresopcb = this::onEditorResourceOpeate;
+		m_pch.on(BPEventUIResourceOperation.EVENTKEY_RES_OP, m_editorresopcb);
 	}
 
 	protected void initUI()
@@ -346,6 +351,11 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		BPGUICore.EVENTS_UI.removeChannel(m_pchid);
 	}
 
+	protected void onEditorResourceOpeate(BPEventUIResourceOperation e)
+	{
+		BPResourceOperationCommonHandler.onResourceOperationEvent(e);
+	}
+
 	protected void onAdd(ActionEvent e)
 	{
 		addEditor(null);
@@ -488,7 +498,6 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			add(pnlbottom, BorderLayout.SOUTH);
 
 			m_editorcb = this::onEditorStatusChanged;
-			m_pch.on(BPEventUIResourceOperation.EVENTKEY_RES_OP, (Consumer<BPEventUIResourceOperation>) BPResourceOperationCommonHandler::onResourceOperationEvent);
 			m_pch.on(BPEventUIEditors.EVENTKEY_EDITORS, m_editorcb);
 		}
 
@@ -731,7 +740,9 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 
 		protected void onEditorStatusChanged(BPEventUIEditors e)
 		{
-			m_paninfo.setEditorInfo(e.getTitle());
+			BPComponent<?> c = e.getBPComponent();
+			if (c == m_editor)
+				m_paninfo.setEditorInfo(e.getTitle());
 		}
 
 		public void setEditorIndex(int editorindex)

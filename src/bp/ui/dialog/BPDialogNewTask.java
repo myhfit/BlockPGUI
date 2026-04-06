@@ -16,6 +16,7 @@ import javax.swing.event.ListSelectionEvent;
 import bp.config.UIConfigs;
 import bp.task.BPTask;
 import bp.task.BPTaskFactory;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
 import bp.ui.form.BPFormPanelMap;
@@ -61,7 +62,7 @@ public class BPDialogNewTask extends BPDialogCommon
 		add(leftpan, BorderLayout.WEST);
 
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
-		setTitle("BlockP - New Task");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_CREATE, BPActionConstCommon.TXT_TASK));
 		setModal(true);
 	}
 

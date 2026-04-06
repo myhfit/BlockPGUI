@@ -7,7 +7,6 @@ import java.awt.GraphicsEnvironment;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,6 +17,9 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
 
 import bp.config.UIConfigs;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
@@ -77,16 +79,13 @@ public class BPDialogSelectFont extends BPDialogCommon
 		m_lbltest = new JLabel("Test");
 		m_lbltest.setHorizontalAlignment(SwingConstants.CENTER);
 		m_lbltest.setVerticalAlignment(SwingConstants.CENTER);
-		JLabel lbltest = new JLabel(" Text:");
-		JLabel lbltestsize = new JLabel(" Size:");
-		lbltestsize.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_STRONGBORDER()));
+		JLabel lbltest = new JLabel(" " + BPLocaleHelpers.getValue(BPLocaleConstCC.TEXT) + ":");
+		JLabel lbltestsize = new JLabel(" " + BPLocaleHelpers.getValue(BPLocaleConstCC.SIZE) + ":");
 		lbltest.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
 		lbltestsize.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
 
 		bottompan.add(lbltest);
-		bottompan.add(Box.createRigidArea(new Dimension(2, 2)));
 		bottompan.add(m_txttest);
-		bottompan.add(Box.createRigidArea(new Dimension(2, 2)));
 		bottompan.add(lbltestsize);
 		bottompan.add(m_txttestsize);
 		rightpan.add(m_lbltest, BorderLayout.CENTER);
@@ -97,7 +96,7 @@ public class BPDialogSelectFont extends BPDialogCommon
 		add(rightpan, BorderLayout.CENTER);
 
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
-		setTitle("Select Font");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FONT));
 		setModal(true);
 	}
 

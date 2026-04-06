@@ -9,6 +9,7 @@ public class BPTreeDataEditorActions implements BPActionHolder
 	public Action actdelete;
 	public Action actclone;
 	public Action acteditkv;
+	public Action acteditxy;
 	public Action actgrabkeys;
 	protected BPTreeDataEditor<?> m_editor;
 
@@ -18,11 +19,12 @@ public class BPTreeDataEditorActions implements BPActionHolder
 		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, e -> m_editor.delete());
 		actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, m_editor::showClone);
 		acteditkv = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_KV, m_editor::showEditKV);
+		acteditxy = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_XY, m_editor::showEditXY);
 		actgrabkeys = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_GRABKEYS, m_editor::grabKeys);
 	}
 
 	public Action[] getActions()
 	{
-		return new Action[] { actdelete, BPAction.separator(), acteditkv, actgrabkeys, actclone, BPAction.separator() };
+		return new Action[] { actdelete, BPAction.separator(), acteditkv, acteditxy, actgrabkeys, actclone, BPAction.separator() };
 	}
 }

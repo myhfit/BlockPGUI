@@ -16,6 +16,8 @@ import bp.data.BPXData;
 import bp.data.BPXYData;
 import bp.format.BPFormatText;
 import bp.format.BPFormatUnknown;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
@@ -27,6 +29,7 @@ import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.util.UIStd;
+import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
 import bp.util.ObjUtil;
 
@@ -34,6 +37,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 {
 	protected BPXYData m_xydata;
 	protected boolean m_deletable_user;
+	protected boolean m_readonly;
 
 	public BPTableFuncsXY(BPXYData xydata)
 	{
@@ -57,6 +61,11 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		return m_xydata;
 	}
 
+	public void setReadonly(boolean flag)
+	{
+		m_readonly = flag;
+	}
+
 	public void setUserDeletable(boolean flag)
 	{
 		m_deletable_user = flag;
@@ -74,7 +83,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 
 	public boolean isEditable(BPXData o, int row, int col)
 	{
-		return true;
+		return !m_readonly;
 	}
 
 	public void setValue(Object v, BPXData o, int row, int col)
@@ -135,7 +144,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 						Map<String, BPTransformer<?>> ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOSTRING);
 						if (ts != null && ts.size() > 0)
 						{
-							String tarfix = ">" + BPActionHelpers.getValue(BPActionConstCommon.TXT_TEXT, null, null);
+							String tarfix = ">" + BPLocaleHelpers.getValue(BPLocaleConstCC.TEXT);
 							for (String tkey : ts.keySet())
 							{
 								BPTransformer t = ts.get(tkey);
@@ -161,7 +170,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 						ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOBYTEARRAY);
 						if (ts != null && ts.size() > 0)
 						{
-							String tarfix = ">" + BPActionHelpers.getValue(BPActionConstCommon.TXT_BYTEARR, null, null);
+							String tarfix = ">" + BPLocaleHelpers.getValue(BPLocaleConstCC.BYTEARR);
 							for (String tkey : ts.keySet())
 							{
 								BPTransformer t = ts.get(tkey);
@@ -242,7 +251,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 			v = r + 1;
 		else
 			v = sdata.getColValue(c - (showlinenum ? 1 : 0));
-		UIStd.textarea(ObjUtil.toString(v, ""), "View Cell");
+		UIStd.textarea(ObjUtil.toString(v, ""), BPActionHelpers.getValue(BPActionConstCommon.CTX_MNUVIEW_CELL));
 	}
 
 	protected void editcell(BPTable<BPXData> table, List<BPXData> datas, int[] rows, int sr, int sc)
@@ -258,12 +267,12 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		if (c == 0 && showlinenum)
 		{
 			v = r + 1;
-			UIStd.textarea(ObjUtil.toString(v, ""), "View Cell");
+			UIStd.textarea(ObjUtil.toString(v, ""), BPActionHelpers.getValue(BPActionConstCommon.CTX_MNUVIEW_CELL));
 		}
 		else
 		{
 			v = sdata.getColValue(c - (showlinenum ? 1 : 0));
-			String newv = UIStd.textarea(ObjUtil.toString(v, ""), "Edit Cell", true);
+			String newv = UIStd.textarea(ObjUtil.toString(v, ""), BPActionHelpers.getValue(BPActionConstCommon.CTX_MNUEDIT_CELL), true);
 			if (newv != null)
 				sdata.setColValue(c - (showlinenum ? 1 : 0), newv);
 		}
@@ -284,7 +293,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 			Object v = funcs.getValue(xdata, rows[0], i);
 			props.add(new Object[] { label, v });
 		}
-		UIStd.kv(props, "View Data", true);
+		UIStd.kv(props, UIUtil.assembleLocaleTexts(BPActionConstCommon.TXT_VIEW, BPActionConstCommon.TXT_DATA), true);
 	}
 
 	protected void edit(BPTable<BPXData> table, List<BPXData> datas, int[] rows)
@@ -302,7 +311,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 			Object v = funcs.getValue(xdata, rows[0], i);
 			props.add(new Object[] { label, v });
 		}
-		List<KV> kvs = UIStd.kv(props, "Edit Data", false);
+		List<KV> kvs = UIStd.kv(props, UIUtil.assembleLocaleTexts(BPActionConstCommon.TXT_EDIT, BPActionConstCommon.TXT_DATA), false);
 		if (kvs != null)
 		{
 			for (int i = 0; i < c; i++)

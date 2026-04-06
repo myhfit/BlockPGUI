@@ -6,6 +6,9 @@ import java.util.function.Consumer;
 import bp.BPCore;
 import bp.context.BPFileContext;
 import bp.core.BPCommandHandlerGUICore;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelperDict;
+import bp.locale.BPLocaleHelperDirect;
 import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelperCommon;
@@ -35,7 +38,10 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 	public void install(BPFileContext context)
 	{
 		BPCore.addCommandHandler(new BPCommandHandlerGUICore());
-		BPLocaleHelpers.registerHelper(BPActionHelperCommon.ACTIONHELPER_PACK_MAIN, new BPActionHelperCommon());
+		BPLocaleHelpers.registerHelper(BPLocaleHelperDirect.createHelper(BPLocaleConstCC.class, null, BPLocaleConstCC.PACK_COMPUTER_COMMON, null));
+		BPLocaleHelpers.registerHelper(new BPLocaleHelperDict.BPLocaleHelperDictClass("java.lang.Object"));
+		BPLocaleHelpers.registerHelper(new BPLocaleHelperDict.BPLocaleHelperDictClass("bp.unit.BPUnits"));
+		BPLocaleHelpers.registerHelper(new BPActionHelperCommon());
 	}
 
 	public void setup(BPMainFrameIFC mainframe)
@@ -51,7 +57,7 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 
 	private static void err_u(String str)
 	{
-		UIStd.textarea(str, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_ERR), false);
+		UIStd.textarea(str, UIUtil.wrapBPTitle(BPLocaleConstCC.ERR), false);
 	}
 
 	private static String prompt_u(String str)

@@ -22,8 +22,11 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import bp.BPCore;
+import bp.BPGUICore;
+import bp.BPGUILauncher;
 import bp.config.BPConfigAdv.BPConfigAdvBase;
 import bp.res.BPResourceIO;
+import bp.ui.util.SystemUIUtil;
 import bp.ui.util.UIUtil;
 import bp.util.IOUtil;
 import bp.util.MIF;
@@ -113,6 +116,7 @@ public class UIConfigs extends BPConfigAdvBase
 		mif.mifnull("MIN_TO_TRAY", v -> S_MIN2TRAY = "true".equals(v));
 		try
 		{
+			SystemUIUtil.setByDarkTheme(false);
 			LookAndFeel laf = UIManager.getLookAndFeel();
 			if (S_LAFCLSNAME != null && S_LAFCLSNAME.length() > 0)
 			{
@@ -226,12 +230,18 @@ public class UIConfigs extends BPConfigAdvBase
 		Font testf = new Font(UIConfigs.MONO_FONT_NAME(), Font.PLAIN, S_TEXTFIELDFONT_SIZE);
 		Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
 		Graphics g = img.getGraphics();
-		S_TEXTFIELD_HEIGHT = g.getFontMetrics(testf).getHeight() + 2;
-		testf = new Font(UIConfigs.TREE_FONT_NAME(), Font.PLAIN, S_TREEFONT_SIZE);
-		S_TREE_ROWHEIGHT = g.getFontMetrics(testf).getHeight();
-		testf = new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, S_TABLEFONT_SIZE);
-		S_TABLE_ROWHEIGHT = g.getFontMetrics(testf).getHeight();
-		g.dispose();
+		try
+		{
+			S_TEXTFIELD_HEIGHT = g.getFontMetrics(testf).getHeight() + 2;
+			testf = new Font(UIConfigs.TREE_FONT_NAME(), Font.PLAIN, S_TREEFONT_SIZE);
+			S_TREE_ROWHEIGHT = g.getFontMetrics(testf).getHeight();
+			testf = new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, S_TABLEFONT_SIZE);
+			S_TABLE_ROWHEIGHT = g.getFontMetrics(testf).getHeight();
+		}
+		finally
+		{
+			g.dispose();
+		}
 		img = null;
 		testf = null;
 
@@ -248,6 +258,15 @@ public class UIConfigs extends BPConfigAdvBase
 
 	protected void saveConfig(BPConfigAdv config)
 	{
+		Boolean showlauncher = config.del("SHOW_LAUNCHER");
+		if (showlauncher != null && (BPGUICore.LAUNCHER_FLAG == null || (!showlauncher.equals(BPGUICore.LAUNCHER_FLAG))))
+		{
+			BPGUILauncher.updateEnvConfigs(m ->
+			{
+				m.put("show_launcher", showlauncher ? "true" : "false");
+				return true;
+			});
+		}
 		byte[] bs = TextUtil.fromString(TextUtil.fromPlainMap(ObjUtil.toPlainMap(m_map), null), "utf-8");
 		if (bs != null)
 		{

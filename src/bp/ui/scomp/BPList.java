@@ -76,6 +76,7 @@ public class BPList<T> extends JList<T>
 		finddlgref.setTarget(null);
 
 		BPDialogFind dlg = new BPDialogFind((Window) this.getFocusCycleRootAncestor());
+		dlg.setReplaceable(false);
 		dlg.setFindCallBack(m_findcb);
 		finddlgref.setTarget(dlg);
 		dlg.setVisible(true);
@@ -83,7 +84,9 @@ public class BPList<T> extends JList<T>
 
 	protected boolean onFindCall(BPFindPs ps)
 	{
-		return find(ps.src, ps.isforward, ps.iswholeword, ps.iscasesensitive, ps.onlyselection);
+		if (!ps.isReplace())
+			return find(ps.src, ps.isforward, ps.iswholeword, ps.iscasesensitive, ps.onlyselection);
+		return false;
 	}
 
 	public boolean find(String target, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)

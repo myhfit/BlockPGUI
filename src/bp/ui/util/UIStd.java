@@ -26,8 +26,9 @@ import bp.config.UIConfigs;
 import bp.data.BPMData.BPMDataWMap;
 import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
-import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogCommonCategoryView;
@@ -63,7 +64,7 @@ public class UIStd
 				rawe = r2;
 			}
 		}
-		textarea(rawe.getClass().getSimpleName() + ":" + rawe.getMessage(), UIUtil.wrapBPTitles(BPActionConstCommon.TXT_ERR), false);
+		textarea(rawe.getClass().getSimpleName() + ":" + rawe.getMessage(), UIUtil.wrapBPTitle(BPLocaleConstCC.ERR), false);
 	}
 
 	public final static void info_small(String message)
@@ -176,7 +177,7 @@ public class UIStd
 			return false;
 		};
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(panc, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, dlgcallback);
-		dlg.setTitle(title);
+		dlg.setTitle(title != null ? title : BPLocaleHelpers.getValue(BPLocaleConstCC.INPUT));
 		dlg.pack();
 		dlg.setLocationRelativeTo(null);
 		dlg.setModal(true);

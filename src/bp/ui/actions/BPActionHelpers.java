@@ -1,9 +1,14 @@
 package bp.ui.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
+import bp.locale.BPLocaleConst;
+import bp.locale.BPLocaleHelper;
 import bp.locale.BPLocaleHelpers;
+import bp.locale.BPLocaleVerb;
 import bp.ui.actions.BPAction.BPActionBuilder;
 import bp.ui.actions.BPActionConst.BPActionVerb;
 
@@ -35,6 +40,16 @@ public class BPActionHelpers
 		return null;
 	}
 
+	public final static <C extends BPLocaleConst> BPAction getActionFromHelper(C key, BPLocaleHelper<C, ? extends BPLocaleVerb> helper, Consumer<ActionEvent> cb)
+	{
+		return BPAction.build(helper.v(key, null, null)).callback(cb).getAction();
+	}
+
+	public final static <T> T getValue(BPActionConst key)
+	{
+		return getValue(key, null, null);
+	}
+
 	@SuppressWarnings("unchecked")
 	public final static <T> T getValue(BPActionConst key, BPActionConst alias, BPActionVerb verb)
 	{
@@ -54,5 +69,12 @@ public class BPActionHelpers
 				rc = (T) helper.v(key, null, verb);
 		}
 		return rc;
+	}
+
+	public final static void reInit()
+	{
+		List<BPLocaleHelper<?, ?>> hs = new ArrayList<>(BPLocaleHelpers.S_LHS.values());
+		for (BPLocaleHelper<?, ?> h : hs)
+			h.reInit();
 	}
 }

@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import bp.config.UIConfigs;
 import bp.ui.BPComponent;
 import bp.ui.container.BPRootContainer;
+import bp.ui.util.SystemUIUtil;
 
 public abstract class BPDialog extends JDialog implements BPRootContainer<JDialog>
 {
@@ -22,6 +23,7 @@ public abstract class BPDialog extends JDialog implements BPRootContainer<JDialo
 	private static final long serialVersionUID = -3932609405977077130L;
 
 	protected Map<String, BPComponent<?>> m_compmap = new HashMap<String, BPComponent<?>>();
+	protected boolean m_sysinited;
 
 	public BPDialog(Frame owner)
 	{
@@ -55,6 +57,24 @@ public abstract class BPDialog extends JDialog implements BPRootContainer<JDialo
 	{
 		pack();
 		setLocationRelativeTo(getParent());
+	}
+
+	public void setVisible(boolean flag)
+	{
+		if (!flag || m_sysinited)
+			super.setVisible(flag);
+		else
+		{
+			boolean isd = isDisplayable();
+			if (!isd)
+			{
+				m_sysinited = true;
+				super.setVisible(true);
+			}
+			SystemUIUtil.initWindow(this);
+			if (isd)
+				super.setVisible(flag);
+		}
 	}
 
 	protected void init()
@@ -127,7 +147,7 @@ public abstract class BPDialog extends JDialog implements BPRootContainer<JDialo
 		{
 			((JPanel) getContentPane()).setDoubleBuffered(false);
 		}
-		
+
 		protected void setPrefers()
 		{
 		}

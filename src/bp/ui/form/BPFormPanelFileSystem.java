@@ -3,6 +3,8 @@ package bp.ui.form;
 import java.awt.Component;
 import java.util.Map;
 
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.scomp.BPTextField;
 import bp.util.DateUtil;
 
@@ -29,11 +31,11 @@ public class BPFormPanelFileSystem extends BPFormPanelResourceBase
 		m_txtlastmodified = makeSingleLineTextField();
 		m_txtaccesstime = makeSingleLineTextField();
 
-		addLine(new String[] { "Full Name" }, new Component[] { m_txtfullname });
-		addLine(new String[] { "Attrib" }, new Component[] { m_txtattrib });
-		addLine(new String[] { "Creation Time" }, new Component[] { m_txtcreationtime });
-		addLine(new String[] { "Last Modified" }, new Component[] { m_txtlastmodified });
-		addLine(new String[] { "Last Access" }, new Component[] { m_txtaccesstime });
+		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.FULLNAME) }, new Component[] { m_txtfullname });
+		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.ATTRIB) }, new Component[] { m_txtattrib });
+		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.CREATION_TIME) }, new Component[] { m_txtcreationtime });
+		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.LAST_MODIFIED) }, new Component[] { m_txtlastmodified });
+		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.LAST_ACCESS) }, new Component[] { m_txtaccesstime });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

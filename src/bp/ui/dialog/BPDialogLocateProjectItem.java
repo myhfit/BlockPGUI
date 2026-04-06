@@ -11,11 +11,11 @@ import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
@@ -28,10 +28,12 @@ import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceOverlay;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPCommonDialogActions;
+import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
 import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
+import bp.util.FileUtil;
 
 public class BPDialogLocateProjectItem extends BPDialogCommon
 {
@@ -140,11 +142,13 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 					newsi = 0;
 			}
 			m_lstres.setSelectedIndex(newsi);
+			m_lstres.ensureIndexIsVisible(newsi);
 		}
 	}
 
 	public void filterItems(String keyword)
 	{
+		keyword = keyword.toLowerCase();
 		List<BPResource> items = new ArrayList<BPResource>();
 		List<BPResource> prjitems = m_prjitems;
 		for (BPResource prjitem : prjitems)
@@ -152,6 +156,14 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 			if (keyword.length() == 0 || prjitem.getName().toLowerCase().contains(keyword))
 			{
 				items.add(prjitem);
+			}
+		}
+		for (BPResource prjitem : prjitems)
+		{
+			if (keyword.length() > 0 && prjitem.getExt().toLowerCase().contains(keyword))
+			{
+				if (!items.contains(prjitem))
+					items.add(prjitem);
 			}
 		}
 		((BPListModel<BPResource>) m_lstres.getModel()).setDatas(items);
@@ -206,8 +218,9 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 	@SuppressWarnings("serial")
 	protected static class FSCacheDataListRenderer extends DefaultListCellRenderer
 	{
-		protected JLabel lbl;
-		protected JLabel lbl2;
+		protected BPLabel lbl;
+		protected BPLabel lbl1;
+		protected BPLabel lbl2;
 		protected JPanel pan;
 
 		public FSCacheDataListRenderer()
@@ -218,15 +231,20 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 		{
 			if (lbl == null)
 			{
-				lbl = new JLabel();
-				lbl2 = new JLabel();
+				lbl = new BPLabel();
+				lbl1 = new BPLabel();
+				lbl2 = new BPLabel();
+				lbl.setFont(list.getFont());
+				lbl1.setFont(list.getFont());
+				lbl2.setFont(list.getFont());
+				lbl.setBorder(new EmptyBorder(0, 2, 0, 0));
+				lbl1.setBorder(new CompoundBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_TEXTQUARTER()), new EmptyBorder(0, 0, 0, 2)));
 				pan = new JPanel();
 				pan.setBorder(new EmptyBorder(0, 2, 0, 2));
 				pan.setLayout(new BorderLayout());
-				pan.add(lbl, BorderLayout.WEST);
+				pan.add(lbl1, BorderLayout.WEST);
+				pan.add(lbl, BorderLayout.CENTER);
 				pan.add(lbl2, BorderLayout.EAST);
-				lbl.setFont(list.getFont());
-				lbl2.setFont(list.getFont());
 			}
 			if (isSelected)
 			{
@@ -235,6 +253,8 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 				pan.setBackground(bg);
 				lbl.setBackground(bg);
 				lbl.setForeground(fg);
+				lbl1.setBackground(bg);
+				lbl1.setForeground(fg);
 				lbl2.setBackground(bg);
 				lbl2.setForeground(fg);
 			}
@@ -245,6 +265,8 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 				pan.setBackground(bg);
 				lbl.setBackground(bg);
 				lbl.setForeground(fg);
+				lbl1.setBackground(bg);
+				lbl1.setForeground(UIConfigs.COLOR_TEXTHALF());
 				lbl2.setBackground(bg);
 				lbl2.setForeground(UIConfigs.COLOR_TEXTHALF());
 			}
@@ -256,8 +278,29 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 				p = ((BPResourceFileSystem) res).getFileFullName();
 			String txt = res.getName();
 			lbl.setText(txt);
+			lbl1.setText(getExt(res));
 			lbl2.setText((p == null ? "" : " " + p));
 			return pan;
+		}
+
+		protected String getExt(BPResource res)
+		{
+			String txt = res.getExt();
+			if (txt == null)
+				txt = "";
+			else
+			{
+				txt = FileUtil.getExt(txt);
+				if (txt.length() > 0)
+					txt = txt.substring(1);
+			}
+			int c = txt.length();
+			if (c > 9)
+				txt = txt.substring(0, 7) + "..";
+			StringBuilder sb = new StringBuilder(txt);
+			for (int i = c; i < 9; i++)
+				sb.append(" ");
+			return sb.toString();
 		}
 	}
 }

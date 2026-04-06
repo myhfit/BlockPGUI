@@ -65,6 +65,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	protected BPTextContainer m_con = null;
 	protected WeakReference<Consumer<String>> m_dynainfo = null;
 	protected Consumer<BPEventUISyncEditor> m_synccb;
+	protected Consumer<BPEventUISyncEditor> m_syncactcb;
 	protected BPSyncGUIController m_syncobj;
 	protected AdjustmentListener m_scrollcb;
 
@@ -80,6 +81,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	{
 		m_scrollcb = this::onScroll;
 		m_synccb = this::onSyncEditor;
+		m_syncactcb = this::onSyncEditorAction;
 		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
 		init();
 	}
@@ -480,6 +482,11 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 				}
 			}
 		}
+	}
+	
+	protected void onSyncEditorAction(BPEventUISyncEditor e)
+	{
+		
 	}
 	
 	protected int getScrollYPos()

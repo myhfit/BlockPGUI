@@ -7,6 +7,7 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import bp.config.BPSetting;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPTableSetting;
 import bp.ui.util.UIUtil;
 
@@ -38,7 +39,7 @@ public class BPDialogSetting extends BPDialogCommon
 		scroll.setViewportView(m_tbsetting);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-		setTitle("BlockP - Setting");
+		setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SETTING));
 
 		setLayout(new BorderLayout());
 		add(scroll, BorderLayout.CENTER);

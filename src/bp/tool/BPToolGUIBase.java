@@ -9,10 +9,9 @@ import java.awt.event.WindowListener;
 
 import javax.swing.JPanel;
 
-import bp.BPGUICore;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 import bp.ui.frame.BPFrame;
+import bp.ui.util.UIUtil;
 
 public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> implements BPToolGUI
 {
@@ -40,12 +39,14 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 		f.setVisible(true);
 	}
 
-	public Component createToolGroup(Object... params)
+	public Component createToolGroup(BPToolGUIContainer container, Object... params)
 	{
 		Container rc = createToolGroupInst();
 		BPToolGUIContext context = createToolContext();
 		context.initUI(rc, params);
 		context.initDatas(params);
+		if (container != null)
+			container.setCloseCallback(context::clearResource);
 		return rc;
 	}
 
@@ -61,7 +62,7 @@ public abstract class BPToolGUIBase<C extends BPToolGUIBase.BPToolGUIContext> im
 	protected BPFrameTool buildFrame()
 	{
 		BPFrameTool f = new BPFrameTool();
-		f.setTitle(BPGUICore.S_BP_TITLE + " " + BPActionHelpers.getValue(BPActionConstCommon.TXT_TOOL, null, null) + " - " + getSubTitle());
+		f.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TOOL) + " - " + getSubTitle());
 		return f;
 	}
 

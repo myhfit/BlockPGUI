@@ -2,6 +2,8 @@ package bp.ui.shortcut;
 
 import java.util.Map;
 
+import javax.swing.Action;
+
 import bp.config.BPSetting;
 import bp.data.BPMData;
 
@@ -25,4 +27,14 @@ public interface BPShortCut extends BPMData
 	void setup(String name, Map<String, Object> params);
 
 	Map<String, Object> getMappedDataWithKey();
+
+	default boolean canExpand()
+	{
+		return false;
+	}
+
+	default Action[] expand()
+	{
+		return null;
+	}
 }

@@ -2,6 +2,7 @@ package bp.ui.util;
 
 import java.awt.Desktop;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -23,11 +24,14 @@ import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.BPConfig;
 import bp.config.BPConfigSimple;
+import bp.config.BPSetting;
 import bp.context.BPFileContext;
 import bp.context.BPProjectsContext;
 import bp.event.BPEventCoreUI;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.project.BPProjectItemFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
@@ -54,6 +58,8 @@ import bp.ui.dialog.BPDialogNewSchedule;
 import bp.ui.dialog.BPDialogNewTask;
 import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
+import bp.ui.dialog.BPDialogSimple;
+import bp.ui.dialog.BPDialogStandalone;
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
@@ -94,7 +100,7 @@ public class CommonUIOperations
 		String rc = null;
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
 		dlg.setScope(BPDialogSelectResource2.SELECTSCOPE.COMPUTER);
-		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FILE));
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FILE));
 		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
@@ -159,7 +165,7 @@ public class CommonUIOperations
 				if (((BPResourceFileSystem) res).isDirectory())
 				{
 					BPResourceDir dir = (BPResourceDir) res;
-					String filename = UIStd.input(null, "Name:", "Input");
+					String filename = UIStd.input(null, BPLocaleHelpers.getValue(BPLocaleConstCC.NAME) + ":", null);
 					if (filename != null && filename.length() > 0)
 					{
 						dir.createChild(filename, false);
@@ -342,6 +348,47 @@ public class CommonUIOperations
 		}
 	}
 
+	public final static BPComponent<?> makeComponentByResource(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig options, Object... params)
+	{
+		BPComponent<?> rc = null;
+		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
+		String ext = res.getExt();
+		BPFormat format = (fformat != null ? fformat : BPFormatManager.getFormatByExt(ext));
+		BPEditorFactory fac = (ffac != null ? ffac : BPEditorManager.getFactory(format.getName()));
+		if (fac == null)
+		{
+			UIStd.info("No Editor for " + format.getName());
+			return null;
+		}
+		BPEditor<?> editor = fac.createEditor(format, res, options, params);
+		if (editor == null)
+			return null;
+		editor.setID(id);
+		fac.initEditor(editor, format, res, options);
+		if (editor instanceof BPTextEditor)
+		{
+			BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
+			teditor.getTextPanel().resizeDoc();
+		}
+		rc = editor;
+		return rc;
+	}
+
+	public final static void openResource(BPResource res, BPFormat format, BPEditorFactory fac)
+	{
+		openResource(res, format, fac, null);
+	}
+
+	public final static void openResource(BPResource res, BPFormat format, BPEditorFactory fac, BPConfig options)
+	{
+		BPGUICore.runOnCurrentFrameWithCreation(f ->
+		{
+			f.openResource(res, format, fac, false, null, options == null ? null : options.getMappedData());
+			if (BPGUICore.isInPopup() && !((Frame) f).isActive())
+				f.toFront();
+		});
+	}
+
 	public final static void openResourceNewWindow(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig options, Object... params)
 	{
 		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
@@ -414,13 +461,25 @@ public class CommonUIOperations
 			String clsname = ClassUtil.tryLoopSuperClass((rcls) -> BPFormManager.containsKey(rcls.getName()) ? rcls.getName() : null, cls, BPResource.class);
 			if (clsname != null)
 			{
-				dlg.setup(clsname, res);
-				dlg.setTitle("Properties:" + res.getResType());
+				BPSetting setting = res.getSetting();
+				if (setting != null && BPFormManager.isSettingForm(clsname))
+				{
+					dlg.setup(clsname, ObjUtil.makeMap("_setting", setting));
+				}
+				else
+				{
+					setting = null;
+					dlg.setup(clsname, res);
+				}
+				dlg.setTitle(BPActionHelpers.getValue(BPActionConstCommon.TXT_PROPS, null, null) + ":" + res.getResType());
 				dlg.setVisible(true);
 				Map<String, Object> data = dlg.getFormData();
 				if (data != null)
 				{
-					res.setMappedData(data);
+					if (setting != null)
+						res.setSetting(setting);
+					else
+						res.setMappedData(data);
 					if (root != null && root instanceof BPResourceProject)
 					{
 						if (root != res)
@@ -560,7 +619,7 @@ public class CommonUIOperations
 		BPDialogCommonCategoryView<String, Object> dlg = new BPDialogCommonCategoryView<String, Object>();
 		dlg.setup(cats, null, ctt, false);
 		dlg.setCommandBarMode(BPDialogCommonCategoryView.COMMANDBAR_OKESCAPE);
-		dlg.setTitle(BPGUICore.S_BP_TITLE + " - " + BPActionHelpers.getValue(BPActionConstCommon.TXT_SYSINFO, null, null));
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SYSINFO));
 		dlg.setVisible(true);
 	}
 
@@ -606,11 +665,67 @@ public class CommonUIOperations
 			}
 		}
 
-		BPToolGUI tool = UIStd.select(tools, BPGUICore.S_BP_TITLE + " - Select Tool", t -> ((BPToolGUI) t).getName());
+		BPToolGUI tool = UIStd.select(tools, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TOOL), t -> ((BPToolGUI) t).getName());
 		if (tool != null)
 		{
 			tool.showTool(new Object[] { ress });
 		}
+	}
+
+	public final static int showToolDialog(String toolcls, Map<String, Object> dlgparams, Object... params)
+	{
+		BPTool seltool = null;
+		Map<String, List<BPTool>> tm = new HashMap<>(BPGUICore.TOOL_MAP);
+
+		if (toolcls == null)
+		{
+			List<BPToolGUI> tools = new ArrayList<BPToolGUI>();
+			for (List<BPTool> ts : tm.values())
+			{
+				for (BPTool t : ts)
+				{
+					if (t instanceof BPToolGUI)
+						tools.add((BPToolGUI) t);
+				}
+			}
+
+			seltool = UIStd.select(tools, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TOOL), t2 -> ((BPToolGUI) t2).getName());
+		}
+		else
+		{
+			for (List<BPTool> tools : tm.values())
+			{
+				for (BPTool tool : tools)
+				{
+					if (tool.getClass().getName().equals(toolcls))
+					{
+						seltool = tool;
+						break;
+					}
+				}
+			}
+		}
+		if (seltool != null && seltool instanceof BPToolGUI)
+		{
+			BPToolGUI tool = (BPToolGUI) seltool;
+			BPDialogStandalone dlg = BPDialogStandalone.showTool(tool, params, BPDialogSimple.COMMANDBAR_EMPTY, null);
+			dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TOOL) + " - " + tool.getName());
+			Integer w = ObjUtil.toInt(dlgparams.get("w"), null);
+			Integer h = ObjUtil.toInt(dlgparams.get("h"), null);
+			Integer x = ObjUtil.toInt(dlgparams.get("x"), null);
+			Integer y = ObjUtil.toInt(dlgparams.get("y"), null);
+			if (w != null && h != null)
+			{
+				dlg.setPreferredSize(new Dimension(w, h));
+			}
+			dlg.pack();
+			if (x != null && y != null)
+				dlg.setLocation(x, y);
+			else
+				dlg.setLocationRelativeTo(null);
+			dlg.setVisible(true);
+		}
+		return -1;
 	}
 
 	public final static void showRenameResource(BPResource res)
@@ -633,8 +748,9 @@ public class CommonUIOperations
 	public final static void createProjectItem(BPResourceProject prj, BPResource par, BPProjectItemFactory fac)
 	{
 		BPDialogForm dlg = new BPDialogForm();
-		dlg.setup(fac.getItemClassName(), new HashMap<String, Object>());
-		dlg.setTitle("Create " + fac.getName());
+		BPSetting setting = fac.getSetting();
+		dlg.setup(fac.getItemClassName(), setting == null ? new HashMap<String, Object>() : ObjUtil.makeMap("_setting", setting));
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_CREATE) + " " + fac.getName());
 		dlg.setVisible(true);
 		Map<String, Object> data = dlg.getFormData();
 		if (data != null)
@@ -724,18 +840,7 @@ public class CommonUIOperations
 		dlg.setVisible(true);
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
-		{
-			if (!BPGUICore.checkMainFrameVisible())
-				openResourceNewWindow(res, null, null, null, null);
-			else
-			{
-				BPGUICore.runOnMainFrame(mf ->
-				{
-					mf.openResource(res, null, null, false, null);
-					mf.toFront();
-				});
-			}
-		}
+			openResource(res, null, null);
 	}
 
 	public final static void showLocateResource()
@@ -744,17 +849,6 @@ public class CommonUIOperations
 		dlg.setVisible(true);
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
-		{
-			if (!BPGUICore.checkMainFrameVisible())
-				openResourceNewWindow(res, null, null, null, null);
-			else
-			{
-				BPGUICore.runOnMainFrame(mf ->
-				{
-					mf.openResource(res, null, null, false, null);
-					mf.toFront();
-				});
-			}
-		}
+			openResource(res, null, null);
 	}
 }

@@ -20,8 +20,9 @@ public class BPToolFactoryGUICommon implements BPToolFactory
 
 	public void install(BiConsumer<String, BPTool> installfunc, BPPlatform platform)
 	{
-		String packname = BPActionHelpers.getValue(BPActionConstCommon.TXT_COMMON, null, null);
+		String packname = BPActionHelpers.getValue(BPActionConstCommon.TXT_COMMON);
 		installfunc.accept(packname, new BPToolGUIDataPipe());
 		installfunc.accept(packname, new BPToolGUIParallelEditor());
+		installfunc.accept(packname, new BPToolGUIUnits());
 	}
 }

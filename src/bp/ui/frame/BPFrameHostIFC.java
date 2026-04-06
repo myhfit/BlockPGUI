@@ -19,7 +19,12 @@ public interface BPFrameHostIFC
 
 	void openEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params);
 
-	void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid);
+	default void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid)
+	{
+		openResource(res, format, fac, isselected, rconid, null);
+	}
+
+	void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid, Map<String, Object> optionsdata);
 
 	void toggleRightPanel();
 
@@ -30,6 +35,8 @@ public interface BPFrameHostIFC
 	void dispose();
 
 	List<BPComponent<?>> getEditorList();
+	
+	int getChannelID();
 
 	default void runFrameFunction(String f)
 	{

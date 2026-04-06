@@ -3,7 +3,6 @@ package bp.ui.frame;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
@@ -20,6 +19,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import bp.BPGUICore;
+import bp.config.BPConfigSimple;
 import bp.config.UIConfigs;
 import bp.data.BPDataContainer;
 import bp.data.BPTextContainer;
@@ -88,12 +88,11 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		pbtn.setPreferredSize(new Dimension(10, UIUtil.scale(18)));
 
 		m_mnubar = new JMenuBar();
-		BPMenu mnufile = new BPMenu("File");
-		m_mnuedit = new BPMenu("Edit");
-		BPMenu mnuview = new BPMenu("View");
+		BPMenu mnufile = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILE, null));
+		m_mnuedit = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUEDIT, null));
+		BPMenu mnuview = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEW, null));
 		m_mnuactbar = new JPanel();
 
-		mnufile.setMnemonic(KeyEvent.VK_F);
 		m_actsave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, e -> save());
 		BPAction actclose = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECLOSE, e -> dispose());
 		BPAction acttogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, e -> toggleRightPanel());
@@ -389,9 +388,12 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		CommonUIOperations.openFileNewWindow(filename, format, facname, optionsdata, params);
 	}
 
-	public void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid)
+	public void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid, Map<String, Object> optionsdata)
 	{
-		CommonUIOperations.openResourceNewWindow(res, format, fac, rconid, null);
+		if (m_comp == null)
+			setComponent(CommonUIOperations.makeComponentByResource(res, format, fac, rconid, optionsdata == null ? null : BPConfigSimple.fromData(optionsdata)));
+		else
+			CommonUIOperations.openResourceNewWindow(res, format, fac, rconid, optionsdata == null ? null : BPConfigSimple.fromData(optionsdata));
 	}
 
 	public void toggleRightPanel()
@@ -408,5 +410,10 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		List<BPComponent<?>> rc = new ArrayList<BPComponent<?>>();
 		rc.add(m_comp);
 		return rc;
+	}
+
+	public int getChannelID()
+	{
+		return m_channelid;
 	}
 }

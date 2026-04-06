@@ -19,6 +19,7 @@ public class BPAction extends AbstractAction
 
 	public final static String SUB_ACTIONS = "SubActions";
 	public final static String SUB_ACTIONS_FUNC = "SubActs_Func";
+	public final static String SUB_ACTIONS_FUNC_AUTOCLEAR = "SubActs_Func_CC";
 	public final static String IS_SEPARATOR = "IsSeparator";
 
 	protected Consumer<ActionEvent> m_cb;
@@ -118,6 +119,12 @@ public class BPAction extends AbstractAction
 		public BPAction getAction()
 		{
 			return action;
+		}
+
+		@SuppressWarnings("unchecked")
+		public <T> T getValue(String key)
+		{
+			return (T) action.getValue(key);
 		}
 	}
 }

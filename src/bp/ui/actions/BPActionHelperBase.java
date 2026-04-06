@@ -7,6 +7,7 @@ import static bp.ui.actions.BPActionConst.BPActionVerb.TOOLTIP;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -35,16 +36,22 @@ public abstract class BPActionHelperBase<C extends BPActionConst> extends BPLoca
 
 	protected String getOverwriteValue(C act, BPActionVerb verb)
 	{
-		return BPEnvManager.getEnvValue(BPEnvActions.ENV_NAME_ACTIONS, m_packname + "." + act.name() + "." + verb.name());
+		return BPEnvManager.getEnvValue(BPEnvActions.ENV_NAME_ACTIONS, m_packname + "." + act.name() + "." + (verb == null ? "NAME" : verb.name()));
+	}
+	
+	public String getCurrentLocale()
+	{
+		String l = BPEnvManager.getEnvValue(BPEnvActions.ENV_NAME_ACTIONS, "locale");
+		return (l == null || l.trim().length() == 0) ? super.getCurrentLocale() : l;
 	}
 
-	public void putAction(C act, String name, String tooltip, Supplier<BPVIcon> vicon, String acckey, String mnekey)
+	public void putAction(Map<Integer, Object> actmap, C act, String name, String tooltip, Supplier<BPVIcon> vicon, String acckey, String mnekey)
 	{
-		m_actps.put(act.nameK(), name);
-		m_actps.put(act.tooltipK(), tooltip);
-		m_actps.put(act.viconK(), vicon);
-		m_actps.put(act.acckeyK(), acckey);
-		m_actps.put(act.mnukeyK(), mnekey);
+		actmap.put(act.nameK(), name);
+		actmap.put(act.tooltipK(), tooltip);
+		actmap.put(act.viconK(), vicon);
+		actmap.put(act.acckeyK(), acckey);
+		actmap.put(act.mnukeyK(), mnekey);
 	}
 
 	public BPAction makeAction(C act, Consumer<ActionEvent> cb, Consumer<BPActionBuilder> postfix)
@@ -77,7 +84,7 @@ public abstract class BPActionHelperBase<C extends BPActionConst> extends BPLoca
 	{
 		if (nmekey != null && key.name().contains("_MNU"))
 		{
-			if (!name.contains(nmekey))
+			if (!name.toLowerCase().contains(nmekey.toLowerCase()))
 			{
 				if (name.endsWith("..."))
 					act.putValue(BPAction.NAME, name.substring(0, name.length() - 3) + "(" + nmekey + ")...");

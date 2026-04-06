@@ -33,6 +33,8 @@ public class BPMonitorUINumber extends JComponent
 	public BPMonitorUINumber()
 	{
 		m_vs = new ArrayList<Number>();
+		setForeground(UIConfigs.COLOR_TEXTFG());
+		setBackground(UIConfigs.COLOR_TEXTBG());
 	}
 
 	public void appendValue(Number v)
@@ -40,7 +42,7 @@ public class BPMonitorUINumber extends JComponent
 		m_vs.add(v);
 		checkResize(10000, 100);
 		Container c = getFocusCycleRootAncestor();
-		if (c.isVisible())
+		if (c != null && c.isVisible())
 			repaint();
 	}
 
@@ -121,10 +123,6 @@ public class BPMonitorUINumber extends JComponent
 	protected void paintComponent(Graphics g)
 	{
 		Graphics2D g2d = (Graphics2D) g;
-		// g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-		// RenderingHints.VALUE_ANTIALIAS_ON);
-		// g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
-		// RenderingHints.VALUE_COLOR_RENDER_QUALITY);
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
@@ -147,35 +145,36 @@ public class BPMonitorUINumber extends JComponent
 		h = Math.round(h * fgs);
 		checkResize(w, 10);
 
-		g.setColor(UIConfigs.COLOR_TEXTBG());
+		g.setColor(getBackground());
 		g.fillRect(0, 0, w, h);
-		g.setColor(UIConfigs.COLOR_TEXTFG());
+		g.setColor(getForeground());
 
 		paintDashBoard(g, w, h);
+		g.setColor(getForeground());
 		paintCenterText(g, w, h);
 	}
 
 	protected void paintDashBoard(Graphics g, int w, int h)
 	{
 		MonitorRenderMode rmode = m_rendermode;
-		int lx = -1, ly = -1;
-		int th = h;
+		List<Number> vs = new ArrayList<Number>(m_vs);
+		double vmax = getMax();
 		switch (rmode)
 		{
 			case STACK_HORIZONTAL:
 			{
-				List<Number> vs = new ArrayList<Number>(m_vs);
-				double vmax = getMax();
-				int l = vs.size();
-				for (int i = 0; i < l; i++)
-				{
-					int x = w - 1 - (l - i);
-					int y = (int) (th - ((double) th / vmax * vs.get(i).doubleValue()));
-					if (x >= 0 && lx != -1 && ly != -1)
-						g.drawLine(lx, ly, x, y);
-					lx = x;
-					ly = y;
-				}
+				drawStackHorizontal(g, w, h, vs, vmax);
+				break;
+			}
+			case HORIZONTAL:
+			{
+				drawHorizontal(g, w, h, vs, vmax);
+				break;
+			}
+			case STACK_HORIZONTAL_COMBO:
+			{
+				drawHorizontal(g, w, h, vs, vmax);
+				drawStackHorizontal(g, w, h, vs, vmax);
 				break;
 			}
 			default:
@@ -183,6 +182,31 @@ public class BPMonitorUINumber extends JComponent
 
 			}
 		}
+	}
+	
+	protected void drawStackHorizontal(Graphics g, int w, int h,List<Number> vs,double vmax)
+	{
+		g.setColor(getForeground());
+		int lx = -1, ly = -1;
+		int th = h;
+		int l = vs.size();
+		for (int i = 0; i < l; i++)
+		{
+			int x = w - 1 - (l - i);
+			int y = (int) (th - ((double) th / vmax * vs.get(i).doubleValue()));
+			if (x >= 0 && lx != -1 && ly != -1)
+				g.drawLine(lx, ly, x, y);
+			lx = x;
+			ly = y;
+		}
+	}
+
+	protected void drawHorizontal(Graphics g, int w, int h, List<Number> vs, double vmax)
+	{
+		int l = vs.size();
+		int x = (int) (((double) w / vmax * vs.get(l - 1).doubleValue()));
+		g.setColor(UIConfigs.COLOR_TEXTQUARTER());
+		g.fillRect(0, 0, x, h);
 	}
 
 	protected double getMax()
@@ -214,6 +238,6 @@ public class BPMonitorUINumber extends JComponent
 
 	public static enum MonitorRenderMode
 	{
-		TEXT_ONLY, STACK_HORIZONTAL, STACK_VERTICAL, HORIZONTAL, VERTICAL,
+		TEXT_ONLY, STACK_HORIZONTAL, STACK_VERTICAL, HORIZONTAL, VERTICAL, STACK_HORIZONTAL_COMBO, STACK_VERTICAL_COMBO
 	}
 }

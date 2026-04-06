@@ -10,21 +10,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import javax.swing.Box;
+import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
 import bp.config.BPSetting;
-import bp.config.UIConfigs;
 import bp.event.BPEventCoreUI;
 import bp.task.BPTask;
 import bp.task.BPTaskManager;
 import bp.ui.BPComponent;
+import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
@@ -93,38 +92,39 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 		sp.setBorder(new EmptyBorder(0, 0, 0, 0));
 		m_tabtasks.setTableFont();
 		m_pgselcolor = UIManager.getColor("Table.selectionBackground");
+	
+		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
+		BPAction actstart = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSTART, BPActionConstCommon.ACT_BTNSTART_ACC, this::onStart);
+		BPAction actstop = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTOP, this::onStop);
+		BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit);
+		BPAction actmoveup = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp);
+		BPAction actmovedown = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown);
 
-		BPToolVIconButton btnadd = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd), this);
-		BPToolVIconButton btndel = new BPToolVIconButton(BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel), this);
-		BPToolVIconButton btnstart = new BPToolVIconButton(BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSTART, BPActionConstCommon.ACT_BTNSTART_ACC, this::onStart), this);
-		BPToolVIconButton btnstop = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTOP, this::onStop), this);
-		BPToolVIconButton btnedit = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit), this);
-		BPToolVIconButton btnmoveup = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp), this);
-		BPToolVIconButton btnmovedown = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown), this);
-		int btnsize = (int) (16f * UIConfigs.UI_SCALE());
-		setupButtons(btnsize, btnadd, btndel, btnstart, btnstop, btnedit, btnmoveup);
+		List<Action> acts=new ArrayList<>();
 
 		m_tabtasks.setModel(m_model);
 		m_tabtasks.setDefaultRenderer(Float.class, new BPTable.BPTableRendererReplace(this::getCellComponent));
-		m_toolbar.add(Box.createRigidArea(new Dimension(4, 4)));
 		if (canModify())
 		{
-			m_toolbar.add(btnadd);
-			m_toolbar.add(btndel);
-			m_toolbar.add(btnedit);
-			m_toolbar.add(Box.createRigidArea(new Dimension(4, 4)));
-			m_toolbar.add(btnstart);
+			acts.add(BPAction.separator());
+			acts.add(actadd);
+			acts.add(actdel);
+			acts.add(actedit);
+			acts.add(BPAction.separator());
+			acts.add(actstart);
 		}
-		m_toolbar.add(btnstop);
+		acts.add(actstop);
 		if (canModify())
 		{
-			m_toolbar.add(Box.createRigidArea(new Dimension(4, 4)));
-			m_toolbar.add(btnmoveup);
-			m_toolbar.add(btnmovedown);
+			acts.add(BPAction.separator());
+			acts.add(actmoveup);
+			acts.add(actmovedown);
 		}
+		m_toolbar.setBorderVertical(0);
+		m_toolbar.setActions(acts.toArray(new Action[acts.size()]), this);
 
 		setLayout(new BorderLayout());
-		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
 		add(sp, BorderLayout.CENTER);
 		add(m_toolbar, BorderLayout.WEST);
 	}
@@ -307,7 +307,7 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 					return null;
 				}, task.getClass(), BPTask.class);
 				dlg.setup(c == null ? task.getClass().getName() : c.getName(), task);
-				dlg.setTitle("Task:" + task.getName());
+				dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TASK) + ":" + task.getName());
 				dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(700, 600)));
 				dlg.pack();
 				dlg.setLocationRelativeTo(null);

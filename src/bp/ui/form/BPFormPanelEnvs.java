@@ -12,6 +12,9 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import bp.env.BPEnv;
+import bp.env.BPEnvs;
+import bp.locale.BPLocaleHelpers;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.scomp.BPBoxButtons;
 import bp.ui.util.UIUtil;
@@ -66,13 +69,13 @@ public class BPFormPanelEnvs extends BPFormPanel
 
 	protected String renderEnv(BPEnv env)
 	{
-		return env.getName();
+		return BPLocaleHelpers.translateByClass(BPEnvs.class, env.getName());
 	}
 
 	protected void onClickEnv(BPEnv env)
 	{
 		BPDialogForm dlg = new BPDialogForm();
-		dlg.setTitle("BlockP - Environment : " + env.getName());
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_ENV) + " : " + BPLocaleHelpers.translateByClass(BPEnvs.class, env.getName()));
 		dlg.setup(BPEnv.class.getName(), env);
 		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
 		dlg.pack();

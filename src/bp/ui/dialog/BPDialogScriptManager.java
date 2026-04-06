@@ -72,7 +72,7 @@ public class BPDialogScriptManager extends BPDialogCommon
 		m_rightpan = new JPanel(new BorderLayout());
 		m_rightpan.add(tbright, BorderLayout.NORTH);
 
-		setTitle("BlockP - Scripts");
+		setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SCRIPTS));
 
 		setLayout(new BorderLayout());
 

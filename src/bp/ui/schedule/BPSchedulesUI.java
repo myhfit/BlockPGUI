@@ -12,16 +12,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.Action;
-import javax.swing.Box;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
-import bp.config.UIConfigs;
 import bp.schedule.BPSchedule;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
@@ -77,25 +74,18 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 		m_tabschedules.setTableFont();
 		m_pgselcolor = UIManager.getColor("Table.selectionBackground");
 
-		BPToolVIconButton btnadd = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd));
-		BPToolVIconButton btndel = new BPToolVIconButton((BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel)), this);
-		BPToolVIconButton btnedit = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit, ab -> ab.acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0))), this);
-		BPToolVIconButton btnenable = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNENABLE, this::onEnable), this);
-		BPToolVIconButton btndisable = new BPToolVIconButton(BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDISABLE, this::onDisable), this);
-		int btnsize = (int) (16f * UIConfigs.UI_SCALE());
-		setupButtons(btnsize, btnadd, btndel, btnedit, btnenable, btndisable);
+		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
+		BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit, ab -> ab.acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0)));
+		BPAction actenable = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNENABLE, this::onEnable);
+		BPAction actdisable = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDISABLE, this::onDisable);
+		Action[] acts = new Action[] { BPAction.separator(), actadd, actdel, actedit, BPAction.separator(), actenable, actdisable };
 
+		m_toolbar.setBorderVertical(0);
 		m_tabschedules.setModel(m_model);
-		m_toolbar.add(Box.createRigidArea(new Dimension(4, 4)));
-		m_toolbar.add(btnadd);
-		m_toolbar.add(btndel);
-		m_toolbar.add(btnedit);
-		m_toolbar.add(Box.createRigidArea(new Dimension(4, 4)));
-		m_toolbar.add(btnenable);
-		m_toolbar.add(btndisable);
+		m_toolbar.setActions(acts, this);
 
 		setLayout(new BorderLayout());
-		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
 		add(sp, BorderLayout.CENTER);
 		add(m_toolbar, BorderLayout.WEST);
 	}

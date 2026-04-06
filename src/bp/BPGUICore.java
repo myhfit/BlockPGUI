@@ -30,10 +30,13 @@ import bp.ext.BPExtensionManager;
 import bp.tool.BPTool;
 import bp.tool.BPToolFactory;
 import bp.tool.BPToolManager;
+import bp.ui.frame.BPFrameComponent;
 import bp.ui.frame.BPFrameHostIFC;
 import bp.ui.frame.BPMainFrame;
 import bp.ui.frame.BPMainFrameIFC;
+import bp.ui.util.CommonUIOperations;
 import bp.util.CommandLineArgs;
+import bp.util.ObjUtil;
 import bp.util.LogicUtil.WeakRefGo;
 
 public class BPGUICore
@@ -47,12 +50,16 @@ public class BPGUICore
 	public final static BPEventBus EVENTS_UI = new BPEventBus();
 	public final static Map<String, List<BPTool>> TOOL_MAP = new ConcurrentHashMap<String, List<BPTool>>();
 
+	public static Boolean LAUNCHER_FLAG;
+
 	public static String S_BP_TITLE = "BlockP";
 
 	protected final static WeakRefGo<BPMainFrameIFC> S_MF = new WeakRefGo<BPMainFrameIFC>();
+	
+	private final static ThreadLocal<Boolean> S_ISPOPUP = new ThreadLocal<>();
 
 	@SuppressWarnings("unchecked")
-	public final static void start(CommandLineArgs cliargs)
+	public final static int start(CommandLineArgs cliargs)
 	{
 		BPCore.setPlatform(BPPlatform.GUI_SWING);
 		BPCore.setCommandLineArgs(cliargs);
@@ -69,46 +76,62 @@ public class BPGUICore
 		installTools();
 
 		BPCore.S_ELIST.add(BPGUICore::safeExit);
-		BPMainFrame mainf = new BPMainFrame();
-		BPExtensionLoader[] loaders = BPExtensionManager.getExtensionLoaders();
-		for (BPExtensionLoader loader : loaders)
+		if ("tool".equals(cliargs.params.get("mfmode")))
 		{
-			if (loader.isUI() && BPExtensionLoaderGUISwing.UITYPE_SWING.equals(loader.getUIType()))
+			String toolcls = cliargs.params.get("toolcls");
+			String x = cliargs.params.get("x");
+			String y = cliargs.params.get("y");
+			String w = cliargs.params.get("w");
+			String h = cliargs.params.get("h");
+			int r = CommonUIOperations.showToolDialog(toolcls, ObjUtil.makeMap("x", x, "y", y, "w", w, "h", h));
+			BPCore.stop();
+			return r;
+		}
+		else
+		{
+			BPMainFrame mainf = new BPMainFrame();
+			BPExtensionLoader[] loaders = BPExtensionManager.getLoadedExtensionLoaders();
+			for (BPExtensionLoader loader : loaders)
 			{
-				((BPExtensionLoaderGUI<BPMainFrameIFC>) loader).setup(mainf);
+				if (loader.isUI() && BPExtensionLoaderGUISwing.UITYPE_SWING.equals(loader.getUIType()))
+				{
+					((BPExtensionLoaderGUI<BPMainFrameIFC>) loader).setup(mainf);
+				}
 			}
-		}
-		String editor = cliargs.params.get("openeditor");
-		if (editor != null && editor.length() > 0)
-		{
-			String[] editorargs = editor.split(",");
-			String filename, format = null, fac = null;
-			int c = editorargs.length;
-			if (c > 0)
+			String editor = cliargs.params.get("openeditor");
+			if (editor != null && editor.length() > 0)
 			{
-				filename = editorargs[0];
-				if (c > 1)
-					format = editorargs[1];
-				if (c > 2)
-					fac = editorargs[2];
-				mainf.openEditorByFileSystem(filename, format, fac, null);
+				String[] editorargs = editor.split(",");
+				String filename, format = null, fac = null;
+				int c = editorargs.length;
+				if (c > 0)
+				{
+					filename = editorargs[0];
+					if (c > 1)
+						format = editorargs[1];
+					if (c > 2)
+						fac = editorargs[2];
+					mainf.openEditorByFileSystem(filename, format, fac, null);
+				}
 			}
-		}
-		if ("standalone".equals(cliargs.params.get("mfmode")))
-		{
-			mainf.enterStandaloneMode();
-		}
-		S_MF.setTarget(mainf);
-		CONFIGS_HK.refreshHotkeys();
-		mainf.setVisible(true);
+			if ("standalone".equals(cliargs.params.get("mfmode")))
+			{
+				mainf.enterStandaloneMode();
+			}
+			S_MF.setTarget(mainf);
+			CONFIGS_HK.refreshHotkeys();
+			mainf.setVisible(true);
 
-		Runtime.getRuntime().addShutdownHook(new Thread()
-		{
-			public void run()
+			Runtime.getRuntime().addShutdownHook(new Thread()
 			{
-				BPCore.stop();
-			}
-		});
+				public void run()
+				{
+					BPCore.stop();
+				}
+			});
+			
+			return 0;
+		}
 	}
 
 	protected final static void installTools()
@@ -173,6 +196,19 @@ public class BPGUICore
 		if (f0 != null && f0 instanceof BPFrameHostIFC)
 			seg.accept((BPFrameHostIFC) f0);
 	}
+	
+	public final static void runOnCurrentFrameWithCreation(Consumer<BPFrameHostIFC> seg)
+	{
+		Frame f0 = getCurrentFrame();
+		if (f0 != null && f0 instanceof BPFrameHostIFC)
+			seg.accept((BPFrameHostIFC) f0);
+		else
+		{
+			BPFrameComponent f = new BPFrameComponent();
+			seg.accept(f);
+			f.setVisible(true);
+		}
+	}
 
 	public final static boolean closeSubWindows()
 	{
@@ -204,15 +240,39 @@ public class BPGUICore
 		closeSubWindows();
 		runOnMainFrame(mf -> mf.dispose());
 	}
+	
+	public final static void inPopup(Runnable r)
+	{
+		S_ISPOPUP.set(true);
+		try
+		{
+			r.run();
+		}
+		finally
+		{
+			S_ISPOPUP.remove();
+		}
+	}
+	
+	public final static boolean isInPopup()
+	{
+		return Boolean.TRUE.equals(S_ISPOPUP.get());
+	}
 
 	protected final static Frame getCurrentFrame()
 	{
 		Frame[] fs = Frame.getFrames();
+		boolean ispopup = Boolean.TRUE.equals(S_ISPOPUP.get());
 		if (fs != null && fs.length > 0)
 		{
 			for (Frame f : fs)
 			{
-				if (f.isActive())
+				if (f.isVisible() && (ispopup || f.isActive()))
+					return f;
+			}
+			for (Frame f : fs)
+			{
+				if (f.isVisible())
 					return f;
 			}
 		}

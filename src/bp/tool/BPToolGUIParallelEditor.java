@@ -17,7 +17,7 @@ public class BPToolGUIParallelEditor extends BPToolGUIBase<BPToolGUIParallelEdit
 {
 	public String getName()
 	{
-		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_PARRAEDITOR, null, null);
+		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_PARRAEDITOR);
 	}
 
 	public String getSubTitle()

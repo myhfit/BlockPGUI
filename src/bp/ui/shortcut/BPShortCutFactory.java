@@ -36,4 +36,9 @@ public interface BPShortCutFactory
 			rc = sc.getSetting();
 		return rc;
 	}
+
+	default boolean canExpand(String key)
+	{
+		return false;
+	}
 }

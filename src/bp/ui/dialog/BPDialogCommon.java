@@ -32,6 +32,8 @@ public abstract class BPDialogCommon extends BPDialog
 	 */
 	private static final long serialVersionUID = 2824481043912870940L;
 
+	public final static int COMMANDBAR_EMPTY = -1;
+	
 	public final static int COMMANDBAR_OK = 0;
 	public final static int COMMANDBAR_OK_CANCEL = 1;
 	public final static int COMMANDBAR_OK_CANCEL_APPLY = 2;

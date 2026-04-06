@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.dnd.DropTargetDragEvent;
@@ -34,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -48,20 +50,26 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.Caret;
+import javax.swing.text.JTextComponent;
 
 import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.event.BPEventUI;
+import bp.locale.BPLocaleConst;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConst;
-import bp.ui.actions.BPActionHelpers;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionConst.BPActionVerb;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.scomp.BPCodeLinePanel;
 import bp.ui.scomp.BPEditorPane;
 import bp.ui.scomp.BPMenu;
 import bp.ui.scomp.BPMenuItem;
+import bp.ui.scomp.BPMenu.BPMenuDynamic;
 import bp.util.LockUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
@@ -113,28 +121,32 @@ public class UIUtil
 			}
 		});
 	}
-	
-	public final static String wrapBPTitles(BPActionConst... keys)
+
+	public final static String assembleLocaleTexts(BPLocaleConst... keys)
 	{
 		StringBuilder sb = new StringBuilder();
-		sb.append(BPGUICore.S_BP_TITLE);
-		sb.append(" -");
-		for (BPActionConst key : keys)
+		for (BPLocaleConst key : keys)
 		{
-			sb.append(" ");
-			sb.append((String) BPActionHelpers.getValue(key, null, null));
+			if (sb.length() > 0)
+				sb.append(" ");
+			sb.append((String) BPLocaleHelpers.getValue(key));
 		}
 		return sb.toString();
 	}
 
-	public final static String wrapBPTitle(BPActionConst key)
+	public final static String wrapBPTitles(BPLocaleConst... keys)
 	{
-		return wrapBPTitle(key, null, BPActionVerb.NAME);
+		return BPGUICore.S_BP_TITLE + " - " + assembleLocaleTexts(keys);
 	}
 
-	public final static String wrapBPTitle(BPActionConst key, BPActionConst alias, BPActionVerb verb)
+	public final static String wrapBPTitle(BPActionConst key)
 	{
-		return BPGUICore.S_BP_TITLE + " - " + BPActionHelpers.getValue(key, alias, verb);
+		return BPGUICore.S_BP_TITLE + " - " + BPActionHelpers.getValue(key, null, BPActionVerb.NAME);
+	}
+
+	public final static String wrapBPTitle(BPLocaleConst key)
+	{
+		return BPGUICore.S_BP_TITLE + " - " + BPLocaleHelpers.getValue(key);
 	}
 
 	public final static Color mix(Color c1, Color c2, int alpha)
@@ -145,6 +157,30 @@ public class UIUtil
 	public final static Color mix(Color c1, int alpha)
 	{
 		return new Color(c1.getRed(), c1.getGreen(), c1.getBlue(), alpha);
+	}
+
+	public final static Color reverseMax(Color c1)
+	{
+		float b = rgbToGray(c1);
+		return b > 0.5 ? Color.BLACK : Color.WHITE;
+	}
+
+	public final static Color max(Color c1)
+	{
+		float b = rgbToGray(c1);
+		return b > 0.5 ? Color.WHITE : Color.BLACK;
+	}
+
+	public final static boolean checkSameDirection(Color c1, Color c2)
+	{
+		float b1 = rgbToGray(c1);
+		float b2 = rgbToGray(c2);
+		return ((b1 - 0.5f) < 0) == ((b2 - 0.5f) < 0);
+	}
+
+	public final static float rgbToGray(Color c)
+	{
+		return (0.299f * (float) c.getRed() / 255f) + (0.587f * (float) c.getGreen() / 255f) + (0.114f * (float) c.getBlue() / 255f);
 	}
 
 	public final static Font deltaFont(Font f, int delta)
@@ -360,6 +396,32 @@ public class UIUtil
 		}
 	}
 
+	public final static class BPKeyListenerForPopup implements KeyListener
+	{
+		protected Consumer<KeyEvent> m_cb;
+
+		public BPKeyListenerForPopup(Consumer<KeyEvent> cb)
+		{
+			m_cb = cb;
+		}
+
+		public void keyTyped(KeyEvent e)
+		{
+		}
+
+		public void keyPressed(KeyEvent e)
+		{
+			if (e.getKeyCode() == KeyEvent.VK_CONTEXT_MENU)
+			{
+				m_cb.accept(e);
+			}
+		}
+
+		public void keyReleased(KeyEvent e)
+		{
+		}
+	}
+
 	public final static class BPMouseListenerForPopup implements MouseListener
 	{
 		protected Consumer<MouseEvent> m_cb;
@@ -524,8 +586,13 @@ public class UIUtil
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public final static JComponent[] makeMenuItems(Action[] acts)
+	{
+		return makeMenuItems(acts, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	public final static JComponent[] makeMenuItems(Action[] acts, boolean outofwindow)
 	{
 		JComponent[] rc = new JComponent[acts.length];
 		for (int i = 0; i < acts.length; i++)
@@ -538,7 +605,7 @@ public class UIUtil
 				JMenu mnu = new JMenu(act);
 				mnu.setFont(new Font(UIConfigs.MENU_FONT_NAME(), Font.PLAIN, UIConfigs.MENUFONT_SIZE()));
 				item = mnu;
-				JComponent[] subitems = makeMenuItems(subacts);
+				JComponent[] subitems = makeMenuItems(subacts, outofwindow);
 				for (JComponent subitem : subitems)
 				{
 					mnu.add(subitem);
@@ -549,22 +616,57 @@ public class UIUtil
 				Supplier<Action[]> subactsfunc = (Supplier<Action[]>) act.getValue(BPAction.SUB_ACTIONS_FUNC);
 				if (subactsfunc != null)
 				{
-					item = new BPMenu.BPMenuDynamic((String) act.getValue(Action.NAME), subactsfunc);
+					BPMenuDynamic mnudyna = new BPMenu.BPMenuDynamic((String) act.getValue(Action.NAME), subactsfunc);
+					if (Boolean.TRUE.equals(act.getValue(BPAction.SUB_ACTIONS_FUNC_AUTOCLEAR)))
+						mnudyna.setClearOnClose(true);
+					mnudyna.setOutOfWindow(outofwindow);
+					item = mnudyna;
 				}
 				else
 				{
-					if (act.getValue(BPAction.IS_SEPARATOR) != null && (boolean) act.getValue(BPAction.IS_SEPARATOR))
-					{
+					if (Boolean.TRUE.equals(act.getValue(BPAction.IS_SEPARATOR)))
 						item = new JPopupMenu.Separator();
-					}
 					else
-						item = new BPMenuItem(act);
+						item = outofwindow ? new BPMenuItem.BPMenuItemInTray(act) : new BPMenuItem(act);
 				}
 			}
 			if (item != null)
 				rc[i] = item;
 		}
 		return rc;
+	}
+
+	public final static void showContextMenu(Component c, Action[] acts, int x, int y)
+	{
+		if (acts != null && acts.length > 0)
+		{
+			JPopupMenu pop = new JPopupMenu();
+			JComponent[] comps = makeMenuItems(acts);
+			for (JComponent comp : comps)
+			{
+				pop.add(comp);
+			}
+			pop.show(c, x, y);
+		}
+	}
+
+	public final static <C extends Component> void setupContextMenu(C comp, BiFunction<C, Object, Action[]> actcb)
+	{
+		comp.addMouseListener(new UIUtil.BPMouseListenerForPopup(e -> showContextMenu(comp, actcb.apply(comp, e.getSource()), e.getX(), e.getY())));
+		if (comp instanceof JTextComponent)
+		{
+			comp.addKeyListener(new UIUtil.BPKeyListenerForPopup(e ->
+			{
+				Action[] acts = actcb.apply(comp, e.getSource());
+				JTextComponent txt = (JTextComponent) comp;
+				Point pt = null;
+				Caret c = txt.getCaret();
+				if (c != null)
+					pt = c.getMagicCaretPosition();
+				if (pt != null)
+					showContextMenu(comp, acts, pt.x, pt.y);
+			}));
+		}
 	}
 
 	public final static int scale(int v)
@@ -581,7 +683,7 @@ public class UIUtil
 	public final static <T> T block(Supplier<CompletionStage<T>> callback, String text, boolean closeoncomplete, boolean closeonerr, Consumer<BPDialogBlock<T>> setupfunc)
 	{
 		BPDialogBlock<T> dlg = new BPDialogBlock<T>(callback, closeoncomplete, closeonerr);
-		dlg.setTitle("Waiting");
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_WAITING));
 		dlg.setText(text);
 		if (setupfunc != null)
 			setupfunc.accept(dlg);

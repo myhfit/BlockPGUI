@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import bp.config.UIConfigs;
 import bp.ui.BPComponent;
 import bp.ui.container.BPRootContainer;
+import bp.ui.util.SystemUIUtil;
 
 @SuppressWarnings("serial")
 public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
@@ -20,6 +21,7 @@ public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
 	protected Map<String, BPComponent<?>> m_compmap = new HashMap<String, BPComponent<?>>();
 
 	protected OriginWindowState m_fullscreendata = null;
+	protected boolean m_sysinited;
 
 	public BPFrame()
 	{
@@ -34,6 +36,24 @@ public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
 		pack();
 		if (!isLocationByPlatform())
 			setLocationRelativeTo(null);
+	}
+
+	public void setVisible(boolean flag)
+	{
+		if (!flag || m_sysinited)
+			super.setVisible(flag);
+		else
+		{
+			boolean isd = isDisplayable();
+			if (!isd)
+			{
+				m_sysinited = true;
+				super.setVisible(true);
+			}
+			SystemUIUtil.initWindow(this);
+			if (isd)
+				super.setVisible(flag);
+		}
 	}
 
 	protected void init()
@@ -114,6 +134,12 @@ public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
 			setUndecorated(true);
 			setVisible(true);
 		}
+	}
+
+	public void dispose()
+	{
+		m_sysinited = false;
+		super.dispose();
 	}
 
 	protected final static class OriginWindowState

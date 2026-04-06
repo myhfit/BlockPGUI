@@ -1,13 +1,12 @@
 package bp.ui.scomp;
 
-import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 
 import javax.swing.Action;
 import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 
+import bp.BPGUICore;
 import bp.config.UIConfigs;
 
 public class BPMenuItem extends JMenuItem
@@ -20,6 +19,9 @@ public class BPMenuItem extends JMenuItem
 	public BPMenuItem(Action a)
 	{
 		super(a);
+		Integer vi = (Integer) a.getValue(Action.MNEMONIC_KEY);
+		if (vi != null)
+			setMnemonic(vi);
 		setFont(new Font(UIConfigs.MENU_FONT_NAME(), Font.PLAIN, UIConfigs.MENUFONT_SIZE()));
 	}
 
@@ -48,16 +50,7 @@ public class BPMenuItem extends JMenuItem
 
 		protected void fireActionPerformed(ActionEvent e)
 		{
-			Container par = getParent();
-			while (par != null && (!(par instanceof JPopupMenu)))
-			{
-				par = par.getParent();
-			}
-			if (par == null)
-				return;
-			JPopupMenu root = (JPopupMenu) par;
-			root.setVisible(false);
-			super.fireActionPerformed(e);
+			BPGUICore.inPopup(() -> super.fireActionPerformed(e));
 		}
 	}
 }

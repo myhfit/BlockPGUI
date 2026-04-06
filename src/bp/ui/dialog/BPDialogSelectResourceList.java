@@ -20,6 +20,7 @@ import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
+import bp.locale.BPLocaleConstCC;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
@@ -159,7 +160,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
 
-		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_RES, BPActionConstCommon.TXT_LIST));
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.RES, BPActionConstCommon.TXT_LIST));
 		setModal(true);
 	}
 

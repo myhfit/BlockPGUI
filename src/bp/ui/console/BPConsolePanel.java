@@ -64,7 +64,7 @@ public class BPConsolePanel extends BPCodePanel
 			((BPConsolePane) m_txt).addOnEnterSync(m_onruncmd);
 		}
 		if (m_syncactobj == null)
-			m_syncactobj = new BPSyncGUIControllerBase(m_synccb);
+			m_syncactobj = new BPSyncGUIControllerBase(m_syncactcb);
 	}
 
 	public String getEditorName()
@@ -119,7 +119,7 @@ public class BPConsolePanel extends BPCodePanel
 		return UIUtil.getScrollBarPosCheckMax(m_scroll.getVerticalScrollBar());
 	}
 
-	protected void onSyncEditor(BPEventUISyncEditor e)
+	protected void onSyncEditorAction(BPEventUISyncEditor e)
 	{
 		boolean dealed = false;
 		if (BPEventUISyncEditor.SYNC_ACTION.equals(e.subkey) && !m_txt.getID().equals(e.datas[0]))
@@ -142,7 +142,7 @@ public class BPConsolePanel extends BPCodePanel
 		}
 		if (!dealed)
 		{
-			super.onSyncEditor(e);
+			super.onSyncEditorAction(e);
 		}
 	}
 }

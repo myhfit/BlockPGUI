@@ -15,6 +15,7 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 
 import bp.config.UIConfigs;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
@@ -75,7 +76,7 @@ public class BPDialogSelectData<T> extends BPDialogCommon
 		mainp.add(scroll, BorderLayout.CENTER);
 
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
-		setTitle("BlockP - Select Data");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_DATA));
 		setModal(true);
 	}
 

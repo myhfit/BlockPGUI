@@ -2,6 +2,7 @@ package bp.ui.form;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.util.Map;
 
 import javax.swing.Action;
@@ -12,10 +13,14 @@ import javax.swing.border.EmptyBorder;
 import bp.data.BPXData;
 import bp.data.BPXYData;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
+import bp.ui.actions.BPDataActionFactory.BPDataActionFactoryCommon;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.table.BPTableFuncsXY;
+import bp.util.ObjUtil;
 
 public class BPFormPanelXYData extends BPFormPanel
 {
@@ -31,19 +36,19 @@ public class BPFormPanelXYData extends BPFormPanel
 
 	public Map<String, Object> getFormData()
 	{
-		return null;
+		if (m_table.isEditing())
+			m_table.getCellEditor().stopCellEditing();
+		return ObjUtil.makeMap("_xydata", m_funcs.getRawData());
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)
 	{
 		BPXYData xydata = (BPXYData) data.get("_xydata");
-		m_funcs=new BPTableFuncsXY(xydata);
-		m_model=new BPTableModel<BPXData>(m_funcs);
+		m_funcs = new BPTableFuncsXY(xydata);
+		m_model = new BPTableModel<BPXData>(m_funcs);
 		m_table.setModel(m_model);
 		m_model.setDatas(xydata.getDatas());
-		if (!editable)
-		{
-		}
+		m_funcs.setReadonly(!editable);
 		m_table.initRowSorter();
 		m_tb.setVisible(editable);
 	}
@@ -54,7 +59,8 @@ public class BPFormPanelXYData extends BPFormPanel
 		JScrollPane scroll = new JScrollPane(m_table);
 		JPanel pnl = new JPanel();
 		BPToolBarSQ tb = new BPToolBarSQ(true);
-		tb.setActions(new Action[] { BPAction.separator() });
+		BPAction actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, this::onClone);
+		tb.setActions(new Action[] { BPAction.separator(), actclone });
 		tb.setBorderVertical(0);
 		m_tb = tb;
 
@@ -67,4 +73,14 @@ public class BPFormPanelXYData extends BPFormPanel
 		doAddLineComponents(null, false, 0, new Component[] { pnl });
 	}
 
+	protected void onClone(ActionEvent e)
+	{
+		BPXYData xydata = m_funcs.getRawData();
+		BPDataActionFactoryCommon.cloneXYDataToNewEditor(xydata, e);
+	}
+
+	protected boolean needScroll()
+	{
+		return false;
+	}
 }

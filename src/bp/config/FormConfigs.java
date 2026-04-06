@@ -23,6 +23,7 @@ import bp.ui.form.BPFormPanelMapOrdered;
 import bp.ui.form.BPFormPanelPredefinedDataPipes;
 import bp.ui.form.BPFormPanelProject;
 import bp.ui.form.BPFormPanelResourceBase;
+import bp.ui.form.BPFormPanelResourceVE;
 import bp.ui.form.BPFormPanelSchedule;
 import bp.ui.form.BPFormPanelScheduleFileSystem;
 import bp.ui.form.BPFormPanelScript;
@@ -40,6 +41,7 @@ import bp.ui.form.BPFormPanelTaskTimer;
 import bp.ui.form.BPFormPanelTaskUnpackFiles;
 import bp.ui.form.BPFormPanelTaskUserInput;
 import bp.ui.form.BPFormPanelUIConfigs;
+import bp.ui.form.BPFormPanelXYData;
 import bp.util.ClassUtil;
 
 public class FormConfigs extends BPConfigAdvBase
@@ -91,6 +93,7 @@ public class FormConfigs extends BPConfigAdvBase
 			regfunc.accept("bp.project.BPResourceProjectFile", BPFormPanelFileProject.class);
 			regfunc.accept("bp.project.BPResourceProjectMemory", BPFormPanelProject.class);
 			regfunc.accept("bp.res.BPResourceVirtual", BPFormPanelResourceBase.class);
+			regfunc.accept("bp.res.BPResourceVirtual$BPResourceVirtualEntity", BPFormPanelResourceVE.class);
 			regfunc.accept("bp.res.BPResourceFileLocal", BPFormPanelFile.class);
 			regfunc.accept("bp.res.BPResourceDirLocal", BPFormPanelDir.class);
 			regfunc.accept("bp.config.EditorAssocs", BPFormPanelEditorAssocs.class);
@@ -118,6 +121,8 @@ public class FormConfigs extends BPConfigAdvBase
 			regfunc.accept("bp.data.BPMData$BPMDataWMap", BPFormPanelMap.class);
 			regfunc.accept("bp.data.BPMData$BPMDataWMapOrdered", BPFormPanelMapOrdered.class);
 			regfunc.accept("bp.data.BPYData$BPYDataList", BPFormPanelList.class);
+			regfunc.accept("bp.data.BPXYData", BPFormPanelXYData.class);
+			regfunc.accept("bp.data.BPXYData$BPXYDataList", BPFormPanelXYData.class);
 			regfunc.accept("bp.schedule.BPScheduleBase", BPFormPanelSchedule.class);
 			regfunc.accept("bp.schedule.BPScheduleFileSystem", BPFormPanelScheduleFileSystem.class);
 			regfunc.accept("java.lang.String", BPFormPanelString.class);

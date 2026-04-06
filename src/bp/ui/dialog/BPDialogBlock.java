@@ -1,6 +1,7 @@
 package bp.ui.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
@@ -8,6 +9,8 @@ import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.editor.BPTextPanel;
 import bp.ui.scomp.BPLabel;
 import bp.ui.util.UIUtil;
@@ -36,6 +39,7 @@ public class BPDialogBlock<T> extends BPDialogCommon
 		callback.get().whenComplete(this::onComplete);
 		m_notcloseoncomplete = !closeoncomplete;
 		m_notcloseonerr = !closeonerr;
+		setCursor(new Cursor(Cursor.WAIT_CURSOR));
 	}
 
 	public void setText(String text)
@@ -102,7 +106,7 @@ public class BPDialogBlock<T> extends BPDialogCommon
 
 	protected void initUIComponents()
 	{
-		m_lbltext = new BPLabel("Waiting");
+		m_lbltext = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.TXT_WAITING) + "...");
 		m_lbltext.setBorder(new EmptyBorder(10, 10, 10, 10));
 		m_lbltext.setLabelFont();
 		m_lbltext.setHorizontalAlignment(BPLabel.CENTER);

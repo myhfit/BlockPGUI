@@ -52,13 +52,13 @@ public class BPDialogFindText extends BPDialogCommon
 		JPanel line0 = new JPanel();
 		JPanel line1 = new JPanel();
 		JPanel line2 = new JPanel();
-		BPLabel lblsrc = new BPLabel("Search :");
-		BPLabel lbldest = new BPLabel("Replace:");
+		BPLabel lblsrc = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.FDLG_FIND));
+		BPLabel lbldest = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.FDLG_REPLACE));
 		m_txtsrc = new BPComboBox<String>();
 		m_txtdest = new BPComboBox<String>();
-		m_chkword = new BPCheckBox("Whole word");
-		m_chkcase = new BPCheckBox("Case sensitive");
-		m_chkbackward = new BPCheckBox("Backward");
+		m_chkword = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_WHOLEWORD));
+		m_chkcase = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_CASESENSITIVE));
+		m_chkbackward = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_BACKWARD));
 
 		lblsrc.setMonoFont();
 		lbldest.setMonoFont();
@@ -69,6 +69,9 @@ public class BPDialogFindText extends BPDialogCommon
 		m_txtdest.setMonoFont();
 		m_txtsrc.setEditable(true);
 		m_txtdest.setEditable(true);
+
+		lblsrc.setPreferredSize(new Dimension(60, 0));
+		lbldest.setPreferredSize(new Dimension(60, 0));
 
 		ComboBoxEditor c = m_txtsrc.getEditor();
 		JTextField srctxt = (JTextField) c.getEditorComponent();
@@ -106,13 +109,13 @@ public class BPDialogFindText extends BPDialogCommon
 		getContentPane().add(m_mainp);
 
 		BPCommonDialogActions dlgacts = new BPCommonDialogActions(this);
-		dlgacts.actioncancel.putValue(Action.NAME, "Close");
+		dlgacts.actioncancel.putValue(Action.NAME, BPActionHelpers.getValue(BPActionConstCommon.ACT_BTNCLOSE));
 		dlgacts.actioncancel.putValue(Action.MNEMONIC_KEY, null);
 		Action actfind = BPActionHelpers.getAction(BPActionConstCommon.FDLG_FIND, this::onFind);
 		Action actreplace = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACE, this::onReplace);
 		Action actreplaceall = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACEALL, this::onReplaceAll);
 		setCommandBar(new Action[] { actfind, actreplace, actreplaceall, BPAction.separator(), BPAction.separator(), dlgacts.actioncancel });
-		setTitle("Search/Replace");
+		setTitle(BPActionHelpers.getValue(BPActionConstCommon.FDLG_FIND) + "/" + BPActionHelpers.getValue(BPActionConstCommon.FDLG_REPLACE));
 	}
 
 	protected void onSrcKeyDown(KeyEvent e)

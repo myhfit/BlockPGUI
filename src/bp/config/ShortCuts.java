@@ -108,9 +108,7 @@ public class ShortCuts extends BPConfigAdvBase
 					{
 						vs = TextUtil.splitEscapePlainText(v);
 					}
-					ShortCutData sc = new ShortCutData();
-					sc.name = key;
-					sc.values = vs;
+					ShortCutData sc = new ShortCutData(key, vs);
 					scs.add(sc);
 				}
 			}
@@ -174,16 +172,16 @@ public class ShortCuts extends BPConfigAdvBase
 	{
 		public String name;
 		public Object values;
-
-		public ShortCutData()
-		{
-
-		}
+		public String fackey;
+		public boolean canexpand;
 
 		public ShortCutData(String name, Object values)
 		{
 			this.name = name;
 			this.values = values;
+			Map<String, Object> m = BPShortCutManager.getShortCutSimpleInfo(values);
+			fackey = (String) m.get("fackey");
+			canexpand = ObjUtil.toBool(m.get("canexpand"), false);
 		}
 	}
 }

@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.scomp.BPTextField;
 
 public class BPFormPanelResourceBase extends BPFormPanel
@@ -26,7 +28,7 @@ public class BPFormPanelResourceBase extends BPFormPanel
 	{
 		m_txtname = makeSingleLineTextField();
 
-		addLine(new String[] { "Name" }, new Component[] { m_txtname }, () -> !m_txtname.isEmpty() && m_txtname.checkSTName());
+		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.NAME) }, new Component[] { m_txtname }, () -> !m_txtname.isEmpty() && m_txtname.checkSTName());
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

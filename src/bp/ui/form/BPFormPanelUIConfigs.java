@@ -14,6 +14,12 @@ import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import bp.BPGUICore;
+import bp.config.UIConfigs;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSelectFont;
 import bp.ui.scomp.BPCheckBox;
@@ -36,6 +42,7 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 	protected BPCheckBox m_chkdoublebuffer;
 	protected BPCheckBox m_chksystray;
 	protected BPCheckBox m_chkmin2tray;
+	protected BPCheckBox m_chkshowlauncher;
 	protected BPTextFieldPane m_panlafclsname;
 	protected BPTextField m_txtlafclsname;
 	protected BPTextFieldPane m_panmonofontname;
@@ -69,6 +76,8 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		rc.put("MONO_FONT_SIZEDELTA", ObjUtil.toInt(m_txtmonofontsizedelta.getNotEmptyText(), null));
 		rc.put("SYSTEM_TRAY", m_chksystray.isSelected());
 		rc.put("MIN_TO_TRAY", m_chkmin2tray.isSelected());
+		if (m_chkshowlauncher.isEnabled())
+			rc.put("SHOW_LAUNCHER", m_chkshowlauncher.isSelected());
 		return rc;
 	}
 
@@ -81,10 +90,13 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		m_chkdoublebuffer = new BPCheckBox();
 		m_chksystray = new BPCheckBox();
 		m_chkmin2tray = new BPCheckBox();
+		m_chkshowlauncher = new BPCheckBox();
+
 		m_chkvminfo.setLabelFont();
 		m_chkdoublebuffer.setLabelFont();
 		m_chksystray.setLabelFont();
 		m_chkmin2tray.setLabelFont();
+		m_chkshowlauncher.setLabelFont();
 
 		m_panlafclsname = makeSingleLineTextFieldPanel(this::onLAFFind);
 		m_txtlafclsname = m_panlafclsname.getTextComponent();
@@ -103,23 +115,25 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		m_txtmenufontname = m_panmenufontname.getTextComponent();
 		m_txtmonofontsizedelta = makeSingleLineTextField();
 
-		addSeparator("UI Settings");
-		addLine(new String[] { "Tab Size" }, new Component[] { m_txttabsize }, false, () -> m_txttabsize.isEmpty() || m_txttabsize.isInt());
-		addLine(new String[] { "Divider Size" }, new Component[] { m_txtsplitsize }, false, () -> m_txtsplitsize.isEmpty() || m_txtsplitsize.isInt());
-		addLine(new String[] { "LAF Class Name" }, new Component[] { m_panlafclsname });
-		addLine(new String[] { "Double Buffer" }, new Component[] { wrapSingleLineComponent(m_chkdoublebuffer) });
-		addLine(new String[] { "Show SysTray" }, new Component[] { wrapSingleLineComponent(m_chksystray) });
-		addLine(new String[] { "Minimize to Tray" }, new Component[] { wrapSingleLineComponent(m_chkmin2tray) });
-		addSeparator("Font Settings");
-		addLine(new String[] { "Mono Font Name" }, new Component[] { m_panmonofontname });
-		addLine(new String[] { "Label Font Name" }, new Component[] { m_panlabelfontname });
-		addLine(new String[] { "List Font Name" }, new Component[] { m_panlistfontname });
-		addLine(new String[] { "Tree Font Name" }, new Component[] { m_pantreefontname });
-		addLine(new String[] { "Table Font Name" }, new Component[] { m_pantablefontname });
-		addLine(new String[] { "Menu Font Name" }, new Component[] { m_panmenufontname });
-		addLine(new String[] { "Mono Font Delta" }, new Component[] { m_txtmonofontsizedelta });
-		addSeparator("Features");
-		addLine(new String[] { "Show VM Info" }, new Component[] { wrapSingleLineComponent(m_chkvminfo) });
+		Class<?> uicc = UIConfigs.class;
+		addSeparator(BPLocaleHelpers.translateByClass(uicc, "UI Settings"));
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Tab Size") }, new Component[] { m_txttabsize }, false, () -> m_txttabsize.isEmpty() || m_txttabsize.isInt());
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Divider Size") }, new Component[] { m_txtsplitsize }, false, () -> m_txtsplitsize.isEmpty() || m_txtsplitsize.isInt());
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "LAF Class Name") }, new Component[] { m_panlafclsname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Double Buffer") }, new Component[] { wrapSingleLineComponent(m_chkdoublebuffer) });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Show SysTray") }, new Component[] { wrapSingleLineComponent(m_chksystray) });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Minimize to Tray") }, new Component[] { wrapSingleLineComponent(m_chkmin2tray) });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Show Launcher") }, new Component[] { wrapSingleLineComponent(m_chkshowlauncher) });
+		addSeparator(BPLocaleHelpers.translateByClass(uicc, "Font Settings"));
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Mono Font Name") }, new Component[] { m_panmonofontname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Label Font Name") }, new Component[] { m_panlabelfontname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "List Font Name") }, new Component[] { m_panlistfontname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Tree Font Name") }, new Component[] { m_pantreefontname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Table Font Name") }, new Component[] { m_pantablefontname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Menu Font Name") }, new Component[] { m_panmenufontname });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Mono Font Delta") }, new Component[] { m_txtmonofontsizedelta });
+		addSeparator(BPLocaleHelpers.translateByClass(uicc, "Features"));
+		addLine(new String[] { BPLocaleHelpers.translateByClass(uicc, "Show VM Info") }, new Component[] { wrapSingleLineComponent(m_chkvminfo) });
 	}
 
 	protected CompletionStage<List<String>> getLAFClasses()
@@ -131,7 +145,8 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 			ClassLoader cl = Thread.currentThread().getContextClassLoader();
 			for (String classname : classnames)
 			{
-				if (!laflist2.contains(classname))
+				String cn = classname.toLowerCase();
+				if (!laflist2.contains(classname) && (cn.contains("lookandfeel") || cn.contains("laf")))
 				{
 					if (ClassUtil.checkChildClass(LookAndFeel.class, classname, cl))
 						laflist2.add(classname);
@@ -149,7 +164,7 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		{
 			laflist.add(lafinfo.getClassName());
 		}
-		List<String> laflist2 = UIUtil.block(this::getLAFClasses, "Searching L&F Class...");
+		List<String> laflist2 = UIUtil.block(this::getLAFClasses, BPActionHelpers.getValue(BPActionConstCommon.TXT_SEARCHING));
 		if (laflist2 != null)
 		{
 			for (String laf : laflist2)
@@ -162,7 +177,7 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		}
 		BPDialogSelectData<String> dlg = new BPDialogSelectData<>();
 		dlg.setSource(laflist);
-		dlg.setTitle("Select LookAndFeel Class Name");
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_LAF, BPLocaleConstCC.CLASSNAME));
 		dlg.setVisible(true);
 		return dlg.getSelectData();
 	}
@@ -190,5 +205,10 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		setComponentValue(m_txtmonofontsizedelta, data, "MONO_FONT_SIZEDELTA", editable);
 		setComponentValue(m_chksystray, data, "SYSTEM_TRAY", editable);
 		setComponentValue(m_chkmin2tray, data, "MIN_TO_TRAY", editable);
+		Boolean showlauncher = BPGUICore.LAUNCHER_FLAG;
+		if (showlauncher != null)
+			m_chkshowlauncher.setSelected(showlauncher);
+		else
+			m_chkshowlauncher.setEnabled(false);
 	}
 }

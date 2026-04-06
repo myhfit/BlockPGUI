@@ -17,7 +17,10 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellEditor;
 
+import bp.config.UIConfigs;
 import bp.config.Hotkeys.Hotkey;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
@@ -115,7 +118,7 @@ public class BPFormPanelHotkeys extends BPFormPanel
 		tb.setBorderVertical(0);
 		m_tb = tb;
 
-		m_tabhks.setAutoResizeMode(BPTable.AUTO_RESIZE_OFF);
+		m_tabhks.setAutoResizeMode(BPTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 		m_tabhks.setMonoFont();
 		m_tabhks.getColumnModel().getColumn(0).setPreferredWidth(UIUtil.scale(40));
 		m_tabhks.getColumnModel().getColumn(1).setPreferredWidth(UIUtil.scale(110));
@@ -145,6 +148,7 @@ public class BPFormPanelHotkeys extends BPFormPanel
 		{
 			m_cols = new Class[] { Boolean.class, String.class, String.class };
 			m_colnames = new String[] { "Sys", "Key", "Target" };
+			m_collabels = new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.SYS), BPLocaleHelpers.getValue(BPLocaleConstCC.KEY), BPLocaleHelpers.getValue(BPLocaleConstCC.TARGET) };
 		}
 
 		public Object getValue(Hotkey o, int row, int col)
@@ -199,6 +203,7 @@ public class BPFormPanelHotkeys extends BPFormPanel
 		{
 			JTextField comp = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
 			comp.setEditable(false);
+			comp.setBackground(UIConfigs.COLOR_TEXTBG());
 			return comp;
 		}
 	}

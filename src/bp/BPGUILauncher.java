@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import bp.ui.dialog.BPDialogGate;
 import bp.util.ClassUtil;
@@ -32,12 +33,12 @@ public class BPGUILauncher
 				laststr = str;
 			}
 		}
-		if (envs == null || !("false".equals(envs.get(KEY_SHOWLAUNCHER))))
+		boolean showlauncher = (envs == null) ? true : (!("false".equals(envs.get(KEY_SHOWLAUNCHER))));
+		BPGUICore.LAUNCHER_FLAG = showlauncher;
+		if (showlauncher)
 		{
 			if (envs == null)
-			{
 				envs = new HashMap<String, String>();
-			}
 			envs.put("java.home", System.getProperty("java.home"));
 			BPDialogGate frame = new BPDialogGate();
 			frame.setupByEnvs(envs);
@@ -49,6 +50,28 @@ public class BPGUILauncher
 		}
 		if (envs != null)
 			start(envs);
+	}
+
+	public final static void updateEnvConfigs(Function<Map<String, String>, Boolean> uptseg)
+	{
+		File f = new File(".bpenvcfgs");
+		Map<String, String> envs = null;
+		String laststr = null;
+		if (f.exists() && f.isFile())
+		{
+			byte[] bs = FileUtil.readFile(".bpenvcfgs");
+			if (bs != null)
+			{
+				String str = TextUtil.toString(bs, "utf-8");
+				envs = TextUtil.getPlainMap(str);
+				laststr = str;
+			}
+		}
+		if (envs == null)
+			envs = new HashMap<String, String>();
+		envs.put("java.home", System.getProperty("java.home"));
+		if (uptseg.apply(envs))
+			saveConfigs(envs, laststr);
 	}
 
 	protected final static void saveConfigs(Map<String, String> envs, String laststr)

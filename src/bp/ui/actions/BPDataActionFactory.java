@@ -49,7 +49,7 @@ public interface BPDataActionFactory
 				if (data instanceof BPData && ACTIONNAME_CLONEDATA.equals(actionname))
 				{
 					BPData bd = (BPData) data;
-					switch (bd.getDataStruture())
+					switch (bd.getDataStructure())
 					{
 						case XY:
 						{
@@ -83,7 +83,7 @@ public interface BPDataActionFactory
 			return rc;
 		}
 
-		private final static void cloneXYData(BPXYData xydata, ActionEvent event)
+		public final static void cloneXYData(BPXYData xydata, ActionEvent event)
 		{
 			BPResourceProjectMemory prj = (BPResourceProjectMemory) BPCore.getProjectsContext().getOrCreateTempProject();
 			String id = BPCore.genID(null);
@@ -93,7 +93,7 @@ public interface BPDataActionFactory
 			UIStd.info("Cloned to " + prj.toString() + "/temp" + id);
 		}
 
-		private final static void cloneTreeData(BPTreeData treedata, ActionEvent event)
+		public final static void cloneTreeData(BPTreeData treedata, ActionEvent event)
 		{
 			BPResourceProjectMemory prj = (BPResourceProjectMemory) BPCore.getProjectsContext().getOrCreateTempProject();
 			String id = BPCore.genID(null);
@@ -103,21 +103,21 @@ public interface BPDataActionFactory
 			UIStd.info("Cloned to " + prj.toString() + "/temp" + id);
 		}
 
-		private final static void cloneXYDataToNewEditor(BPXYData xydata, ActionEvent event)
+		public final static void cloneXYDataToNewEditor(BPXYData xydata, ActionEvent event)
 		{
 			String id = BPCore.genID(null);
 			BPResourceHolder holder = new BPResourceHolder(xydata.clone(), null, BPXYData.EXT_XYDATA, BPXYData.EXT_XYDATA + ":temp" + id, "temp" + id, true);
-			BPGUICore.runOnCurrentFrame(f -> f.openResource(holder, new BPFormatXYData(), null, false, null));
+			BPGUICore.runOnCurrentFrameWithCreation(f -> f.openResource(holder, new BPFormatXYData(), null, false, null));
 		}
 
-		private final static void cloneTreeDataToNewEditor(BPTreeData treedata, ActionEvent event)
+		public final static void cloneTreeDataToNewEditor(BPTreeData treedata, ActionEvent event)
 		{
 			String id = BPCore.genID(null);
 			BPResourceHolder holder = new BPResourceHolder(treedata.clone(), null, BPTreeData.EXT_TREEDATA, BPTreeData.EXT_TREEDATA + ":temp" + id, "temp" + id, true);
-			BPGUICore.runOnCurrentFrame(f -> f.openResource(holder, new BPFormatTreeData(), null, false, null));
+			BPGUICore.runOnCurrentFrameWithCreation(f -> f.openResource(holder, new BPFormatTreeData(), null, false, null));
 		}
 
-		private final static void cloneXYDataToJSON(BPXYData xydata, ActionEvent event)
+		public final static void cloneXYDataToJSON(BPXYData xydata, ActionEvent event)
 		{
 			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "json" });
 			if (file != null)
@@ -138,7 +138,7 @@ public interface BPDataActionFactory
 			}
 		}
 
-		private final static void cloneXYDataToBPPD(BPXYData xydata, ActionEvent event)
+		public final static void cloneXYDataToBPPD(BPXYData xydata, ActionEvent event)
 		{
 			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "bppd" });
 			if (file != null)
@@ -169,7 +169,7 @@ public interface BPDataActionFactory
 			}
 		}
 
-		private final static void cloneTreeDataToJSON(BPTreeData treedata, ActionEvent event)
+		public final static void cloneTreeDataToJSON(BPTreeData treedata, ActionEvent event)
 		{
 			BPResource file = CommonUIOperations.selectResource(null, true);
 			if (file != null)
@@ -190,7 +190,7 @@ public interface BPDataActionFactory
 			}
 		}
 
-		private final static void cloneTreeDataToBPPD(BPTreeData treedata, ActionEvent event)
+		public final static void cloneTreeDataToBPPD(BPTreeData treedata, ActionEvent event)
 		{
 			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "bppd" });
 			if (file != null)

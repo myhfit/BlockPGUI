@@ -50,10 +50,7 @@ public class BPCommandHandlerGUICore extends BPCommandHandlerBase implements BPC
 		BPEditorFactory fac = LogicUtil.PAR_NN(ps.length > 2 ? ps[2] : null, facstr -> facstr != null ? BPEditorManager.getFactory(ps.length > 1 ? ps[1] : null, (String) facstr) : null);
 		if (res != null)
 		{
-			if (!BPGUICore.checkMainFrameVisible())
-				CommonUIOperations.openResourceNewWindow(res, format, fac, null, null);
-			else
-				BPGUICore.runOnMainFrame(mf -> mf.openResource(res, format, fac, false, null));
+			CommonUIOperations.openResource(res, format, fac);
 			return BPCommandResult.OK(null);
 		}
 		return null;

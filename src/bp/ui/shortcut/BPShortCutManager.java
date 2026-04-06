@@ -1,30 +1,47 @@
 package bp.ui.shortcut;
 
+import java.awt.MouseInfo;
+import java.awt.PointerInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.Action;
+import javax.swing.JComponent;
 
 import bp.config.BPSetting;
 import bp.config.ShortCuts.ShortCutData;
+import bp.ui.scomp.BPPopupMenuTray;
+import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
 
 public class BPShortCutManager
 {
 	private final static Map<String, BPShortCutFactory> S_FACS = new ConcurrentHashMap<String, BPShortCutFactory>();
+	private final static List<String> S_EXPS = new CopyOnWriteArrayList<String>();
 
 	public final static void init()
 	{
 		Map<String, BPShortCutFactory> newfacs = new HashMap<String, BPShortCutFactory>();
 		ServiceLoader<BPShortCutFactory> facs = ClassUtil.getExtensionServices(BPShortCutFactory.class);
+		List<String> exps = new ArrayList<String>();
 		for (BPShortCutFactory fac : facs)
 		{
-			fac.register((key, f) -> newfacs.put(key, f));
+			fac.register((key, f) ->
+			{
+				newfacs.put(key, f);
+				if (f.canExpand(key))
+					exps.add(key);
+			});
 		}
 		S_FACS.clear();
+		S_EXPS.clear();
 		S_FACS.putAll(newfacs);
+		S_EXPS.addAll(exps);
 	}
 
 	public final static BPShortCutFactory getFactory(String key)
@@ -48,7 +65,19 @@ public class BPShortCutManager
 		BPShortCut bsc = makeShortCut(sc);
 		if (bsc != null)
 		{
-			return bsc.run();
+			if (bsc.canExpand())
+			{
+				Action[] acts = bsc.expand();
+				BPPopupMenuTray pop = new BPPopupMenuTray();
+				JComponent[] subs = UIUtil.makeMenuItems(acts);
+				for (JComponent sub : subs)
+					pop.add(sub);
+				PointerInfo pt = MouseInfo.getPointerInfo();
+				pop.showTray((int) pt.getLocation().getX(), (int) pt.getLocation().getY());
+				return true;
+			}
+			else
+				return bsc.run();
 		}
 		return false;
 	}
@@ -100,8 +129,39 @@ public class BPShortCutManager
 		return rc;
 	}
 
+	@SuppressWarnings("unchecked")
+	public final static Map<String, Object> getShortCutSimpleInfo(Object values)
+	{
+		Map<String, Object> rc = new HashMap<String, Object>();
+		String fackey = null;
+		if (values != null)
+		{
+			if (values instanceof Map)
+			{
+				Map<String, Object> ps = (Map<String, Object>) values;
+				fackey = (String) ps.get("key");
+			}
+			else
+			{
+				String[] vs = (String[]) values;
+				fackey = vs[0];
+			}
+		}
+		if (fackey != null)
+		{
+			rc.put("fackey", fackey);
+			rc.put("canexpand", canExpand(fackey));
+		}
+		return rc;
+	}
+
 	public final static List<String> getFactoryKeys()
 	{
 		return new ArrayList<String>(S_FACS.keySet());
+	}
+
+	public final static boolean canExpand(String key)
+	{
+		return S_EXPS.contains(key);
 	}
 }

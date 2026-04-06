@@ -23,6 +23,7 @@ import bp.config.UIConfigs;
 import bp.data.BPDataConsumer;
 import bp.data.BPDataEndpointFactory;
 import bp.format.BPFormatText;
+import bp.locale.BPLocaleConstCC;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
@@ -44,7 +45,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 {
 	public String getName()
 	{
-		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_DPTOOL, null, null);
+		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_DPTOOL);
 	}
 
 	protected BPToolGUIContextDataPipe createToolContext()
@@ -289,7 +290,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 				List<String> fts = new ArrayList<String>(fac.getFunctionTypes());
 				if (fts.size() > 0)
 				{
-					String ft = (fts.size() == 1) ? fts.get(0) : UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FUNC), null);
+					String ft = (fts.size() == 1) ? fts.get(0) : UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FUNCTION), null);
 					if (ft != null)
 					{
 						BPTransformer<?> tf = fac.createTransformer(ft);

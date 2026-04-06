@@ -14,4 +14,9 @@ public class BPEventUI extends BPEvent
 	{
 		return context == null ? null : (String) context.get(FIELD_ROUTABLE_CONTAINERID);
 	}
+
+	public String toString()
+	{
+		return subkey + datas.toString();
+	}
 }

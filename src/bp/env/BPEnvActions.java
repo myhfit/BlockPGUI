@@ -12,6 +12,7 @@ import bp.util.IOUtil;
 public class BPEnvActions extends BPEnvBase
 {
 	public final static String ENV_NAME_ACTIONS = "Actions";
+	public final static String KEY_LOCALE = "locale";
 
 	private final List<String> m_rawkeys = new ArrayList<String>();
 
@@ -44,6 +45,20 @@ public class BPEnvActions extends BPEnvBase
 	{
 		if (!m_rawkeys.contains(key))
 			m_rawkeys.add(key);
+	}
+
+	public void setEnv(String key, String value)
+	{
+		super.setEnv(key, value);
+		if (KEY_LOCALE.equals(key))
+			BPCore.S_LOCALE = value;
+	}
+
+	public void clearEnv(String key)
+	{
+		super.clearEnv(key);
+		if (KEY_LOCALE.equals(key))
+			BPCore.S_LOCALE = null;
 	}
 
 	public boolean customSL()

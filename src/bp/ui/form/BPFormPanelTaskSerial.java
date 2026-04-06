@@ -25,6 +25,7 @@ import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogNewTask;
 import bp.ui.scomp.BPBoxButtons;
 import bp.ui.scomp.BPToolVIconButton;
+import bp.ui.util.UIUtil;
 import bp.util.ObjUtil;
 
 public class BPFormPanelTaskSerial extends BPFormPanelTask
@@ -105,7 +106,7 @@ public class BPFormPanelTaskSerial extends BPFormPanelTask
 		BPDialogForm dlg = new BPDialogForm();
 		String clsname = (String) task.get(BPSLData.CLSNAME_FIELD);
 		dlg.setup(clsname, task);
-		dlg.setTitle("Task:" + ObjUtil.toString(task.get("name"), ""));
+		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TASK) + ":" + ObjUtil.toString(task.get("name"), ""));
 		dlg.setVisible(true);
 		Map<String, Object> r = dlg.getFormData();
 		if (r != null)

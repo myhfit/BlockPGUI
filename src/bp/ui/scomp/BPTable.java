@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
@@ -47,10 +49,13 @@ import javax.swing.text.JTextComponent;
 import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
-import bp.ui.dialog.BPDialogFindTable;
+import bp.ui.dialog.BPDialogFind;
+import bp.ui.dialog.BPDialogFind.BPFindPs;
+import bp.ui.dialog.BPDialogFind.BPReplacePs;
 import bp.ui.table.BPTableFuncs;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
+import bp.util.LogicUtil.WeakRefGo;
 import bp.util.NumberUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
@@ -62,13 +67,15 @@ public class BPTable<T> extends JTable
 	 */
 	private static final long serialVersionUID = 7010566894709794989L;
 	protected BPTableFuncs<T> m_tablefuncs;
-	protected BPDialogFindTable m_finddlg;
+	protected WeakRefGo<BPDialogFind> m_finddlgref;
+	protected Function<BPFindPs, Boolean> m_findcb;
 	protected boolean m_celleditorreanonly;
 
 	public BPTable()
 	{
 		setRowHeight(UIConfigs.TABLE_ROWHEIGHT());
 		putClientProperty("JTable.autoStartsEdit", false);
+		m_finddlgref = new WeakRefGo<BPDialogFind>();
 		initListener();
 	}
 
@@ -77,6 +84,7 @@ public class BPTable<T> extends JTable
 		super(new BPTableModel<T>(tablefuncs));
 		setRowHeight(UIConfigs.TABLE_ROWHEIGHT());
 		putClientProperty("JTable.autoStartsEdit", false);
+		m_finddlgref = new WeakRefGo<BPDialogFind>();
 		initListener();
 		m_tablefuncs = tablefuncs;
 	}
@@ -106,9 +114,17 @@ public class BPTable<T> extends JTable
 
 	protected void initListener()
 	{
-		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouseDown, null, null, null));
+		m_findcb = this::onFindCall;
+		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouse, this::onMouse, null, null));
+		addKeyListener(new UIUtil.BPKeyListenerForPopup(this::onContextMenuKey));
+		initTableHeaderContextMenu();
 		setupFindDlg();
 		setupInnerFilter();
+	}
+
+	public void initTableHeaderContextMenu()
+	{
+		getTableHeader().addMouseListener(new UIUtil.BPMouseListener(this::onHeaderMouse, this::onHeaderMouse, null, null, null));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -352,12 +368,75 @@ public class BPTable<T> extends JTable
 		}
 	}
 
-	protected void onMouseDown(MouseEvent e)
+	protected void onHeaderMouse(MouseEvent e)
+	{
+		if (e.isPopupTrigger())
+		{
+
+		}
+	}
+
+	protected void onContextMenuKey(KeyEvent e)
+	{
+		BPTableFuncs<T> funcs = m_tablefuncs;
+		if (funcs != null)
+		{
+			int sr = getSelectedRow();
+			int sc = getSelectedColumn();
+			int[] rows = getSelectedModelRows();
+			List<Action> acts = null;
+			if (rows != null && rows.length > 0)
+			{
+				List<T> datas = getDatasFromRows(rows);
+				acts = funcs.getActions(this, datas, rows, sr, sc);
+			}
+			else
+			{
+				acts = funcs.getEmptySelectionActions(this);
+			}
+			if (acts != null && acts.size() > 0)
+			{
+				JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
+				JPopupMenu pop = new JPopupMenu();
+				for (JComponent item : items)
+				{
+					pop.add(item);
+				}
+				Rectangle rect = super.getCellRect(sr, sc, true);
+				pop.show(this, rect.x, rect.y + rect.height);
+			}
+		}
+	}
+
+	protected void onMouse(MouseEvent e)
 	{
 		int b = e.getButton();
-		if (b == MouseEvent.BUTTON3)
+		if (e.getID() == MouseEvent.MOUSE_PRESSED)
 		{
-			trySelect(e);
+			if (b == MouseEvent.BUTTON3)
+			{
+				trySelect(e);
+			}
+			else if (b == MouseEvent.BUTTON1 && e.getClickCount() == 2)
+			{
+				BPTableFuncs<T> funcs = m_tablefuncs;
+				if (funcs != null)
+				{
+					int row = getSelectedModelRow();
+					int col = getSelectedModelColumn();
+					Action act = null;
+					if (row != -1)
+					{
+						T data = getBPTableModel().getRow(row);
+						act = funcs.getOpenAction(this, data, row, col);
+						if (act != null)
+							act.actionPerformed(null);
+					}
+				}
+			}
+		}
+		if (e.isPopupTrigger())
+		{
 			BPTableFuncs<T> funcs = m_tablefuncs;
 			if (funcs != null)
 			{
@@ -384,23 +463,6 @@ public class BPTable<T> extends JTable
 						pop.add(item);
 					}
 					pop.show(this, e.getX(), e.getY());
-				}
-			}
-		}
-		else if (b == MouseEvent.BUTTON1 && e.getClickCount() == 2)
-		{
-			BPTableFuncs<T> funcs = m_tablefuncs;
-			if (funcs != null)
-			{
-				int row = getSelectedModelRow();
-				int col = getSelectedModelColumn();
-				Action act = null;
-				if (row != -1)
-				{
-					T data = getBPTableModel().getRow(row);
-					act = funcs.getOpenAction(this, data, row, col);
-					if (act != null)
-						act.actionPerformed(null);
 				}
 			}
 		}
@@ -448,27 +510,16 @@ public class BPTable<T> extends JTable
 
 	public void onFind(ActionEvent e)
 	{
-		BPDialogFindTable dlg = m_finddlg;
-		m_finddlg = null;
-		if (dlg != null)
-			dlg.dispose();
-		dlg = new BPDialogFindTable(this);
-		m_finddlg = dlg;
+		m_finddlgref.run(dlg -> dlg.dispose());
+		BPDialogFind dlg = new BPDialogFind(this);
+		dlg.setFindCallBack(m_findcb);
+		m_finddlgref.setTarget(dlg);
 		dlg.setVisible(true);
 	}
 
 	public void clearResource()
 	{
-		BPDialogFindTable fdlg = m_finddlg;
-		m_finddlg = null;
-		if (fdlg != null)
-		{
-			if (fdlg.isVisible())
-			{
-				fdlg.dispose();
-			}
-			fdlg = null;
-		}
+		m_finddlgref.run(dlg -> dlg.dispose());
 
 		BPTableModel<T> model = tryGetBPTableModel();
 		if (model != null)
@@ -492,8 +543,149 @@ public class BPTable<T> extends JTable
 		return getToolTipText();
 	}
 
-	public void find(String target, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
+	protected boolean onFindCall(BPFindPs ps)
 	{
+		if (!ps.isReplace())
+			return find(ps, false);
+		else
+			return replace((BPReplacePs) ps);
+	}
+
+	public boolean replace(BPReplacePs rps)
+	{
+		if (rps.isreplaceall)
+		{
+			List<int[]> r = new ArrayList<int[]>();
+			findToResult(rps, true, getSelectedRow(), getRowCount(), r);
+			if (r.size() > 0)
+			{
+				ListSelectionModel selmodel = getSelectionModel();
+				selmodel.clearSelection();
+				for (int[] rc : r)
+				{
+					replaceData(rc[0], rc[1], rps.src, rps.replacestr, rps.iswholeword, rps.iscasesensitive);
+					selmodel.addSelectionInterval(rc[0], rc[0]);
+				}
+				int[] rc = r.get(0);
+				scrollTo(rc[0], rc[1]);
+				return true;
+			}
+		}
+		else
+		{
+			List<int[]> r = new ArrayList<int[]>();
+			findToResult(rps, false, getSelectedRow(), getRowCount(), r);
+			if (r.size() > 0)
+			{
+				int[] rc = r.get(0);
+				replaceData(rc[0], rc[1], rps.src, rps.replacestr, rps.iswholeword, rps.iscasesensitive);
+				selectAndLocate(rc[0], rc[1]);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void replaceData(int r, int c, String src, String dest, boolean iswhole, boolean iscasesensitive)
+	{
+		BPTableModel<T> model = getBPTableModel();
+		int r2 = convertRowIndexToModel(r);
+		Object obj = model.getValueAt(r2, c);
+		Object newobj = replaceCellData(obj, model.getColumnClass(c), src, dest, iswhole, iscasesensitive);
+		if (newobj != null)
+			model.setValueAt(newobj, r2, c);
+	}
+
+	protected Object replaceCellData(Object obj, Class<?> rcls, String src, String dest, boolean iswhole, boolean iscasesensitive)
+	{
+		if (obj instanceof String)
+			return TextUtil.replaceText(((String) obj), src, dest, iswhole, iscasesensitive);
+		else if (obj instanceof Number)
+		{
+			String numstr = ObjUtil.toString(obj);
+			return numstr.replace(src, dest);
+		}
+		return null;
+	}
+
+	protected void selectAndLocate(int r, int c)
+	{
+		ListSelectionModel selmodel = getSelectionModel();
+		selmodel.clearSelection();
+		selmodel.setSelectionInterval(r, r);
+		scrollTo(r, c);
+	}
+
+	protected void findToResult(BPFindPs ps, boolean findall, int startrow, int startcol, List<int[]> results)
+	{
+		String target = ps.src;
+		boolean isforward = ps.isforward;
+		boolean wholeword = ps.iswholeword;
+		boolean casesensitive = ps.iscasesensitive;
+		int si = startrow;
+		int delta = isforward ? 1 : -1;
+		int i = si + delta;
+		int c = startcol;
+		if (isforward)
+		{
+			if (i >= c)
+				i = 0;
+			if (i < 0)
+				i = 0;
+		}
+		else
+		{
+			if (i < 0)
+				i = c - 1;
+			if (i < 0)
+				i = 0;
+		}
+		if (i >= c)
+			return;
+		BPTableModel<T> model = getBPTableModel();
+		int techc = 0;
+		boolean showlinenum=model.isShowLineNum();
+		for (; i != si; i += delta)
+		{
+			if (techc >= c)
+				break;
+			if (isforward)
+			{
+				if (i >= c)
+					i = 0;
+				if (i < 0)
+					i = 0;
+			}
+			else
+			{
+				if (i < 0)
+					i = c - 1;
+				if (i < 0)
+					i = 0;
+			}
+			int c2 = model.getColumnCount();
+			int r = convertRowIndexToModel(i);
+			for (int j = showlinenum ? 1 : 0; j < c2; j++)
+			{
+				String t = ObjUtil.toString(model.getValueAt(r, j));
+				if (TextUtil.containsText(t, target, wholeword, !casesensitive))
+				{
+					results.add(new int[] { i, j });
+					if (!findall)
+						return;
+				}
+			}
+			techc++;
+		}
+	}
+
+	public boolean find(BPFindPs ps, boolean findall)
+	{
+		String target = ps.src;
+		boolean isforward = ps.isforward;
+		boolean wholeword = ps.iswholeword;
+		boolean casesensitive = ps.iscasesensitive;
+		// boolean onlysel = ps.onlyselection;
 		int si = getSelectedRow();
 		int delta = isforward ? 1 : -1;
 		int i = si + delta;
@@ -513,7 +705,7 @@ public class BPTable<T> extends JTable
 				i = 0;
 		}
 		if (i >= c)
-			return;
+			return false;
 		BPTableModel<T> model = getBPTableModel();
 		int techc = 0;
 		for (; i != si; i += delta)
@@ -545,11 +737,12 @@ public class BPTable<T> extends JTable
 					selmodel.clearSelection();
 					selmodel.setSelectionInterval(i, i);
 					scrollTo(i, j);
-					return;
+					return true;
 				}
 			}
 			techc++;
 		}
+		return false;
 	}
 
 	public static class BPTableRendererFileSize extends DefaultTableCellRenderer
@@ -618,6 +811,7 @@ public class BPTable<T> extends JTable
 			Font tfont = new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, fontsize);
 			setFont(tfont);
 			m_pgselcolor = UIManager.getColor("Table.selectionBackground");
+			putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
 		}
 
 		public void setDecideRowHeight(boolean flag)
@@ -650,7 +844,8 @@ public class BPTable<T> extends JTable
 
 		protected EditorKit createDefaultEditorKit()
 		{
-			return new BPHTMLEditorKit();
+			BPHTMLEditorKit rc = new BPHTMLEditorKit();
+			return rc;
 		}
 	}
 
@@ -1013,18 +1208,43 @@ public class BPTable<T> extends JTable
 		 */
 		private static final long serialVersionUID = 382606793781393866L;
 
+		protected List<TableColumn> m_hidetcs = new ArrayList<TableColumn>();
+
 		public ColumnBuilder getColumnBuilder(int col)
 		{
-			return new ColumnBuilder(getColumn(col));
+			return getColumnBuilder(getColumn(col));
+		}
+
+		public ColumnBuilder getColumnBuilder(TableColumn col)
+		{
+			return new ColumnBuilder(col, this);
+		}
+
+		public void hideColumn(TableColumn col)
+		{
+			if (!m_hidetcs.contains(col))
+				m_hidetcs.add(col);
+			removeColumn(col);
+		}
+
+		public void showColumn(TableColumn col)
+		{
+			if (m_hidetcs.contains(col))
+				m_hidetcs.remove(col);
+			addColumn(col);
 		}
 
 		public static class ColumnBuilder
 		{
-			private TableColumn m_col;
+			protected TableColumn m_col;
+			protected int m_oldw;
+			protected BPTableColumnModel m_model;
 
-			public ColumnBuilder(TableColumn col)
+			public ColumnBuilder(TableColumn col, BPTableColumnModel model)
 			{
 				m_col = col;
+				m_oldw = col.getWidth();
+				m_model = model;
 			}
 
 			public ColumnBuilder setWidth(int w)
@@ -1067,6 +1287,16 @@ public class BPTable<T> extends JTable
 			{
 				m_col.setCellEditor(celleditor);
 				return this;
+			}
+
+			public void hide()
+			{
+				m_model.hideColumn(m_col);
+			}
+
+			public void show()
+			{
+				m_model.showColumn(m_col);
 			}
 		}
 	}

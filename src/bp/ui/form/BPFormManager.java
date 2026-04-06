@@ -32,6 +32,14 @@ public class BPFormManager
 	{
 		return S_FORMMAP.get(key) != null;
 	}
+	
+	public final static boolean isSettingForm(String key)
+	{
+		Class<? extends BPForm<?>> cls = S_FORMMAP.get(key);
+		if (cls != null)
+			return BPFormPanelSetting.class.isAssignableFrom(cls);
+		return false;
+	}
 
 	public final static boolean containsKey(String key)
 	{

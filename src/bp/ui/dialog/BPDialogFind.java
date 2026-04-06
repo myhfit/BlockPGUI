@@ -1,6 +1,7 @@
 package bp.ui.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
@@ -39,11 +40,21 @@ public class BPDialogFind extends BPDialogCommon
 	protected BPCheckBox m_chkword;
 	protected BPCheckBox m_chkcase;
 	protected BPCheckBox m_chkbackward;
+	protected BPLabel m_lbldest;
 	protected WeakRefGo<Function<? super BPFindPs, Boolean>> m_findcb;
+
+	protected BPAction m_actreplace;
+	protected BPAction m_actreplaceall;
 
 	public BPDialogFind(Window par)
 	{
 		super(par);
+		m_findcb = new WeakRefGo<Function<? super BPFindPs, Boolean>>();
+	}
+
+	public BPDialogFind(Component comp)
+	{
+		this((Window) comp.getFocusCycleRootAncestor());
 		m_findcb = new WeakRefGo<Function<? super BPFindPs, Boolean>>();
 	}
 
@@ -53,16 +64,16 @@ public class BPDialogFind extends BPDialogCommon
 		JPanel line0 = new JPanel();
 		JPanel line1 = new JPanel();
 		JPanel line2 = new JPanel();
-		BPLabel lblsrc = new BPLabel("Search :");
-		BPLabel lbldest = new BPLabel("Replace:");
+		BPLabel lblsrc = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.FDLG_FIND));
+		m_lbldest = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.FDLG_REPLACE));
 		m_txtsrc = new BPComboBox<String>();
 		m_txtdest = new BPComboBox<String>();
-		m_chkword = new BPCheckBox("Whole word");
-		m_chkcase = new BPCheckBox("Case sensitive");
-		m_chkbackward = new BPCheckBox("Backward");
+		m_chkword = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_WHOLEWORD));
+		m_chkcase = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_CASESENSITIVE));
+		m_chkbackward = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_BACKWARD));
 
 		lblsrc.setMonoFont();
-		lbldest.setMonoFont();
+		m_lbldest.setMonoFont();
 		m_chkword.setMonoFont();
 		m_chkcase.setMonoFont();
 		m_chkbackward.setMonoFont();
@@ -70,6 +81,9 @@ public class BPDialogFind extends BPDialogCommon
 		m_txtdest.setMonoFont();
 		m_txtsrc.setEditable(true);
 		m_txtdest.setEditable(true);
+
+		lblsrc.setPreferredSize(new Dimension(60, 0));
+		m_lbldest.setPreferredSize(new Dimension(60, 0));
 
 		ComboBoxEditor c = m_txtsrc.getEditor();
 		JTextField srctxt = (JTextField) c.getEditorComponent();
@@ -94,7 +108,7 @@ public class BPDialogFind extends BPDialogCommon
 
 		line0.add(lblsrc, BorderLayout.WEST);
 		line0.add(m_txtsrc, BorderLayout.CENTER);
-		line1.add(lbldest, BorderLayout.WEST);
+		line1.add(m_lbldest, BorderLayout.WEST);
 		line1.add(m_txtdest, BorderLayout.CENTER);
 		line2.add(m_chkword);
 		line2.add(m_chkcase);
@@ -107,13 +121,13 @@ public class BPDialogFind extends BPDialogCommon
 		getContentPane().add(m_mainp);
 
 		BPCommonDialogActions dlgacts = new BPCommonDialogActions(this);
-		dlgacts.actioncancel.putValue(Action.NAME, "Close");
+		dlgacts.actioncancel.putValue(Action.NAME, BPActionHelpers.getValue(BPActionConstCommon.ACT_BTNCLOSE));
 		dlgacts.actioncancel.putValue(Action.MNEMONIC_KEY, null);
 		Action actfind = BPActionHelpers.getAction(BPActionConstCommon.FDLG_FIND, this::onFind);
-		Action actreplace = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACE, this::onReplace);
-		Action actreplaceall = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACEALL, this::onReplaceAll);
-		setCommandBar(new Action[] { actfind, actreplace, actreplaceall, BPAction.separator(), BPAction.separator(), dlgacts.actioncancel });
-		setTitle("Search/Replace");
+		m_actreplace = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACE, this::onReplace);
+		m_actreplaceall = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACEALL, this::onReplaceAll);
+		setCommandBar(new Action[] { actfind, m_actreplace, m_actreplaceall, BPAction.separator(), BPAction.separator(), dlgacts.actioncancel });
+		setTitle(BPActionHelpers.getValue(BPActionConstCommon.FDLG_FIND) + "/" + BPActionHelpers.getValue(BPActionConstCommon.FDLG_REPLACE));
 	}
 
 	protected void onSrcKeyDown(KeyEvent e)
@@ -127,6 +141,14 @@ public class BPDialogFind extends BPDialogCommon
 	public void setFindCallBack(Function<? super BPFindPs, Boolean> cb)
 	{
 		m_findcb.setTarget(cb);
+	}
+	
+	public void setReplaceable(boolean flag)
+	{
+		m_lbldest.setEnabled(flag);
+		m_txtdest.setEnabled(flag);
+		m_actreplace.setEnabled(flag);
+		m_actreplaceall.setEnabled(flag);
 	}
 
 	protected void onFind(ActionEvent e)
@@ -148,6 +170,18 @@ public class BPDialogFind extends BPDialogCommon
 		return rc;
 	}
 
+	protected BPReplacePs getReplacePs()
+	{
+		BPReplacePs rc = new BPReplacePs();
+		rc.src = m_txtsrc.getText();
+		rc.replacestr = m_txtdest.getText();
+		rc.isforward = !m_chkbackward.isSelected();
+		rc.iswholeword = m_chkword.isSelected();
+		rc.iscasesensitive = m_chkcase.isSelected();
+		rc.onlyselection = false;
+		return rc;
+	}
+
 	public void setFindText(String text)
 	{
 		m_txtsrc.setText(text);
@@ -155,12 +189,22 @@ public class BPDialogFind extends BPDialogCommon
 
 	protected void onReplace(ActionEvent e)
 	{
-
+		String src = m_txtsrc.getText();
+		if (src.length() == 0)
+			return;
+		BPReplacePs r = getReplacePs();
+		r.isreplaceall = false;
+		m_findcb.exec(cb -> cb.apply(r));
 	}
 
 	protected void onReplaceAll(ActionEvent e)
 	{
-
+		String src = m_txtsrc.getText();
+		if (src.length() == 0)
+			return;
+		BPReplacePs r = getReplacePs();
+		r.isreplaceall = true;
+		m_findcb.exec(cb -> cb.apply(r));
 	}
 
 	protected void setPrefers()
@@ -183,6 +227,23 @@ public class BPDialogFind extends BPDialogCommon
 		public boolean isforward;
 		public boolean iswholeword;
 		public boolean iscasesensitive;
+		public boolean isregex;
 		public boolean onlyselection;
+
+		public boolean isReplace()
+		{
+			return false;
+		}
+	}
+
+	public static class BPReplacePs extends BPFindPs
+	{
+		public boolean isReplace()
+		{
+			return true;
+		}
+
+		public String replacestr;
+		public boolean isreplaceall;
 	}
 }

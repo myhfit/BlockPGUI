@@ -36,6 +36,8 @@ import bp.format.BPFormat;
 import bp.format.BPFormatDir;
 import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFileSystem;
@@ -54,6 +56,7 @@ import bp.ui.parallel.BPSyncGUI;
 import bp.ui.parallel.BPSyncGUIController;
 import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.scomp.BPTable;
+import bp.ui.scomp.BPTable.BPTableColumnModel;
 import bp.ui.table.BPTableFuncsResourceFiles;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
@@ -87,12 +90,14 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	protected boolean m_navmode;
 	protected JScrollPane m_scroll;
 	protected BPSyncGUIController m_syncobj;
+	protected boolean m_listsub;
 
 	protected String m_id;
 
 	public BPFilesPanel()
 	{
 		m_navmode = true;
+//		m_listsub = false;
 		init();
 	}
 
@@ -107,8 +112,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		m_table.getInputMap(BPTable.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deletefiles");
 		m_table.getActionMap().put("deletefiles", BPAction.build("deletefiles").callback(this::onDeleteFile).getAction());
 		m_table.setBorder(null);
-		m_table.getColumnModel().getColumn(2).setCellRenderer(new BPTable.BPTableRendererFileSize());
-		m_table.getColumnModel().getColumn(3).setCellRenderer(new BPTable.BPTableRendererDateTime());
+		initTableColumn();
 		m_table.getSelectionModel().addListSelectionListener(this::onSelectionChanged);
 		m_table.setTableFont();
 		JScrollPane scroll = new JScrollPane();
@@ -127,6 +131,19 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		add(m_toolbar, BorderLayout.WEST);
 		initActions();
 		initBPEvents();
+	}
+
+	protected void initTableColumn()
+	{
+		BPTableColumnModel tcm = new BPTableColumnModel();
+		m_table.setColumnModel(tcm);
+		m_table.createDefaultColumnsFromModel();
+		tcm.getColumn(3).setCellRenderer(new BPTable.BPTableRendererFileSize());
+		tcm.getColumn(4).setCellRenderer(new BPTable.BPTableRendererDateTime());
+		if (!m_listsub)
+		{
+			tcm.getColumnBuilder(1).hide();
+		}
 	}
 
 	protected void initBPEvents()
@@ -187,7 +204,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	protected void stat()
 	{
 		List<String> cats = Arrays.asList("Filename Extension");
-		String cat = UIStd.select(cats, "Select Statistics Function", null);
+		String cat = UIStd.select(cats, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_STATISTICS, BPLocaleConstCC.METHOD), null);
 		if (cat == null)
 			return;
 		switch (cat)
@@ -261,9 +278,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 							BPXDataArray itemline = new BPXDataArray(new Object[] { item.label, item.count, item.size });
 							newdatalist.add(itemline);
 						}
-						BPXYDataList newdata = new BPXYDataList(new Class<?>[] { String.class, Long.class, Long.class }, new String[] { "Label", "Count", "Size" }, null, newdatalist, true);
+						BPXYDataList newdata = new BPXYDataList(new Class<?>[] { String.class, Long.class, Long.class },
+								new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.NAME), BPLocaleHelpers.getValue(BPLocaleConstCC.COUNT), BPLocaleHelpers.getValue(BPLocaleConstCC.SIZE) }, null, newdatalist, true);
 						p.showData(ObjUtil.makeMap("_xydata", newdata), false);
-						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, BPGUICore.S_BP_TITLE + " - Statistics", this.getFocusCycleRootAncestor());
+						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_STATISTICS), this.getFocusCycleRootAncestor());
 					}
 				}
 				break;
@@ -280,12 +298,37 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		if (BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE.equals(e.key))
 		{
+			BPResource path = null;
+			try
+			{
+				if (e.datas != null && e.datas.length > 0)
+					path = (BPResource) e.datas[0];
+			}
+			catch (Exception err)
+			{
+			}
 			String subkey = e.subkey;
-			if (subkey != null && subkey.equals(m_id))
+			if ((subkey != null && subkey.equals(m_id)) || checkSubPath(path))
 			{
 				refresh();
 			}
 		}
+	}
+
+	protected boolean checkSubPath(BPResource path)
+	{
+		BPResourceFileSystem base = (BPResourceFileSystem) m_tablefuncs.getBaseResource();
+		String basepath = base.getFileFullName();
+		String tar = ((BPResourceFileSystem) path).getFileFullName();
+		if (basepath.contains(tar))
+		{
+			if (tar.length() == basepath.length())
+				return true;
+			String c = tar.substring(basepath.length(), basepath.length() + 1);
+			if (c.equals("/") || c.equals(File.separator))
+				return true;
+		}
+		return false;
 	}
 
 	protected void setBaseResource(BPResource res)
@@ -293,35 +336,36 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		List<BPResource> children = new ArrayList<BPResource>();
 		m_tablefuncs.setBaseResource(res);
 		boolean isdir = res.isFileSystem() && ((BPResourceFileSystem) res).isDirectory();
-		List<BPResource> childrenf = new ArrayList<BPResource>();
-		List<BPResource> childrend = new ArrayList<BPResource>();
 
 		if (isdir)
 		{
-			BPResourceFileSystem fres = (BPResourceFileSystem) res;
-			BPResource[] subfs = fres.listResources();
-			for (BPResource subf : subfs)
-			{
-				if (subf.isFileSystem())
-				{
-					BPResourceFileSystem f = (BPResourceFileSystem) subf;
-					if (checkEntry(f.getName(), f.isDirectory()))
-					{
-						if (f.isFile())
-						{
-							childrenf.add(f);
-						}
-						else
-						{
-							childrend.add(f);
-						}
-					}
-				}
-			}
-			children.addAll(childrend);
-			children.addAll(childrenf);
-			childrend.clear();
-			childrenf.clear();
+			listResourceFS(res, children, m_listsub);
+			// List<BPResource> childrenf = new ArrayList<BPResource>();
+			// List<BPResource> childrend = new ArrayList<BPResource>();
+			// BPResourceFileSystem fres = (BPResourceFileSystem) res;
+			// BPResource[] subfs = fres.listResources();
+			// for (BPResource subf : subfs)
+			// {
+			// if (subf.isFileSystem())
+			// {
+			// BPResourceFileSystem f = (BPResourceFileSystem) subf;
+			// if (checkEntry(f.getName(), f.isDirectory()))
+			// {
+			// if (f.isFile())
+			// {
+			// childrenf.add(f);
+			// }
+			// else
+			// {
+			// childrend.add(f);
+			// }
+			// }
+			// }
+			// }
+			// children.addAll(childrend);
+			// children.addAll(childrenf);
+			// childrend.clear();
+			// childrenf.clear();
 		}
 		else if (m_con instanceof BPDataContainerFileSystem)
 		{
@@ -336,6 +380,42 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		}
 
 		initList(children);
+	}
+
+	protected void listResourceFS(BPResource res, List<BPResource> results, boolean recursive)
+	{
+		BPResourceFileSystem fres = (BPResourceFileSystem) res;
+		BPResource[] subfs = fres.listResources();
+		for (BPResource subf : subfs)
+		{
+			if (subf.isFileSystem())
+			{
+				BPResourceFileSystem f = (BPResourceFileSystem) subf;
+				if (checkEntry(f.getName(), f.isDirectory()))
+				{
+					if (!f.isFile())
+					{
+						results.add(f);
+						if (recursive)
+							listResourceFS(f, results, recursive);
+					}
+				}
+			}
+		}
+		for (BPResource subf : subfs)
+		{
+			if (subf.isFileSystem())
+			{
+				BPResourceFileSystem f = (BPResourceFileSystem) subf;
+				if (checkEntry(f.getName(), f.isDirectory()))
+				{
+					if (f.isFile())
+					{
+						results.add(f);
+					}
+				}
+			}
+		}
 	}
 
 	public void bind(BPDataContainer con, boolean noread)

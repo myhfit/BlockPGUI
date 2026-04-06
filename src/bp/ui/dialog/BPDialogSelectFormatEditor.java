@@ -21,6 +21,8 @@ import bp.config.UIConfigs;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.format.BPFormatUnknown;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
 import bp.ui.scomp.BPLabel;
@@ -86,8 +88,8 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		m_tbsetting = new BPTableSetting();
 		JPanel lpan = new JPanel();
 		m_rpan = new JPanel();
-		BPLabel lbl = new BPLabel(" Formats");
-		BPLabel lbl2 = new BPLabel(" Editors");
+		BPLabel lbl = new BPLabel(" " + BPActionHelpers.getValue(BPActionConstCommon.TXT_FORMAT));
+		BPLabel lbl2 = new BPLabel(" " + BPActionHelpers.getValue(BPActionConstCommon.TXT_EDITOR));
 		m_rbpan = new JScrollPane();
 		m_rbpan.setVisible(false);
 		m_rbpan.setViewportView(m_tbsetting);
@@ -131,7 +133,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		add(m_txtfilter, BorderLayout.NORTH);
 		add(pmain, BorderLayout.CENTER);
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
-		setTitle("Select Format And Editor");
+		setTitle(BPActionHelpers.getValue(BPActionConstCommon.FUNC_SEL_FORMATEDITOR));
 		setModal(true);
 	}
 

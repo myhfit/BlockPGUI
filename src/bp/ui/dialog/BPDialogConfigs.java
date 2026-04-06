@@ -13,6 +13,7 @@ import javax.swing.event.ListSelectionEvent;
 import bp.BPCore;
 import bp.config.BPConfig;
 import bp.config.UIConfigs;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
@@ -65,7 +66,7 @@ public class BPDialogConfigs extends BPDialogCommon
 	protected String getConfigName(Object config)
 	{
 		if (config instanceof BPConfig)
-			return ((BPConfig) config).getConfigName();
+			return BPLocaleHelpers.translateByClass(BPConfig.class, ((BPConfig) config).getConfigName());
 		return config.getClass().getSimpleName();
 	}
 

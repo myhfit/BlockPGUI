@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -39,6 +40,8 @@ import bp.BPGUICore;
 import bp.config.BPConfig;
 import bp.config.BPConfigSimple;
 import bp.config.UIConfigs;
+import bp.env.BPEnvActions;
+import bp.env.BPEnvManager;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
 import bp.ext.BPExtensionLoader;
@@ -106,6 +109,7 @@ import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.ui.view.BPProjectsOverviewPanel;
 import bp.util.FileUtil;
+import bp.util.ObjUtil;
 import bp.util.Std;
 import bp.util.ThreadUtil;
 
@@ -182,6 +186,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		JMenu mnuview = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEW, null));
 		JMenu mnutool = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUTOOL, null));
 		JMenu mnumainui = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUMAINUI, null));
+		JMenu mnulocale = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNULOCALE, null));
 		JMenu mnunav = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAV, null));
 		m_mnushortcuts = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSHORTCUTS, null));
 		JMenu mnuhelp = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUHELP, null));
@@ -193,7 +198,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_cmdpan = new BPCommandPane();
 		m_cmdpan.setVisible(false);
 		m_cmdpan.setBorder(new MatteBorder(0, 1, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
-		// m_cmdpan.setMinimumSize(new Dimension(4000, 0));
 		m_cmdpan.setPreferredSize(new Dimension(4000, 0));
 
 		m_mnuactbar = new JPanel();
@@ -221,14 +225,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_ptree.refreshContextPath();
 
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
-//
-//		mnufile.setMnemonic(KeyEvent.VK_F);
-//		mnunew.setMnemonic(KeyEvent.VK_N);
-//		m_mnuedit.setMnemonic(KeyEvent.VK_E);
-//		mnuview.setMnemonic(KeyEvent.VK_V);
-//		mnumainui.setMnemonic(KeyEvent.VK_M);
-//		mnunav.setMnemonic(KeyEvent.VK_N);
-//		mnuhelp.setMnemonic(KeyEvent.VK_H);
 
 		mnufilenew.add(m_actmain.filenewfile);
 		mnufilenew.add(m_actmain.filenewproject);
@@ -255,6 +251,9 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		mnumainui.add(m_actmain.viewtoggleleftpan);
 		mnumainui.add(m_actmain.viewtogglebottompan);
 		mnumainui.add(m_actmain.viewtogglerightpan);
+		mnuview.addSeparator();
+		mnuview.add(mnulocale);
+		initLocaleMenu(mnulocale);
 
 		mnunav.add(m_actmain.navresource);
 		mnunav.add(m_actmain.navprjitem);
@@ -333,9 +332,9 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		BPIconResV.BP().doDraw(img.getGraphics(), 0, 0, dx, dx);
 		BPPopupMenuTray mnutray = new BPPopupMenuTray();
 		{
-			m_mnupopscs = new BPMenu("Shortcut");
-			BPMenuItemInTray mnulocres = new BPMenuItemInTray("Resource...");
-			BPMenuItemInTray mnulocprjitem = new BPMenuItemInTray("Project Item...");
+			m_mnupopscs = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSHORTCUTS, null));
+			BPMenuItemInTray mnulocres = new BPMenuItemInTray(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVRESOURCE, null, b -> b.acceleratorKey(null)));
+			BPMenuItemInTray mnulocprjitem = new BPMenuItemInTray(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVPRJITEM, null, b -> b.acceleratorKey(null)));
 
 			mnulocres.addActionListener(e -> CommonUIOperations.showLocateResource());
 			mnulocprjitem.addActionListener(e -> CommonUIOperations.showLocateProjectItem());
@@ -346,7 +345,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		m_mnutray = mnutray;
 		mnutray.addSeparator();
 		{
-			BPMenuItemInTray mnuexit = new BPMenuItemInTray("Exit");
+			BPMenuItemInTray mnuexit = new BPMenuItemInTray(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEEXIT, null, b -> b.acceleratorKey(null)));
 			mnuexit.addActionListener(e -> exit());
 			mnutray.add(mnuexit);
 		}
@@ -415,6 +414,13 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	protected void refreshTrayMenus()
 	{
 		BlockPMenus.refreshPopupShortcuts(m_mnupopscs);
+	}
+	
+	protected void initLocaleMenu(JMenu mnulocale)
+	{
+		String l = Locale.getDefault().toLanguageTag();
+		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.TXT_AUTO, e -> setBPLocale(null), b -> b.name(b.getValue(Action.NAME) + "(" + l + ")")));
+		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWSELLOCALE, e-> showSelectLocale()));
 	}
 
 	protected void initToolMenu(JMenu mnutool)
@@ -915,6 +921,11 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		if (m_sp.getToggleState() != 0)
 			toggleLeftPanel();
 	}
+	
+	public int getChannelID()
+	{
+		return m_channelid;
+	}
 
 	public void clearSubComponents()
 	{
@@ -1119,7 +1130,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		}
 	}
 
-	public void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid)
+	public void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid, Map<String, Object> optionsdata)
 	{
 		String ext = res.getExt();
 		if (ext == null)
@@ -1345,9 +1356,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		dlg.setVisible(true);
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
-		{
 			openResource(res, null, null, false, null);
-		}
 	}
 
 	public void showSwitchEditor()
@@ -1359,11 +1368,10 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		BPRoutableContainerBase par = new BPRoutableContainerBase();
 		BPProjectsOverviewPanel pnl = new BPProjectsOverviewPanel();
-		String newid = BPCore.genID(BPCore.getFileContext());
-		par.addRoute(newid, "Overview:Projects", pnl);
+		par.addRoute(BPCore.genID(BPCore.getFileContext()), BPActionHelpers.getValue(BPActionConstCommon.TXT_OW_PRJS), pnl);
 		String parid = BPCore.genID(BPCore.getFileContext());
 		par.setID(parid);
-		m_editors.addBPTab(parid, null, "Overview:Projects", par, true);
+		m_editors.addBPTab(parid, null, BPActionHelpers.getValue(BPActionConstCommon.TXT_OW_PRJS), par, true);
 	}
 
 	public void showCommandPane()
@@ -1430,6 +1438,26 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 	}
 
+	public void showSelectLocale()
+	{
+		Locale[] larr = Locale.getAvailableLocales();
+		List<Locale> ls = ObjUtil.makeList((Object[]) larr);
+		ls.sort((la, lb) -> la.toLanguageTag().compareTo(lb.toLanguageTag()));
+		Locale l = UIStd.select(ls, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.MF_MNULOCALE), obj -> ((Locale) obj).toLanguageTag());
+		if (l != null)
+			setBPLocale(l.toLanguageTag());
+	}
+
+	public void setBPLocale(String locale)
+	{
+		if (locale == null)
+			BPEnvManager.getEnv(BPEnvActions.ENV_NAME_ACTIONS).clearEnv("locale");
+		else
+			BPEnvManager.getEnv(BPEnvActions.ENV_NAME_ACTIONS).setEnv("locale", locale);
+		BPCore.getConfigManager().getConfig("Environments").save();
+		BPActionHelpers.reInit();
+	}
+
 	public void showScriptManager()
 	{
 		BPDialogScriptManager dlg = new BPDialogScriptManager();
@@ -1438,15 +1466,15 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	public void showExtensionManager()
 	{
-		BPExtensionLoader[] exts = BPExtensionManager.getExtensionLoaders();
+		BPExtensionLoader[] exts = BPExtensionManager.getLoadedExtensionLoaders();
 		Arrays.sort(exts, (a, b) -> a.getName().compareTo(b.getName()));
-		UIStd.viewList(Arrays.asList(exts), "BlockP - Extensions", (loader) -> ((BPExtensionLoader) loader).getInfo());
+		UIStd.viewList(Arrays.asList(exts), UIUtil.wrapBPTitle(BPActionConstCommon.TXT_EXTS), (loader) -> ((BPExtensionLoader) loader).getInfo());
 	}
 
 	public void showModuleManager()
 	{
 		List<BPModule> mnames = BPModuleManager.getModules();
-		UIStd.viewList(mnames, "BlockP - Modules", null);
+		UIStd.viewList(mnames, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_MODS), null);
 	}
 
 	public void showConfigs()

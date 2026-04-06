@@ -15,6 +15,8 @@ import javax.swing.table.TableCellEditor;
 import bp.config.BPSetting;
 import bp.config.BPSettingItem;
 import bp.config.UIConfigs;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.ui.scomp.BPComboBox.BPComboBoxModel;
 import bp.ui.table.BPTableFuncsBase;
@@ -31,7 +33,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 	{
 		super(new BPTableFuncsSettingItem());
 
-		setRowHeight(UIConfigs.TABLE_ROWHEIGHT());
+		setRowHeight(UIConfigs.TABLE_ROWHEIGHT() + 2);
 		getColumnModel().getColumn(1).setCellEditor(new BPCellEditorSettingItem());
 		putClientProperty("terminateEditOnFocusLost", true);
 	}
@@ -129,6 +131,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 				model.setDatas(Arrays.asList(item.candidates));
 				m_cb.setModel(model);
 				m_cb.setSelectedItem(value);
+				m_cb.setEditable(!item.readonly);
 				return m_cb;
 			}
 			else if (BPSettingItem.ITEM_TYPE_RESOURCE.equals(item.itemtype) || BPSettingItem.ITEM_TYPE_RESOURCE_SAVE.equals(item.itemtype))
@@ -140,11 +143,13 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 					btn.setText(((BPResource) value).getName());
 				else
 					btn.setText("Select...");
+				btn.setEnabled(!item.readonly);
 				return btn;
 			}
 			else
 			{
 				m_txt.setText(value == null ? "" : value.toString());
+				m_txt.setEditable(!item.readonly);
 			}
 			m_sb = 0;
 			return m_txt;
@@ -157,7 +162,8 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 
 		public BPTableFuncsSettingItem()
 		{
-			m_colnames = new String[] { "Name", "Value" };
+			m_colnames = new String[] { "Key", "Value" };
+			m_collabels = new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.KEY), BPLocaleHelpers.getValue(BPLocaleConstCC.VALUE) };
 			m_cols = new Class<?>[] { String.class, String.class };
 		}
 
