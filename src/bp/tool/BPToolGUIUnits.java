@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -17,8 +18,6 @@ import javax.swing.KeyStroke;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
-
-import com.sun.glass.events.KeyEvent;
 
 import bp.config.UIConfigs;
 import bp.locale.BPLocaleHelpers;
@@ -130,12 +129,12 @@ public class BPToolGUIUnits extends BPToolGUIBase<BPToolGUIUnits.BPToolGUIContex
 			m_cmbunits.setRenderer(new BPComboBoxRenderer(this::getUnitsName));
 			m_cmbunits.setSelectedIndex(0);
 		}
-		
+
 		protected String getUnitsName(Object units)
 		{
 			return BPLocaleHelpers.translateByClass(BPUnits.class, ((BPUnits<?>) units).getUnitsName());
 		}
-		
+
 		protected String getUnitName(Object unit)
 		{
 			BPUnit<?, ?> u = (BPUnit<?, ?>) unit;
@@ -155,9 +154,9 @@ public class BPToolGUIUnits extends BPToolGUIBase<BPToolGUIUnits.BPToolGUIContex
 				mr.setDatas(us2);
 				m_cmbl.setModel(ml);
 				m_cmbr.setModel(mr);
-				BPUnit<?,?> u0=units.getBaseUnit();
+				BPUnit<?, ?> u0 = units.getBaseUnit();
 				m_cmbr.setSelectedItem(u0);
-				int si=u0.ordinal();
+				int si = u0.ordinal();
 				m_cmbl.setSelectedIndex(si > 0 ? 0 : 1);
 				m_dest.setText("");
 			}
