@@ -11,7 +11,9 @@ import java.awt.datatransfer.Clipboard;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +33,6 @@ import bp.event.BPEventCoreUI;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.project.BPProjectItemFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
@@ -46,7 +47,6 @@ import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommonCategoryView;
@@ -56,8 +56,9 @@ import bp.ui.dialog.BPDialogLocateProjectItem;
 import bp.ui.dialog.BPDialogNewProject;
 import bp.ui.dialog.BPDialogNewSchedule;
 import bp.ui.dialog.BPDialogNewTask;
+import bp.ui.dialog.BPDialogSelectResource;
+import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
 import bp.ui.dialog.BPDialogSelectResource2;
-import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.dialog.BPDialogStandalone;
 import bp.ui.editor.BPEditor;
@@ -81,26 +82,12 @@ public class CommonUIOperations
 {
 	public final static String showOpenDirDialog(Window par, String filename)
 	{
-		FileDialog fd = null;
-		if (par instanceof Frame)
-			fd = new FileDialog((Frame) par, filename, FileDialog.LOAD);
-		else if (par instanceof Dialog)
-			fd = new FileDialog((Frame) par, filename, FileDialog.LOAD);
-		fd.setVisible(true);
-		String dir = fd.getDirectory();
-		dir = dir == null ? "" : dir;
-		String f = fd.getFile();
-		if (f != null && f.length() > 0)
-			return dir + f;
-		return null;
-	}
-
-	public final static String showOpenFileDialog(Window par, String filename)
-	{
 		String rc = null;
+		if (filename == null)
+			filename = BPCore.getFileContext().getRootDir().getFileFullName();
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setScope(BPDialogSelectResource2.SELECTSCOPE.COMPUTER);
-		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FILE));
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.DIR));
+		dlg.setScope(BPDialogSelectResource2.SELECTSCOPE.COMPUTER).setSelectType(SELECTTYPE.DIR).setPreSelectedResource(BPCore.getFileContext().getDir(filename));
 		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
@@ -111,31 +98,78 @@ public class CommonUIOperations
 		return rc;
 	}
 
-	public final static String[] showOpenFilesDialog(Window par)
+	public final static String showOpenFileDialog(Window par, String filename)
 	{
-		FileDialog fd = null;
-		if (par instanceof Frame)
-			fd = new FileDialog((Frame) par, "", FileDialog.LOAD);
-		else if (par instanceof Dialog)
-			fd = new FileDialog((Frame) par, "", FileDialog.LOAD);
-		fd.setMultipleMode(true);
-		fd.setVisible(true);
-		File[] fs = fd.getFiles();
-		if (fs != null && fs.length > 0)
+		return showOpenFileDialog(par, filename, null);
+	}
+	
+	public final static String showOpenFileDialog(Window par, String filename, Consumer<BPDialogSelectResource> builder)
+	{
+		if (filename == null)
+			filename = BPCore.getFileContext().getRootDir().getFileFullName();
+		String rc = null;
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		dlg.setScope(BPDialogSelectResource2.SELECTSCOPE.COMPUTER).setPreSelectedResource(BPCore.getFileContext().getDir(filename));
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FILE));
+		dlg.showOpen();
+		if (builder != null)
+			builder.accept(dlg);
+		BPResource res = dlg.getSelectedResource();
+		if (res != null)
 		{
-			String[] filenames = new String[fs.length];
-			for (int i = 0; i < fs.length; i++)
-			{
-				filenames[i] = fs[i].getAbsolutePath();
-			}
-			return filenames;
+			BPResourceFileSystem fres = (BPResourceFileSystem) res;
+			rc = fres.getFileFullName();
 		}
-		return null;
+		return rc;
 	}
 
-	public final static String showSaveFileDialog(Window par)
+	public final static String[] showOpenFilesDialog(Window par, String filename, Consumer<BPDialogSelectResource> builder)
 	{
-		return showSaveFileDialog(par, null);
+		if (filename == null)
+			filename = BPCore.getFileContext().getRootDir().getFileFullName();
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FILE));
+		dlg.setScope(BPDialogSelectResource2.SELECTSCOPE.COMPUTER).setMultiSelect(true).setPreSelectedResource(BPCore.getFileContext().getDir(filename));
+		if (builder != null)
+			builder.accept(dlg);
+		dlg.showOpen();
+		BPResource[] ress = dlg.getSelectedResources();
+		String[] rc = null;
+		if (ress != null && ress.length > 0)
+		{
+			rc = new String[ress.length];
+			for (int i = 0; i < ress.length; i++)
+				rc[i] = ((BPResourceFileSystem) ress[i]).getFileFullName();
+		}
+		return rc;
+	}
+
+	public final static BPResource showSelectResource(Window par, Consumer<BPDialogSelectResource> builder)
+	{
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		if (builder != null)
+			builder.accept(dlg);
+		dlg.showOpen();
+		return dlg.getSelectedResource();
+	}
+
+	public final static BPResource[] showSelectResources(Window par, Consumer<BPDialogSelectResource> builder)
+	{
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		dlg.setMultiSelect(true);
+		if (builder != null)
+			builder.accept(dlg);
+		dlg.showOpen();
+		return dlg.getSelectedResources();
+	}
+	
+	public final static BPResource showSaveResource(Window par, String[] exts, Consumer<BPDialogSelectResource> builder)
+	{
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		if (builder != null)
+			builder.accept(dlg);
+		dlg.showSave(exts);
+		return dlg.getSelectedResource();
 	}
 
 	public final static String showSaveFileDialog(Window par, String presetfilename)
@@ -165,7 +199,7 @@ public class CommonUIOperations
 				if (((BPResourceFileSystem) res).isDirectory())
 				{
 					BPResourceDir dir = (BPResourceDir) res;
-					String filename = UIStd.input(null, BPLocaleHelpers.getValue(BPLocaleConstCC.NAME) + ":", null);
+					String filename = UIStd.input(null, BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
 					if (filename != null && filename.length() > 0)
 					{
 						dir.createChild(filename, false);
@@ -203,7 +237,7 @@ public class CommonUIOperations
 				if (((BPResourceFileSystem) res).isDirectory())
 				{
 					BPResourceDir dir = (BPResourceDir) res;
-					String filename = UIStd.input(null, "Name:", "Input");
+					String filename = UIStd.input(null, BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
 					if (filename != null && filename.length() > 0)
 					{
 						try
@@ -471,7 +505,7 @@ public class CommonUIOperations
 					setting = null;
 					dlg.setup(clsname, res);
 				}
-				dlg.setTitle(BPActionHelpers.getValue(BPActionConstCommon.TXT_PROPS, null, null) + ":" + res.getResType());
+				dlg.setTitle(BPActionConstCommon.TXT_PROPS.text() + ":" + res.getResType());
 				dlg.setVisible(true);
 				Map<String, Object> data = dlg.getFormData();
 				if (data != null)
@@ -622,6 +656,17 @@ public class CommonUIOperations
 		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SYSINFO));
 		dlg.setVisible(true);
 	}
+	
+	public final static void showAbout()
+	{
+		String bpname = BPGUICore.S_BP_TITLE;
+		long l = ClassUtil.useClass("bp.BPCore", (urls) -> ClassUtil.getURLTime(urls.get(0), "bp/BPCore.class"));
+		Map<String, Object> kv = new LinkedHashMap<String, Object>();
+		kv.put(bpname + " Core VerTime", new Date(l));
+		kv.put("Work Dir", System.getProperty("user.dir"));
+		kv.put("Workspace", BPCore.getFileContext().getRootDir().getFileFullName());
+		UIStd.showData(kv);
+	}
 
 	public final static void refreshResourceCache(BPResource res)
 	{
@@ -708,7 +753,7 @@ public class CommonUIOperations
 		if (seltool != null && seltool instanceof BPToolGUI)
 		{
 			BPToolGUI tool = (BPToolGUI) seltool;
-			BPDialogStandalone dlg = BPDialogStandalone.showTool(tool, params, BPDialogSimple.COMMANDBAR_EMPTY, null);
+			BPDialogStandalone dlg = BPDialogStandalone.showTool(tool, ObjUtil.toInt(dlgparams.get("dlg_mode"), BPDialogStandalone.STMODE_MINITITLE), params, BPDialogSimple.COMMANDBAR_EMPTY, null);
 			dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TOOL) + " - " + tool.getName());
 			Integer w = ObjUtil.toInt(dlgparams.get("w"), null);
 			Integer h = ObjUtil.toInt(dlgparams.get("h"), null);
@@ -731,7 +776,7 @@ public class CommonUIOperations
 	public final static void showRenameResource(BPResource res)
 	{
 		BPResource par = res.getParentResource();
-		String newname = UIStd.input(res.getName(), "New Name:", "Input new Name");
+		String newname = UIStd.input(res.getName(), BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
 		if (newname != null)
 		{
 			newname = newname.trim();

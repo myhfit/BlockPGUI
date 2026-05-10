@@ -1,6 +1,7 @@
 package bp.ui.editor;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.KeyEvent;
@@ -12,12 +13,15 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 
@@ -40,8 +44,12 @@ import bp.locale.BPLocaleConstCC;
 import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
+import bp.res.BPResourceFile;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceHolder;
+import bp.transform.BPTransformerFactory;
+import bp.transform.BPTransformerManager;
+import bp.transform.BPTransformerRuleFilter;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
@@ -49,23 +57,27 @@ import bp.ui.actions.BPActionHelpers;
 import bp.ui.actions.BPFileActions;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSimple;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.form.BPFormPanelXYData;
 import bp.ui.parallel.BPEventUISyncEditor;
-import bp.ui.parallel.BPSyncGUI;
-import bp.ui.parallel.BPSyncGUIController;
-import bp.ui.parallel.BPSyncGUIControllerBase;
+import bp.ui.scomp.BPFilterComponent;
+import bp.ui.scomp.BPFilterDataListPanel;
+import bp.ui.scomp.BPPipedFilterDataListPanel;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableColumnModel;
+import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.table.BPTableFuncsResourceFiles;
+import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.FileUtil;
 import bp.util.ObjUtil;
+import bp.util.Std;
 import bp.util.SystemUtil;
 import bp.util.SystemUtil.SystemOS;
 
-public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainer>, BPSyncGUI
+public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainer>
 {
 	/**
 	 * 
@@ -76,28 +88,30 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	public final static String SYNCSELSTYPE_FILES = "FILES";
 
 	protected BPDataContainer m_con;
-	protected List<BPResource> m_children;
 	protected int m_seli = -1;
 	protected WeakReference<Consumer<String>> m_dynainfo = null;
 	protected String m_info;
 	protected int m_channelid;
 	protected BPToolBarSQ m_toolbar;
+	protected Action m_acttogglelistsub;
+	protected Action m_actrefresh;
 	protected Action[] m_acts;
 	protected BPTable<BPResource> m_table;
 	protected BPTableFuncsResourceFiles m_tablefuncs;
 	protected Consumer<BPEventCoreUI> m_refreshpathhandler;
-	protected Consumer<BPEventUISyncEditor> m_synccb;
 	protected boolean m_navmode;
 	protected JScrollPane m_scroll;
-	protected BPSyncGUIController m_syncobj;
 	protected boolean m_listsub;
+	protected boolean m_isonlylist;
+	protected BPEditorController m_ec;
 
 	protected String m_id;
 
 	public BPFilesPanel()
 	{
+		m_ec = new BPEditorController(this);
 		m_navmode = true;
-//		m_listsub = false;
+		m_listsub = false;
 		init();
 	}
 
@@ -106,6 +120,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		setLayout(new BorderLayout());
 		m_toolbar = new BPToolBarSQ(true);
 		m_toolbar.setBorderVertical(0);
+		m_toolbar.setNoScrollSize();
 		m_tablefuncs = new BPTableFuncsResourceFiles();
 		m_table = new BPTable<BPResource>(m_tablefuncs);
 		m_table.addMouseListener(new UIUtil.BPMouseListener(this::onTableClick, null, null, null, null));
@@ -120,9 +135,12 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		scroll.setViewportView(m_table);
 		m_scroll = scroll;
 
-		BPAction actrefresh = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNREFRESH, e -> refresh());
+		m_actrefresh = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNREFRESH, e -> refresh());
 		BPAction actstat = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTAT, e -> stat());
-		m_toolbar.setActions(new Action[] { BPAction.separator(), actrefresh, BPAction.separator(), actstat }, this);
+		BPAction actfilter = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNFILTER, e -> onShowFilter(false));
+		BPAction actcfilter = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCHAINFILTER, e -> onShowFilter(true));
+		m_acttogglelistsub = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNTOGGLE, BPActionConstCommon.ACT_BTNTOGGLE_LISTSUB, this::toggleListSub);
+		m_toolbar.setActions(new Action[] { BPAction.separator(), m_actrefresh, m_acttogglelistsub, BPAction.separator(), actstat, actfilter, actcfilter }, this);
 
 		scroll.getHorizontalScrollBar().addAdjustmentListener(this::onScroll);
 		scroll.getVerticalScrollBar().addAdjustmentListener(this::onScroll);
@@ -140,9 +158,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		m_table.createDefaultColumnsFromModel();
 		tcm.getColumn(3).setCellRenderer(new BPTable.BPTableRendererFileSize());
 		tcm.getColumn(4).setCellRenderer(new BPTable.BPTableRendererDateTime());
+		tcm.saveCache();
 		if (!m_listsub)
 		{
-			tcm.getColumnBuilder(1).hide();
+			tcm.removeColumn(tcm.getColumn(0));
 		}
 	}
 
@@ -150,8 +169,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		m_refreshpathhandler = this::onRefreshPathEvent;
 
-		m_synccb = this::onSyncEditor;
-		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
+		m_ec.initStatusSync((BiConsumer<BPEventUISyncEditor, BPFilesPanel>) BPFilesPanel::onSyncEditorOuter);
 
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_refreshpathhandler);
 	}
@@ -159,6 +177,33 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	protected void initActions()
 	{
 		m_acts = new Action[] {};
+	}
+
+	public void setListSub(boolean flag)
+	{
+		m_listsub = flag;
+	}
+
+	public boolean isListSub()
+	{
+		return m_listsub;
+	}
+
+	protected void toggleListSub(ActionEvent e)
+	{
+		m_listsub = !m_listsub;
+		BPTableModel<?> m = m_table.getBPTableModel();
+		List<String> cols = new ArrayList<String>();
+		for (int i = 0; i < m.getColumnCount(); i++)
+		{
+			String colname = m.getColumnRawName(i);
+			if (m_listsub || (!"Path".equals(colname)))
+			{
+				cols.add(colname);
+			}
+		}
+		m_table.initColumnsFromModel(cols);
+		refresh();
 	}
 
 	public BPComponentType getComponentType()
@@ -178,16 +223,11 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_syncobj.checkSyncAndNoBlock())
+		if (m_ec.syncstatus.checkSyncAndNoBlock())
 		{
 			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), m_scroll.getVerticalScrollBar().getValue() };
-			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_FILES_LIST, xy));
+			m_ec.syncstatus.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_FILES_LIST, xy));
 		}
-	}
-
-	public BPSyncGUIController getSyncStatusController()
-	{
-		return m_syncobj;
 	}
 
 	public void copy()
@@ -217,13 +257,35 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 					BPResourceFileSystem fres = (BPResourceFileSystem) res;
 					List<FileStatItem> stats = new ArrayList<FileStatItem>();
 					boolean extci = SystemUtil.getOS() == SystemOS.Windows;
-					if (fres.isDirectory() && fres.isDirectory())
+					if (m_isonlylist)
+					{
+						Map<String, FileStatItem> countmap = new LinkedHashMap<String, FileStatItem>();
+						List<BPResource> selress = m_table.getBPTableModel().getDatas();
+						for (BPResource selres : selress)
+						{
+							String ext = selres.getExt();
+							if (extci)
+								ext = ext.toLowerCase();
+							FileStatItem item = countmap.get(ext);
+							long s = (selres instanceof BPResourceFile) ? ((BPResourceFile) selres).getSize() : 0;
+							if (item == null)
+							{
+								item = new FileStatItem();
+								item.label = ext;
+								countmap.put(ext, item);
+								stats.add(item);
+							}
+							item.count++;
+							item.size += s;
+						}
+					}
+					else if (fres.isDirectory() && fres.isDirectory())
 					{
 						Map<String, FileStatItem> countmap = new LinkedHashMap<String, FileStatItem>();
 						File f = new File(fres.getFileFullName());
 						FileUtil.forEachFile(f, true, (d, sf) ->
 						{
-							String ext = FileUtil.getExt(sf.getName());
+							String ext = sf.isDirectory() ? BPFormatDir.EXT_DIR : FileUtil.getExt(sf.getName());
 							if (extci)
 								ext = ext.toLowerCase();
 							FileStatItem item = countmap.get(ext);
@@ -246,7 +308,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 						List<BPResource> chds = m_table.getBPTableModel().getDatas();
 						for (BPResource chd : chds)
 						{
-							String ext = FileUtil.getExt(chd.getName());
+							String ext = chd.getExt();
 							if (extci)
 								ext = ext.toLowerCase();
 							long s = 0;
@@ -272,20 +334,89 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 					if (stats != null)
 					{
 						BPFormPanelXYData p = new BPFormPanelXYData();
+						p.getTable().setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 						List<BPXData> newdatalist = new ArrayList<BPXData>();
 						for (FileStatItem item : stats)
 						{
 							BPXDataArray itemline = new BPXDataArray(new Object[] { item.label, item.count, item.size });
 							newdatalist.add(itemline);
 						}
-						BPXYDataList newdata = new BPXYDataList(new Class<?>[] { String.class, Long.class, Long.class },
-								new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.NAME), BPLocaleHelpers.getValue(BPLocaleConstCC.COUNT), BPLocaleHelpers.getValue(BPLocaleConstCC.SIZE) }, null, newdatalist, true);
+						BPXYDataList newdata = new BPXYDataList(new Class<?>[] { String.class, Long.class, Long.class }, new String[] { BPLocaleConstCC.NAME.text(), BPLocaleConstCC.COUNT.text(), BPLocaleConstCC.SIZE.text() }, null, newdatalist,
+								true);
 						p.showData(ObjUtil.makeMap("_xydata", newdata), false);
-						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_STATISTICS), this.getFocusCycleRootAncestor());
+						BPDialogSimple.showComponent(p, BPDialogSimple.COMMANDBAR_OK, null, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_STATISTICS), SwingUtilities.getWindowAncestor(this));
 					}
 				}
 				break;
 			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void onShowFilter(boolean ischain)
+	{
+		List<BPResource> ress = m_table.getBPTableModel().getDatas();
+		if (ress == null || ress.size() == 0)
+			return;
+		int seltype = -1;
+		{
+			List<String> seltypes = Arrays.asList(
+					new String[] { BPLocaleHelpers.translateByClass(BPTable.class, "Full Table"), BPLocaleHelpers.translateByClass(BPTable.class, "Selection Only"), BPLocaleHelpers.translateByClass(BPFilesPanel.class, "Full in Current Path") });
+			String seltypestr = UIStd.select(seltypes, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.SOURCE), null, m_table.getSelectedData() != null ? 1 : 0);
+			if (seltypestr != null)
+				seltype = seltypes.indexOf(seltypestr);
+		}
+		if (seltype < 0)
+			return;
+		boolean islistsub = m_listsub;
+		switch (seltype)
+		{
+			case 0:
+				break;
+			case 1:
+				ress = m_table.getSelectedDatas();
+				break;
+			case 2:
+				ress = new ArrayList<BPResource>();
+				listResourceFS(m_tablefuncs.getBaseResource(), ress, true);
+				islistsub = true;
+				break;
+		}
+		List<BPTransformerRuleFilter<BPResource>> filters = new ArrayList<BPTransformerRuleFilter<BPResource>>();
+		BPResource res0 = ress.get(0);
+		List<BPTransformerFactory> facs = BPTransformerManager.getTransformerFacs(res0);
+		for (BPTransformerFactory fac : facs)
+		{
+			if (fac.isRuleFilter())
+				filters.add((BPTransformerRuleFilter<BPResource>) fac.createTransformer(BPTransformerFactory.TF_TOLIST));
+		}
+		BPFilterComponent<BPResource> fc;
+		if (ischain)
+		{
+			BPPipedFilterDataListPanel<BPResource> p = new BPPipedFilterDataListPanel<>();
+			p.setup(filters, null, ress, null);
+			p.setPreferredSize(UIUtil.getPercentDimension(0.8f, 0.8f));
+			fc = p;
+		}
+		else
+		{
+			BPFilterDataListPanel<BPResource> p = new BPFilterDataListPanel<>();
+			p.setup(filters, null, ress, null);
+			p.setPreferredSize(UIUtil.getPercentDimension(0.8f, 0.8f));
+			fc = p;
+		}
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent((Component) fc, BPDialogSimple.COMMANDBAR_OK_CANCEL, null);
+		dlg.setTitle(UIUtil.wrapBPTitles(BPLocaleConstCC.FILTER));
+		dlg.pack();
+		dlg.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+		dlg.setModal(true);
+		dlg.setVisible(true);
+		if (dlg.getActionResult() == BPDialogSimple.COMMAND_OK)
+		{
+			List<BPResource> seldatas = fc.getResults();
+			BPFilesPanel fp = new BPFilesPanel();
+			fp.setupByFileList(m_tablefuncs.getBaseResource(), seldatas, islistsub);
+			CommonUIOperations.showBPComponentInNewWindow(fp);
 		}
 	}
 
@@ -303,14 +434,15 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 			{
 				if (e.datas != null && e.datas.length > 0)
 					path = (BPResource) e.datas[0];
+				String subkey = e.subkey;
+				if ((subkey != null && subkey.equals(m_id)) || checkSubPath(path))
+				{
+					refresh();
+				}
 			}
 			catch (Exception err)
 			{
-			}
-			String subkey = e.subkey;
-			if ((subkey != null && subkey.equals(m_id)) || checkSubPath(path))
-			{
-				refresh();
+				Std.err(err);
 			}
 		}
 	}
@@ -324,11 +456,25 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		{
 			if (tar.length() == basepath.length())
 				return true;
+			if (tar.length() < basepath.length())
+				return false;
 			String c = tar.substring(basepath.length(), basepath.length() + 1);
 			if (c.equals("/") || c.equals(File.separator))
 				return true;
 		}
 		return false;
+	}
+
+	public void setupByFileList(BPResource baseres, List<BPResource> filelist, boolean islistsub)
+	{
+		List<BPResource> children = filelist;
+		m_tablefuncs.setBaseResource(baseres);
+		m_listsub = islistsub;
+		initTableColumn();
+		m_actrefresh.setEnabled(false);
+		m_acttogglelistsub.setEnabled(false);
+		m_isonlylist = true;
+		initList(children);
 	}
 
 	protected void setBaseResource(BPResource res)
@@ -340,35 +486,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		if (isdir)
 		{
 			listResourceFS(res, children, m_listsub);
-			// List<BPResource> childrenf = new ArrayList<BPResource>();
-			// List<BPResource> childrend = new ArrayList<BPResource>();
-			// BPResourceFileSystem fres = (BPResourceFileSystem) res;
-			// BPResource[] subfs = fres.listResources();
-			// for (BPResource subf : subfs)
-			// {
-			// if (subf.isFileSystem())
-			// {
-			// BPResourceFileSystem f = (BPResourceFileSystem) subf;
-			// if (checkEntry(f.getName(), f.isDirectory()))
-			// {
-			// if (f.isFile())
-			// {
-			// childrenf.add(f);
-			// }
-			// else
-			// {
-			// childrend.add(f);
-			// }
-			// }
-			// }
-			// }
-			// children.addAll(childrend);
-			// children.addAll(childrenf);
-			// childrend.clear();
-			// childrenf.clear();
 		}
 		else if (m_con instanceof BPDataContainerFileSystem)
 		{
+			m_acttogglelistsub.setEnabled(false);
 			m_con.open();
 			BPDataContainerFileSystem confs = (BPDataContainerFileSystem) m_con;
 			confs.readFull(this::checkEntry);
@@ -386,32 +507,33 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		BPResourceFileSystem fres = (BPResourceFileSystem) res;
 		BPResource[] subfs = fres.listResources();
-		for (BPResource subf : subfs)
+		if (subfs != null)
 		{
-			if (subf.isFileSystem())
+			for (BPResource subf : subfs)
 			{
-				BPResourceFileSystem f = (BPResourceFileSystem) subf;
-				if (checkEntry(f.getName(), f.isDirectory()))
+				if (subf.isFileSystem())
 				{
-					if (!f.isFile())
+					BPResourceFileSystem f = (BPResourceFileSystem) subf;
+					if (checkEntry(f.getName(), f.isDirectory()))
 					{
-						results.add(f);
-						if (recursive)
-							listResourceFS(f, results, recursive);
+						if (!f.isFile())
+						{
+							results.add(f);
+							if (recursive && f.isDirectory())
+								listResourceFS(f, results, recursive);
+						}
 					}
 				}
 			}
-		}
-		for (BPResource subf : subfs)
-		{
-			if (subf.isFileSystem())
+			for (BPResource subf : subfs)
 			{
-				BPResourceFileSystem f = (BPResourceFileSystem) subf;
-				if (checkEntry(f.getName(), f.isDirectory()))
+				if (subf.isFileSystem())
 				{
-					if (f.isFile())
+					BPResourceFileSystem f = (BPResourceFileSystem) subf;
+					if (checkEntry(f.getName(), f.isDirectory()))
 					{
-						results.add(f);
+						if (f.isFile())
+							results.add(f);
 					}
 				}
 			}
@@ -461,7 +583,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	public void clearResource()
 	{
-		m_syncobj.clearResource();
+		m_ec.clearResource();
 		if (m_table != null)
 		{
 			m_table.clearResource();
@@ -521,7 +643,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		m_channelid = channelid;
 		m_tablefuncs.setChannelID(channelid);
-		m_syncobj.setChannelID(channelid);
+		m_ec.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -658,6 +780,11 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		return rc;
 	}
 
+	protected final static void onSyncEditorOuter(BPEventUISyncEditor e, BPFilesPanel editor)
+	{
+		editor.onSyncEditor(e);
+	}
+
 	protected void onSyncEditor(BPEventUISyncEditor e)
 	{
 		if (BPEventUISyncEditor.SYNC_POS.equals(e.subkey))
@@ -681,7 +808,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				if (!m_id.equals(id))
 				{
 					String[] sels = e.getSyncData();
-					m_syncobj.blockSync(() ->
+					m_ec.syncstatus.blockSync(() ->
 					{
 						int[] tcs = getFileIndex(ObjUtil.collectNotEmpty(getSubResources(sels)).toArray(new BPResource[0]));
 						if (tcs.length > 0)
@@ -699,7 +826,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	protected void onSelectionChanged(ListSelectionEvent e)
 	{
-		if (e.getValueIsAdjusting() && m_syncobj.checkSyncAndNoBlock())
+		if (e.getValueIsAdjusting() && m_ec.syncstatus.checkSyncAndNoBlock())
 		{
 			List<BPResource> ress = m_table.getSelectedDatas();
 			String[] resstrs = new String[ress.size()];
@@ -711,7 +838,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				{
 					resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
 				}
-				m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+				m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 			}
 			else
 			{
@@ -719,8 +846,13 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				{
 					resstrs[i] = ress.get(i).getName();
 				}
-				m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
+				m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 			}
 		}
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

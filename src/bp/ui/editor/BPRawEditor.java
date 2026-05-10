@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -46,10 +47,8 @@ import bp.ui.actions.BPAction;
 import bp.ui.compare.BPComparableGUI;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSimple;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.parallel.BPEventUISyncEditor;
-import bp.ui.parallel.BPSyncGUI;
-import bp.ui.parallel.BPSyncGUIController;
-import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPBytesCalcPane;
 import bp.ui.scomp.BPHexPane;
@@ -63,7 +62,7 @@ import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
 
-public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainerRandomAccess>, BPSyncGUI, BPComparableGUI<BPDataContainerRandomAccess, BPDataCompareResultRaw>
+public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainerRandomAccess>, BPComparableGUI<BPDataContainerRandomAccess, BPDataCompareResultRaw>
 {
 	/**
 	 * 
@@ -90,16 +89,16 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	protected BiConsumer<byte[], Integer> m_previewcb;
 	protected WeakReference<Consumer<String>> m_dynainfo;
 	protected BiConsumer<String, Boolean> m_statechangedcb;
-	protected Consumer<BPEventUISyncEditor> m_synccb;
-	
-	protected BPSyncGUIController m_syncobj;
 
 	protected BPBlockCache m_cache;
+	protected BPEditorController m_ec;
 
 	protected boolean m_nopreview = false;
 
 	public BPRawEditor()
 	{
+		m_ec = new BPEditorController(this);
+		
 		m_fullscroll = ObjUtil.toBool(BPEnvManager.getEnvValue(BPEnvEditors.ENV_NAME_EDITORS, BPEnvEditors.ENVKEY_RAWEDITOR_FULLSCROLL), false);
 		m_txtp = new BPTextPane();
 		m_hexp = new BPHexPane();
@@ -167,8 +166,8 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_readcb = this::onRead;
 		m_rawreadcb = this::onRawRead;
 		m_previewcb = this::onPreview;
-		m_synccb = this::onSyncEditor;
-		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
+		m_ec.initStatusSync((BiConsumer<BPEventUISyncEditor, BPRawEditor>) BPRawEditor::onSyncEditorOuter);
+		m_ec.startsynccb = (Consumer<BPRawEditor>) BPRawEditor::startSyncFixer;
 
 		m_hexp.setContextActions(makeContextActions());
 		m_hexp.getScrollBar().addAdjustmentListener(this::onScroll);
@@ -261,7 +260,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		dlg.setModal(true);
 		dlg.setTitle("Test Structure");
 		dlg.pack();
-		dlg.setLocationRelativeTo(this.getFocusCycleRootAncestor());
+		dlg.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
 		dlg.setVisible(true);
 	}
 
@@ -582,7 +581,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public void setChannelID(int channelid)
 	{
 		m_channelid = channelid;
-		m_syncobj.setChannelID(channelid);
+		m_ec.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -595,8 +594,8 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_calcp.setBytes(m_hexp.getSelectedBytes());
 		sendDynamicInfo(start >= 0 && end >= 0 ? (BPHexPane.getHEXStr(start) + " - " + BPHexPane.getHEXStr(end)) : "");
 
-		if (m_syncobj.checkSyncAndNoBlock())
-			m_syncobj.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_RAW, new long[] { start, end }));
+		if (m_ec.syncstatus.checkSyncAndNoBlock())
+			m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_RAW, new long[] { start, end }));
 	}
 
 	protected void sendDynamicInfo(String info)
@@ -632,18 +631,26 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		updateUI();
 	}
 
-	protected void onScroll(AdjustmentEvent e)
+	public boolean hasPreview()
 	{
-		if (m_syncobj.checkSyncAndNoBlock() && (m_fullscroll || !e.getValueIsAdjusting()))
-			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_RAW, m_hexp.getScrollBar().getValue()));
+		return !m_nopreview;
 	}
 
-	public void startSyncStatus()
+	protected void onScroll(AdjustmentEvent e)
 	{
-		m_syncobj.startSync();
+		if (m_ec.syncstatus.checkSyncAndNoBlock() && (m_fullscroll || !e.getValueIsAdjusting()))
+			m_ec.syncstatus.trigger(BPEventUISyncEditor.syncPosition(m_id, SYNCPOSTYPE_RAW, m_hexp.getScrollBar().getValue()));
+	}
 
-		if (!m_nopreview)
-			toggleRightPanel();
+	public final static void startSyncFixer(BPRawEditor editor)
+	{
+		if (editor.hasPreview())
+			editor.toggleRightPanel();
+	}
+
+	protected final static void onSyncEditorOuter(BPEventUISyncEditor e, BPRawEditor editor)
+	{
+		editor.onSyncEditor(e);
 	}
 
 	protected void onSyncEditor(BPEventUISyncEditor e)
@@ -655,7 +662,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 				String id = (String) e.datas[0];
 				if (!m_id.equals(id))
 				{
-					m_syncobj.blockSync(() -> m_hexp.getScrollBar().setValue(e.getSyncData()));
+					m_ec.syncstatus.blockSync(() -> m_hexp.getScrollBar().setValue(e.getSyncData()));
 				}
 			}
 		}
@@ -667,7 +674,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 				if (!m_id.equals(id))
 				{
 					long[] sels = e.getSyncData();
-					m_syncobj.blockSync(() ->
+					m_ec.syncstatus.blockSync(() ->
 					{
 						m_hexp.setSelection(sels[0], sels[1]);
 						m_hexp.repaint();
@@ -675,11 +682,6 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 				}
 			}
 		}
-	}
-	
-	public BPSyncGUIController getSyncStatusController()
-	{
-		return m_syncobj;
 	}
 
 	public BPDataComparator<BPDataContainerRandomAccess, BPDataCompareResultRaw> getComparator()
@@ -690,5 +692,10 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public BPDataContainerRandomAccess getCompareData()
 	{
 		return m_con;
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

@@ -42,6 +42,7 @@ import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSetting;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.scomp.BPDiagramComponent;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
@@ -87,9 +88,11 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 	protected boolean m_blockloopselect = false;
 
 	protected WeakReference<BiConsumer<String, Boolean>> m_statehandler;
+	protected BPEditorController m_ec;
 
 	public BPDataPipesPanel()
 	{
+		m_ec = new BPEditorController(this);
 		init();
 		initBPActions();
 	}
@@ -548,5 +551,10 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			con.bind(res);
 			return con;
 		}
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

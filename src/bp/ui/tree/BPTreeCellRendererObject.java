@@ -5,6 +5,7 @@ import java.awt.Component;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import bp.typeext.Pair;
 import bp.ui.scomp.BPTree.BPTreeNode;
 import bp.util.ObjUtil;
 
@@ -28,7 +29,11 @@ public class BPTreeCellRendererObject extends DefaultTreeCellRenderer
 			if (v.getClass().isArray())
 			{
 				Object[] vs = (Object[]) v;
-				v = vs[0] + ":" + vs[1];
+				v = "[" + ObjUtil.joinArray(vs, ",", null, false) + "]";
+			}
+			else if (v instanceof Pair)
+			{
+				v = ((Pair<?, ?>) v).getLeft() + ":" + ((Pair<?, ?>) v).getRight();
 			}
 
 			v = ObjUtil.toString(v, "", m_datacount);

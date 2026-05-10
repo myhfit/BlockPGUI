@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFileSystem;
@@ -61,11 +63,11 @@ public class BPFormPanelTaskPackFiles extends BPFormPanelTask
 
 		m_chkpacklist = makeCheckBox();
 
-		addLine(new String[] { "Source" }, new Component[] { m_pansrc }, () -> !m_txtsrc.isEmpty());
-		addLine(new String[] { "Target" }, new Component[] { m_txttar }, () -> !m_txttar.isEmpty());
-		addLine(new String[] { "Target Dir" }, new Component[] { m_pantardir });
-		addLine(new String[] { "Source Base" }, new Component[] { m_pansrcbase });
-		addLine(new String[] { "Save Source List" }, new Component[] { m_chkpacklist });
+		addLine(new String[] { BPLocaleConstCC.SOURCE.text() }, new Component[] { m_pansrc }, () -> !m_txtsrc.isEmpty());
+		addLine(new String[] { BPLocaleConstCC.TARGET.text() }, new Component[] { m_txttar }, () -> !m_txttar.isEmpty());
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Target Dir") }, new Component[] { m_pantardir });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Source Base") }, new Component[] { m_pansrcbase });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Save Source List") }, new Component[] { m_chkpacklist });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

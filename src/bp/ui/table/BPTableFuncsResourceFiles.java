@@ -8,7 +8,6 @@ import javax.swing.Action;
 
 import bp.format.BPFormatDir;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceFile;
 import bp.res.BPResourceFileSystem;
@@ -29,9 +28,8 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 
 	protected void initColumns()
 	{
-		m_colnames = new String[] { "Name", "Path", "Type", "Size", "Last Modify" };
-		m_collabels = new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.NAME), BPLocaleHelpers.getValue(BPLocaleConstCC.PATH), BPLocaleHelpers.getValue(BPLocaleConstCC.TYPE), BPLocaleHelpers.getValue(BPLocaleConstCC.SIZE),
-				BPLocaleHelpers.getValue(BPLocaleConstCC.LAST_MODIFIED) };
+		m_colnames = new String[] { "Path", "Name", "Type", "Size", "Last Modify" };
+		m_collabels = new String[] { BPLocaleConstCC.PATH.text(), BPLocaleConstCC.NAME.text(), BPLocaleConstCC.TYPE.text(), BPLocaleConstCC.SIZE.text(), BPLocaleConstCC.LAST_MODIFIED.text() };
 		m_cols = new Class<?>[] { String.class, String.class, String.class, Long.class, Long.class };
 	}
 
@@ -39,8 +37,10 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 	{
 		switch (col)
 		{
-			case 1:
+			case 0:
 				return getRelativePath(res);
+			case 1:
+				return res.getName();
 			case 2:
 				return getResourceType(res);
 			case 3:
@@ -48,7 +48,7 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 			case 4:
 				return getResourceLastModified(res);
 			default:
-				return super.getValue(res, row, col);
+				return "";
 		}
 	}
 
@@ -120,7 +120,7 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 			}
 			else if (fres.isDirectory())
 			{
-				return BPFormatDir.FORMAT_DIR;
+				return BPFormatDir.EXT_DIR;
 			}
 		}
 		else

@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.util.Map;
 
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.ui.scomp.BPTextField;
 
 public class BPFormPanelFile extends BPFormPanelFileSystem
@@ -22,7 +21,7 @@ public class BPFormPanelFile extends BPFormPanelFileSystem
 
 		m_txtlen = makeSingleLineTextField();
 
-		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.SIZE) }, new Component[] { m_txtlen });
+		addLine(new String[] { BPLocaleConstCC.SIZE.text() }, new Component[] { m_txtlen });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

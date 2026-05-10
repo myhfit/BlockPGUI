@@ -30,7 +30,7 @@ import bp.ui.dialog.BPDialogSetting;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil.WeakRefGo;
 
-public class BPFilterDataListPanel<DATA> extends JPanel
+public class BPFilterDataListPanel<DATA> extends JPanel implements BPFilterComponent<DATA>
 {
 	/**
 	 * 

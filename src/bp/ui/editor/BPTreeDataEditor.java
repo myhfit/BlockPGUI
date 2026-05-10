@@ -40,6 +40,7 @@ import bp.ui.actions.BPTreeDataCloneActions;
 import bp.ui.actions.BPTreeDataEditorActions;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
@@ -72,11 +73,13 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 	protected BPActionHolder m_acts;
 
 	protected boolean m_needsave;
+	protected BPEditorController m_ec;
 
 	private WeakReference<BiConsumer<String, Boolean>> m_statehandler;
 
 	public BPTreeDataEditor()
 	{
+		m_ec = new BPEditorController(this);
 		init();
 	}
 
@@ -276,9 +279,7 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 	{
 		Object obj = m_treedata.getRoot();
 		if (obj == null || !(obj instanceof Collection))
-		{
 			return;
-		}
 
 		String key = ClassUtil.tryLoopSuperClass(c -> BPFormManager.hasForm(c.getName()) ? c.getName() : null, BPXYDataList.class, BPXYData.class);
 		BPDialogForm dlg = new BPDialogForm();
@@ -289,7 +290,7 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 			xydata.fromMapList((List<Map<String, Object>>) obj);
 			dlg.setup(key, ObjUtil.makeMap("_xydata", xydata));
 		}
-		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
+		dlg.setPreferredSize(UIUtil.getPercentDimension(0.8f, 0.8f));
 		dlg.pack();
 		dlg.setLocationRelativeTo(null);
 		dlg.setVisible(true);
@@ -363,5 +364,10 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 			JComponent par = (JComponent) source.getParent();
 			pop.show(par, source.getX(), source.getY() + source.getHeight());
 		}
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

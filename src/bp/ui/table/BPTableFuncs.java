@@ -12,6 +12,8 @@ public interface BPTableFuncs<T>
 
 	String getColumnName(int col);
 
+	String getColumnLabel(int col);
+
 	Class<?>[] getColumnClasses();
 
 	Class<?> getColumnClass(int col);

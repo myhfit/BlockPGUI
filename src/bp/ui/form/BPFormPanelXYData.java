@@ -9,6 +9,7 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.TableColumnModel;
 
 import bp.data.BPXData;
 import bp.data.BPXYData;
@@ -51,6 +52,10 @@ public class BPFormPanelXYData extends BPFormPanel
 		m_funcs.setReadonly(!editable);
 		m_table.initRowSorter();
 		m_tb.setVisible(editable);
+
+		TableColumnModel tcm = m_table.getColumnModel();
+		for (int i = 0; i < tcm.getColumnCount(); i++)
+			tcm.getColumn(i).setPreferredWidth(180);
 	}
 
 	protected void initForm()
@@ -65,12 +70,18 @@ public class BPFormPanelXYData extends BPFormPanel
 		m_tb = tb;
 
 		m_table.setMonoFont();
+		m_table.setAutoResizeMode(BPTable.AUTO_RESIZE_OFF);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 
 		pnl.setLayout(new BorderLayout());
 		pnl.add(scroll, BorderLayout.CENTER);
 		pnl.add(tb, BorderLayout.WEST);
 		doAddLineComponents(null, false, 0, new Component[] { pnl });
+	}
+
+	public BPTable<BPXData> getTable()
+	{
+		return m_table;
 	}
 
 	protected void onClone(ActionEvent e)

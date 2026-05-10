@@ -4,12 +4,13 @@ import java.awt.Component;
 import java.util.Map;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
-import bp.ui.dialog.BPDialogSelectResource2;
-import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
+import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
+import bp.ui.util.CommonUIOperations;
 
 public class BPFormPanelTaskReadTextFile extends BPFormPanelTask
 {
@@ -40,8 +41,8 @@ public class BPFormPanelTaskReadTextFile extends BPFormPanelTask
 		m_txtfilename = m_panfilename.getTextComponent();
 		m_txtencoding = m_panencoding.getTextComponent();
 
-		addLine(new String[] { "Filename" }, new Component[] { m_panfilename }, () -> !m_txtfilename.isEmpty());
-		addLine(new String[] { "Encoding" }, new Component[] { m_txtencoding });
+		addLine(new String[] { BPLocaleConstCC.FILENAME.text() }, new Component[] { m_panfilename }, () -> !m_txtfilename.isEmpty());
+		addLine(new String[] { BPLocaleConstCC.ENCODING.text() }, new Component[] { m_txtencoding });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)
@@ -59,14 +60,9 @@ public class BPFormPanelTaskReadTextFile extends BPFormPanelTask
 	protected String onSelectFile(String oldpath)
 	{
 		String rc = null;
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setSelectType(SELECTTYPE.FILE);
-		dlg.showOpen();
-		BPResource res = dlg.getSelectedResource();
+		BPResource res = CommonUIOperations.showSelectResource(null, cb -> cb.setSelectType(SELECTTYPE.FILE));
 		if (res != null)
-		{
 			rc = BPCore.getFileContext().comparePath(((BPResourceFileSystem) res).getFileFullName());
-		}
 		return rc;
 	}
 }

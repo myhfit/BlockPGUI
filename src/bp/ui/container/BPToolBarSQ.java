@@ -198,4 +198,12 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 	{
 		add(Box.createGlue());
 	}
+
+	public void setNoScrollSize()
+	{
+		if (m_isvertical)
+			setPreferredSize(new Dimension((int) (m_barheight * UIConfigs.UI_SCALE()), 0));
+		else
+			setPreferredSize(new Dimension(0, (int) (m_barheight * UIConfigs.UI_SCALE())));
+	}
 }

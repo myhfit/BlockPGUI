@@ -7,7 +7,6 @@ import javax.swing.SwingUtilities;
 
 import bp.res.BPResource;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPParallelEditorPanel;
 import bp.ui.frame.BPFrame;
@@ -17,7 +16,7 @@ public class BPToolGUIParallelEditor extends BPToolGUIBase<BPToolGUIParallelEdit
 {
 	public String getName()
 	{
-		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_PARRAEDITOR);
+		return BPActionConstCommon.TNAME_PARRAEDITOR.text();
 	}
 
 	public String getSubTitle()

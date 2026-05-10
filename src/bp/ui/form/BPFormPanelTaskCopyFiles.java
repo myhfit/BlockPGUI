@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.util.Map;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.ui.dialog.BPDialogSelectResourceDir;
@@ -45,9 +47,9 @@ public class BPFormPanelTaskCopyFiles extends BPFormPanelTask
 
 		m_chkcreatedir = makeCheckBox();
 
-		addLine(new String[] { "Source" }, new Component[] { m_pansrc }, () -> !m_txtsrc.isEmpty());
-		addLine(new String[] { "Target" }, new Component[] { m_pantar }, () -> !m_txttar.isEmpty());
-		addLine(new String[] { "Create Dir" }, new Component[] { m_chkcreatedir });
+		addLine(new String[] { BPLocaleConstCC.SOURCE.text() }, new Component[] { m_pansrc }, () -> !m_txtsrc.isEmpty());
+		addLine(new String[] { BPLocaleConstCC.TARGET.text() }, new Component[] { m_pantar }, () -> !m_txttar.isEmpty());
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Create Dir") }, new Component[] { m_chkcreatedir });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

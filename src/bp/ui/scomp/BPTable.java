@@ -16,7 +16,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -37,6 +39,7 @@ import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -46,9 +49,10 @@ import javax.swing.table.TableRowSorter;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 
-import bp.BPGUICore;
 import bp.config.UIConfigs;
+import bp.locale.BPLocaleConstCC;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogFind;
 import bp.ui.dialog.BPDialogFind.BPFindPs;
 import bp.ui.dialog.BPDialogFind.BPReplacePs;
@@ -124,7 +128,7 @@ public class BPTable<T> extends JTable
 
 	public void initTableHeaderContextMenu()
 	{
-		getTableHeader().addMouseListener(new UIUtil.BPMouseListener(this::onHeaderMouse, this::onHeaderMouse, null, null, null));
+		getTableHeader().addMouseListener(new UIUtil.BPMouseListener(this::onHeaderMouse, this::onHeaderMouse, this::onHeaderMouse, null, null));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -172,7 +176,6 @@ public class BPTable<T> extends JTable
 
 	public void setCommonRenderAlign()
 	{
-		((DefaultTableCellRenderer) getDefaultRenderer(Float.class)).setHorizontalAlignment(JLabel.LEFT);
 		((DefaultTableCellRenderer) getDefaultRenderer(Float.class)).setHorizontalAlignment(JLabel.LEFT);
 		((DefaultTableCellRenderer) getDefaultRenderer(Double.class)).setHorizontalAlignment(JLabel.LEFT);
 		((DefaultTableCellRenderer) getDefaultRenderer(Long.class)).setHorizontalAlignment(JLabel.LEFT);
@@ -372,8 +375,26 @@ public class BPTable<T> extends JTable
 	{
 		if (e.isPopupTrigger())
 		{
-
+			List<Action> acts = makeTableHeaderActions(null);
+			if (acts != null && acts.size() > 0)
+			{
+				JPopupMenu pop = new JPopupMenu();
+				JComponent[] comps = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
+				for (JComponent comp : comps)
+					pop.add(comp);
+				pop.show(getTableHeader(), e.getX(), e.getY());
+			}
 		}
+	}
+
+	protected List<Action> makeTableHeaderActions(JTableHeader header)
+	{
+		List<Action> rc = new ArrayList<Action>();
+		Action actfind = BPAction.build(BPActionConstCommon.FDLG_FIND.text() + "/" + BPActionConstCommon.FDLG_REPLACE.text()).callback(this::onFind).getAction();
+		Action actfilter = BPAction.build(BPLocaleConstCC.FILTER.text()).callback(this::onFilter).getAction();
+		rc.add(actfind);
+		rc.add(actfilter);
+		return rc;
 	}
 
 	protected void onContextMenuKey(KeyEvent e)
@@ -441,8 +462,8 @@ public class BPTable<T> extends JTable
 			if (funcs != null)
 			{
 				Point pt = e.getPoint();
-				int sr = super.rowAtPoint(pt);
-				int sc = super.columnAtPoint(pt);
+				int sr = rowAtPoint(pt);
+				int sc = columnAtPoint(pt);
 				int[] rows = getSelectedModelRows();
 				List<Action> acts = null;
 				if (rows != null && rows.length > 0)
@@ -490,7 +511,7 @@ public class BPTable<T> extends JTable
 		{
 			cur = filter.getFilterText();
 		}
-		String fstr = UIStd.input(cur == null ? "" : cur, "Filter:", BPGUICore.S_BP_TITLE + " - Filter Table");
+		String fstr = UIStd.input(cur == null ? "" : cur, BPLocaleConstCC.FILTER.text() + ":", null);
 		if (fstr != null)
 		{
 			if (fstr != null && fstr.length() == 0)
@@ -644,7 +665,7 @@ public class BPTable<T> extends JTable
 			return;
 		BPTableModel<T> model = getBPTableModel();
 		int techc = 0;
-		boolean showlinenum=model.isShowLineNum();
+		boolean showlinenum = model.isShowLineNum();
 		for (; i != si; i += delta)
 		{
 			if (techc >= c)
@@ -984,6 +1005,21 @@ public class BPTable<T> extends JTable
 				if (col == 0)
 					return "#";
 				else
+					return m_funcs.getColumnLabel(col - 1);
+			}
+			else
+			{
+				return m_funcs.getColumnLabel(col);
+			}
+		}
+
+		public String getColumnRawName(int col)
+		{
+			if (m_showlinenum)
+			{
+				if (col == 0)
+					return "#";
+				else
 					return m_funcs.getColumnName(col - 1);
 			}
 			else
@@ -1201,6 +1237,82 @@ public class BPTable<T> extends JTable
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public void createDefaultColumnsFromModel()
+	{
+		List<String> cols = new ArrayList<String>();
+		TableModel m0 = getModel();
+		if (m0 instanceof BPTableModel)
+		{
+			BPTableModel<T> m = (BPTableModel<T>) m0;
+			for (int i = 0; i < m.getColumnCount(); i++)
+				cols.add(m.getColumnRawName(i));
+			initColumnsFromModel(cols);
+		}
+		else
+		{
+			super.createDefaultColumnsFromModel();
+		}
+	}
+
+	public void initColumnsFromModel(List<String> cols)
+	{
+		BPTableModel<T> m = getBPTableModel();
+		if (m != null)
+		{
+			BPTableColumnModel cm = (BPTableColumnModel) getColumnModel();
+			while (cm.getColumnCount() > 0)
+			{
+				cm.removeColumn(cm.getColumn(0));
+			}
+
+			for (String colname : cols)
+			{
+				TableColumn tc = cm.getCachedColumn(colname);
+				if (tc != null)
+					addColumn(tc);
+				else
+				{
+					for (int i = 0; i < m.getColumnCount(); i++)
+					{
+						if (colname.equals(m.getColumnRawName(i)))
+						{
+							BPTableColumn col = new BPTableColumn(i);
+							col.setColumnName(colname);
+							addColumn(col);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public static class BPTableColumn extends TableColumn
+	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3595738572468140855L;
+
+		protected String m_colname;
+
+		public BPTableColumn(int i)
+		{
+			super(i);
+		}
+
+		public void setColumnName(String colname)
+		{
+			m_colname = colname;
+		}
+
+		public String getColumnName()
+		{
+			return m_colname;
+		}
+	}
+
 	public static class BPTableColumnModel extends DefaultTableColumnModel
 	{
 		/**
@@ -1208,7 +1320,24 @@ public class BPTable<T> extends JTable
 		 */
 		private static final long serialVersionUID = 382606793781393866L;
 
-		protected List<TableColumn> m_hidetcs = new ArrayList<TableColumn>();
+		protected Map<String, BPTableColumn> m_colcache;
+
+		public void saveCache()
+		{
+			m_colcache = new HashMap<String, BPTableColumn>();
+			for (int i = 0; i < getColumnCount(); i++)
+			{
+				BPTableColumn tc = (BPTableColumn) getColumn(i);
+				m_colcache.put(tc.getColumnName(), tc);
+			}
+		}
+
+		public TableColumn getCachedColumn(String colname)
+		{
+			if (m_colcache == null)
+				return null;
+			return m_colcache.get(colname);
+		}
 
 		public ColumnBuilder getColumnBuilder(int col)
 		{
@@ -1218,20 +1347,6 @@ public class BPTable<T> extends JTable
 		public ColumnBuilder getColumnBuilder(TableColumn col)
 		{
 			return new ColumnBuilder(col, this);
-		}
-
-		public void hideColumn(TableColumn col)
-		{
-			if (!m_hidetcs.contains(col))
-				m_hidetcs.add(col);
-			removeColumn(col);
-		}
-
-		public void showColumn(TableColumn col)
-		{
-			if (m_hidetcs.contains(col))
-				m_hidetcs.remove(col);
-			addColumn(col);
 		}
 
 		public static class ColumnBuilder
@@ -1287,16 +1402,6 @@ public class BPTable<T> extends JTable
 			{
 				m_col.setCellEditor(celleditor);
 				return this;
-			}
-
-			public void hide()
-			{
-				m_model.hideColumn(m_col);
-			}
-
-			public void show()
-			{
-				m_model.showColumn(m_col);
 			}
 		}
 	}

@@ -47,8 +47,6 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_SCHEDULE, "Schedule", null, null, null, null);
 		putAction(actmap, TXT_CONSOLE, "Console", null, null, null, null);
 		putAction(actmap, TXT_WORKING, "Working", null, null, null, null);
-		putAction(actmap, TXT_SOURCE, "Source", null, null, null, null);
-		putAction(actmap, TXT_DEST, "Destination", null, null, null, null);
 		putAction(actmap, TXT_RESULT, "Result", null, null, null, null);
 		putAction(actmap, TXT_TIME, "Time", null, null, null, null);
 		putAction(actmap, TXT_ENV, "Environment", null, null, null, null);
@@ -61,7 +59,6 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_RAW, "Raw", null, null, null, null);
 		putAction(actmap, TXT_ESCAPED, "Escaped", null, null, null, null);
 		putAction(actmap, TXT_PROPS, "Properties", null, null, null, null);
-		putAction(actmap, TXT_ENCODING, "Encoding", null, null, null, null);
 		putAction(actmap, TXT_MODE, "Mode", null, null, null, null);
 		putAction(actmap, TXT_DECODE, "Decode", null, null, null, null);
 		putAction(actmap, TXT_ENCODE, "Encode", null, null, null, null);
@@ -70,7 +67,8 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_WAITING, "Waiting", null, null, null, null);
 		putAction(actmap, TXT_LAF, "LookAndFeel", null, null, null, null);
 		putAction(actmap, TXT_SEARCHING, "Searching", null, null, null, null);
-
+		putAction(actmap, TXT_CONFIRMSTARTTASK, "Confirm start task(s)", null, null, null, null);
+		
 		// Common dialog
 		putAction(actmap, DLG_OK, "OK", null, null, "ctrl ENTER", "O");
 		putAction(actmap, DLG_CC, "Cancel", null, null, "ESCAPE", "C");
@@ -134,6 +132,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, MF_MNUMODS, "Modules...", null, null, null, null);
 
 		putAction(actmap, MF_MNUHELPSYSINFO, "System Info...", null, null, null, null);
+		putAction(actmap, MF_MNUHELPABOUT, "About...", null, null, null, null);
 		putAction(actmap, MF_MNUSCSEDITSCS, "Edit Shortcuts...", null, null, null, null);
 		
 		// func
@@ -155,7 +154,6 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNUP, "moveup", "Move Up", BPIconResV::TOUP, null, null);
 		putAction(actmap, ACT_BTNUP_BACK, "back", "Back", null, null, null);
 		putAction(actmap, ACT_BTNDOWN, "movedown", "Move Down", BPIconResV::TODOWN, null, null);
-		putAction(actmap, ACT_BTNDEL, "del", "Remove", BPIconResV::DEL, null, null);
 		putAction(actmap, ACT_BTNLAYOUT, "layout", "Layout", BPIconResV::LAYOUT, null, null);
 		putAction(actmap, ACT_BTNOPEN, "open", "Open", BPIconResV::OPEN, null, null);
 		putAction(actmap, ACT_BTNOPEN_ACC, null, null, null, "ctrl O", null);
@@ -171,6 +169,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 
 		putAction(actmap, ACT_BTNTOGGLE, "toggle", "Toggle", BPIconResV::DROPDOWN, null, null);
 		putAction(actmap, ACT_BTNTOGGLE_DETAIL, "toggledetail", "Toggle detail", null, null, null);
+		putAction(actmap, ACT_BTNTOGGLE_LISTSUB, "listsub", "List sub", null, null, null);
 
 		putAction(actmap, ACT_BTNDEL, "del", "Delete", BPIconResV::DEL, null, null);
 		putAction(actmap, ACT_BTNDEL_ACC, null, null, null, "DELETE", null);
@@ -193,6 +192,8 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNESCAPE, "Escape", "Escape", BPIconResV::TORIGHT, null, null);
 		putAction(actmap, ACT_BTNUNESCAPE, "Unescape", "Unescape", BPIconResV::TOLEFT, null, null);
 		putAction(actmap, ACT_BTNSET, "Set", "Set", BPIconResV::START, null, null);
+		putAction(actmap, ACT_BTNFILTER, "filter", "Filter", BPIconResV::CLONE, null, null);
+		putAction(actmap, ACT_BTNCHAINFILTER, "chain filter", "Chain filter", BPIconResV::CLONE, null, null);
 
 		// rmenu
 		putAction(actmap, CTX_MNUCOPY, "Copy", null, null, null, "C");

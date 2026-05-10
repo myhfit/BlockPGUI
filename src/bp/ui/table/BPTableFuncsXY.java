@@ -17,7 +17,6 @@ import bp.data.BPXYData;
 import bp.format.BPFormatText;
 import bp.format.BPFormatUnknown;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
@@ -144,7 +143,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 						Map<String, BPTransformer<?>> ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOSTRING);
 						if (ts != null && ts.size() > 0)
 						{
-							String tarfix = ">" + BPLocaleHelpers.getValue(BPLocaleConstCC.TEXT);
+							String tarfix = ">" + BPLocaleConstCC.TEXT.text();
 							for (String tkey : ts.keySet())
 							{
 								BPTransformer t = ts.get(tkey);
@@ -170,7 +169,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 						ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOBYTEARRAY);
 						if (ts != null && ts.size() > 0)
 						{
-							String tarfix = ">" + BPLocaleHelpers.getValue(BPLocaleConstCC.BYTEARR);
+							String tarfix = ">" + BPLocaleConstCC.BYTEARR.text();
 							for (String tkey : ts.keySet())
 							{
 								BPTransformer t = ts.get(tkey);
@@ -251,7 +250,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 			v = r + 1;
 		else
 			v = sdata.getColValue(c - (showlinenum ? 1 : 0));
-		UIStd.textarea(ObjUtil.toString(v, ""), BPActionHelpers.getValue(BPActionConstCommon.CTX_MNUVIEW_CELL));
+		UIStd.textarea(ObjUtil.toString(v, ""), BPActionConstCommon.CTX_MNUVIEW_CELL.text());
 	}
 
 	protected void editcell(BPTable<BPXData> table, List<BPXData> datas, int[] rows, int sr, int sc)
@@ -267,12 +266,12 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		if (c == 0 && showlinenum)
 		{
 			v = r + 1;
-			UIStd.textarea(ObjUtil.toString(v, ""), BPActionHelpers.getValue(BPActionConstCommon.CTX_MNUVIEW_CELL));
+			UIStd.textarea(ObjUtil.toString(v, ""), BPActionConstCommon.CTX_MNUVIEW_CELL.text());
 		}
 		else
 		{
 			v = sdata.getColValue(c - (showlinenum ? 1 : 0));
-			String newv = UIStd.textarea(ObjUtil.toString(v, ""), BPActionHelpers.getValue(BPActionConstCommon.CTX_MNUEDIT_CELL), true);
+			String newv = UIStd.textarea(ObjUtil.toString(v, ""), BPActionConstCommon.CTX_MNUEDIT_CELL.text(), true);
 			if (newv != null)
 				sdata.setColValue(c - (showlinenum ? 1 : 0), newv);
 		}
@@ -289,7 +288,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		int c = funcs.getColumnNames().length;
 		for (int i = 0; i < c; i++)
 		{
-			String label = funcs.getColumnName(i);
+			String label = funcs.getColumnLabel(i);
 			Object v = funcs.getValue(xdata, rows[0], i);
 			props.add(new Object[] { label, v });
 		}
@@ -307,7 +306,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		int c = funcs.getColumnNames().length;
 		for (int i = 0; i < c; i++)
 		{
-			String label = funcs.getColumnName(i);
+			String label = funcs.getColumnLabel(i);
 			Object v = funcs.getValue(xdata, rows[0], i);
 			props.add(new Object[] { label, v });
 		}

@@ -12,7 +12,6 @@ import bp.config.UIConfigs;
 import bp.env.BPEnvCommon;
 import bp.env.BPEnvManager;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 import bp.ui.console.BPConsoleUI;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.schedule.BPSchedulesUI;
@@ -50,16 +49,16 @@ public class BPTabBottom extends BPTabbedContainerBase
 
 		m_tasksui = new BPTasksUI();
 		m_tasksuiwl = new BPTasksUIWorkLoad();
-		addBPTab("TasksUI", (Icon) null, BPActionHelpers.getValue(BPActionConstCommon.TXT_TASK), m_tasksui);
+		addBPTab("TasksUI", (Icon) null, BPActionConstCommon.TXT_TASK.text(), m_tasksui);
 
 		if ("true".equalsIgnoreCase(BPEnvManager.getEnvValue(BPEnvCommon.ENV_NAME_COMMON, BPEnvCommon.ENVKEY_ENABLE_SCHEDULE)))
 		{
 			m_sdsui = new BPSchedulesUI();
-			addBPTab("SchedulesUI", null, BPActionHelpers.getValue(BPActionConstCommon.TXT_SCHEDULE), m_sdsui, false);
+			addBPTab("SchedulesUI", null, BPActionConstCommon.TXT_SCHEDULE.text(), m_sdsui, false);
 		}
 		BPConsoleUI consoleui = new BPConsoleUI();
-		addBPTab("ConsoleUI", null, BPActionHelpers.getValue(BPActionConstCommon.TXT_CONSOLE), consoleui, false);
-		addBPTab("TasksUIWL", null, BPActionHelpers.getValue(BPActionConstCommon.TXT_WORKING), m_tasksuiwl, false);
+		addBPTab("ConsoleUI", null, BPActionConstCommon.TXT_CONSOLE.text(), consoleui, false);
+		addBPTab("TasksUIWL", null, BPActionConstCommon.TXT_WORKING.text(), m_tasksuiwl, false);
 
 		BPToolVIconButton togglebtn = new BPToolVIconButton(BPIconResV.UPDOWN(), this::onToggle);
 		togglebtn.setPreferredSize(new Dimension((int) (UIConfigs.UI_FIX_SCALE() * UIConfigs.BAR_HEIGHT_VERTICAL()), 0));

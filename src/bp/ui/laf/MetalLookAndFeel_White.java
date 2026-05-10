@@ -1,9 +1,7 @@
 package bp.ui.laf;
 
-import javax.swing.plaf.metal.MetalLookAndFeel;
-
 @SuppressWarnings("serial")
-public class MetalLookAndFeel_White extends MetalLookAndFeel
+public class MetalLookAndFeel_White extends MetalLookAndFeelCustomized
 {
 	public MetalLookAndFeel_White()
 	{

@@ -14,6 +14,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ComboBoxEditor;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import bp.config.UIConfigs;
@@ -54,7 +55,7 @@ public class BPDialogFind extends BPDialogCommon
 
 	public BPDialogFind(Component comp)
 	{
-		this((Window) comp.getFocusCycleRootAncestor());
+		this(SwingUtilities.getWindowAncestor(comp));
 		m_findcb = new WeakRefGo<Function<? super BPFindPs, Boolean>>();
 	}
 
@@ -64,13 +65,13 @@ public class BPDialogFind extends BPDialogCommon
 		JPanel line0 = new JPanel();
 		JPanel line1 = new JPanel();
 		JPanel line2 = new JPanel();
-		BPLabel lblsrc = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.FDLG_FIND));
-		m_lbldest = new BPLabel(BPActionHelpers.getValue(BPActionConstCommon.FDLG_REPLACE));
+		BPLabel lblsrc = new BPLabel(BPActionConstCommon.FDLG_FIND.text());
+		m_lbldest = new BPLabel(BPActionConstCommon.FDLG_REPLACE.text());
 		m_txtsrc = new BPComboBox<String>();
 		m_txtdest = new BPComboBox<String>();
-		m_chkword = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_WHOLEWORD));
-		m_chkcase = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_CASESENSITIVE));
-		m_chkbackward = new BPCheckBox(BPActionHelpers.getValue(BPActionConstCommon.FDLG_BACKWARD));
+		m_chkword = new BPCheckBox(BPActionConstCommon.FDLG_WHOLEWORD.text());
+		m_chkcase = new BPCheckBox(BPActionConstCommon.FDLG_CASESENSITIVE.text());
+		m_chkbackward = new BPCheckBox(BPActionConstCommon.FDLG_BACKWARD.text());
 
 		lblsrc.setMonoFont();
 		m_lbldest.setMonoFont();
@@ -121,13 +122,13 @@ public class BPDialogFind extends BPDialogCommon
 		getContentPane().add(m_mainp);
 
 		BPCommonDialogActions dlgacts = new BPCommonDialogActions(this);
-		dlgacts.actioncancel.putValue(Action.NAME, BPActionHelpers.getValue(BPActionConstCommon.ACT_BTNCLOSE));
+		dlgacts.actioncancel.putValue(Action.NAME, BPActionConstCommon.ACT_BTNCLOSE.text());
 		dlgacts.actioncancel.putValue(Action.MNEMONIC_KEY, null);
 		Action actfind = BPActionHelpers.getAction(BPActionConstCommon.FDLG_FIND, this::onFind);
 		m_actreplace = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACE, this::onReplace);
 		m_actreplaceall = BPActionHelpers.getAction(BPActionConstCommon.FDLG_REPLACEALL, this::onReplaceAll);
 		setCommandBar(new Action[] { actfind, m_actreplace, m_actreplaceall, BPAction.separator(), BPAction.separator(), dlgacts.actioncancel });
-		setTitle(BPActionHelpers.getValue(BPActionConstCommon.FDLG_FIND) + "/" + BPActionHelpers.getValue(BPActionConstCommon.FDLG_REPLACE));
+		setTitle(BPActionConstCommon.FDLG_FIND.text() + "/" + BPActionConstCommon.FDLG_REPLACE.text());
 	}
 
 	protected void onSrcKeyDown(KeyEvent e)

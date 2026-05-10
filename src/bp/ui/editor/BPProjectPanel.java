@@ -12,6 +12,7 @@ import bp.format.BPFormat;
 import bp.format.BPFormatProject;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.view.BPProjectOverviewComp;
 import bp.ui.view.BPProjectOverviewCompFactory;
 import bp.ui.view.BPProjectOverviewManager;
@@ -25,9 +26,11 @@ public class BPProjectPanel extends JPanel implements BPEditor<JPanel>
 
 	protected String m_id;
 	protected int m_channelid;
+	protected BPEditorController m_ec;
 
 	public BPProjectPanel()
 	{
+		m_ec = new BPEditorController(this);
 		setLayout(new BorderLayout());
 	}
 
@@ -99,6 +102,11 @@ public class BPProjectPanel extends JPanel implements BPEditor<JPanel>
 	public boolean isRoutable()
 	{
 		return true;
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 
 	public static class BPEditorFactoryProject implements BPEditorFactory

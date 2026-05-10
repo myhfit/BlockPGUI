@@ -8,7 +8,6 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.script.BPScriptManager;
 import bp.ui.scomp.BPCodePane;
 import bp.ui.scomp.BPComboBox;
@@ -53,7 +52,7 @@ public class BPFormPanelScript extends BPFormPanel
 
 		((BPComboBox.BPComboBoxModel<String>) m_cmblanguage.getModel()).setDatas(BPScriptManager.getLanguages());
 
-		addLine(new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.NAME) }, new Component[] { m_txtname }, () -> !m_txtname.isEmpty() && m_txtname.checkSTName());
+		addLine(new String[] { BPLocaleConstCC.NAME.text() }, new Component[] { m_txtname }, () -> !m_txtname.isEmpty() && m_txtname.checkSTName());
 		addLine(new String[] { "Language" }, new Component[] { m_cmblanguage }, () -> m_cmblanguage.getSelectedItem() != null);
 		doAddLineComponents(null, false, 0, new Component[] { tpan });
 	}

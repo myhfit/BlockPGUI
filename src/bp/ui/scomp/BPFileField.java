@@ -157,6 +157,14 @@ public class BPFileField extends BPTextField
 			m_lstfiles.getBPModel().setDatas(new ArrayList<String>());
 	}
 
+	public void initText(String text)
+	{
+		setText(text);
+		hidePopup();
+		m_popup = null;
+		m_lasttext = "";
+	}
+
 	protected void showPopup()
 	{
 		m_popup.show(this.getParent(), this.getX(), this.getY() + this.getHeight());

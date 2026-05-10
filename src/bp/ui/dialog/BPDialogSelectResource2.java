@@ -21,7 +21,6 @@ import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFactory;
@@ -43,9 +42,11 @@ import bp.ui.tree.BPProjectsTreeFuncs;
 import bp.ui.tree.BPTreeFuncs;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
+import bp.util.LogicUtil;
+import bp.util.LogicUtil.WeakRefGo;
 import bp.util.ObjUtil;
 
-public class BPDialogSelectResource2 extends BPDialogCommon
+public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogSelectResource
 {
 	/**
 	 * 
@@ -56,7 +57,6 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 	protected BPPathTreePanel m_ptree;
 	protected BPTextField m_filebox;
 	protected SELECTTYPE m_selecttype = SELECTTYPE.ALL;
-	protected WeakReference<Predicate<?>> m_customfilter;
 	protected int m_channelid;
 	protected BPResource m_result;
 	protected BPResource[] m_files;
@@ -71,16 +71,25 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 	protected CHECKEXITFLAG m_checkexist;
 	protected String[] m_exts;
 
-	protected WeakReference<Predicate<BPResource>> m_filterref;
+	protected WeakRefGo<Predicate<BPResource>> m_filterref;
 	protected WeakReference<Predicate<BPResource>> m_targetfilterref;
+
+	protected BPResource m_preselres;
 
 	public BPDialogSelectResource2()
 	{
+		this(null);
 	}
 
 	public BPDialogSelectResource2(Window owner)
 	{
 		super(owner);
+	}
+
+	protected void init()
+	{
+		m_filterref = new WeakRefGo<Predicate<BPResource>>();
+		super.init();
 	}
 
 	protected void initBPEvents()
@@ -148,6 +157,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 	{
 		m_ptree = new BPPathTreePanel();
 		m_ptree.setEventChannelID(m_channelid);
+		m_ptree.getTreeComponent().setMultiSelect(false);
 		m_ptree.setMinimumSize(UIUtil.scaleUIDimension(new Dimension(200, 0)));
 		m_ptree.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(200, 0)));
 		BPPathTreeFuncs treefuncs = new BPProjectsTreeFuncs(m_channelid);
@@ -169,7 +179,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 		m_filebox.setMonoFont();
 		lblfilename.setLabelFont();
-		lblfilename.setText(BPLocaleHelpers.getValue(BPLocaleConstCC.FILENAME) + ":");
+		lblfilename.setText(BPLocaleConstCC.FILENAME.text() + ":");
 		lblfilename.setOpaque(false);
 		lblfilename.setBackground(UIConfigs.COLOR_TEXTBG());
 		lblfilename.setBorder(new CompoundBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 2)));
@@ -213,7 +223,10 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 
 	protected void showLocate()
 	{
-		String p = UIStd.inputPath("", "Path:", "Input path");
+		String presetpath = "";
+		if (m_preselres != null && m_preselres.isFileSystem())
+			presetpath = ((BPResourceFileSystem) m_preselres).getFileFullName();
+		String p = UIStd.inputPath(presetpath, BPLocaleConstCC.PATH.text() + ":", UIUtil.wrapBPTitles(BPLocaleConstCC.INPUT, BPLocaleConstCC.PATH));
 		if (p != null)
 		{
 			BPPathTreeFuncs funcs = (BPPathTreeFuncs) m_ptree.getPathTreeFuncs();
@@ -221,7 +234,12 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		}
 	}
 
-	public void switchPathTreeFunc(int func)
+	protected void initTreeFuncs(BPPathTreeFuncs tf, int f)
+	{
+		tf.setTreeFilter(this::filterTreeItem);
+	}
+
+	public BPDialogSelectResource2 switchPathTreeFunc(int func)
 	{
 		BPPathTreeFuncs funcs = null;
 		switch (func)
@@ -229,6 +247,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 			case 1:
 			{
 				funcs = new BPPathTreeLocalFuncs(m_channelid);
+				initTreeFuncs(funcs, func);
 				m_ptree.setPathTreeFuncs(funcs);
 				m_actprjres.putValue(Action.SELECTED_KEY, false);
 				m_actfileres.putValue(Action.SELECTED_KEY, true);
@@ -240,6 +259,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 			case 2:
 			{
 				funcs = new BPProjectsTreeFuncs(m_channelid);
+				initTreeFuncs(funcs, func);
 				m_ptree.setPathTreeFuncs(funcs);
 				m_actprjres.putValue(Action.SELECTED_KEY, true);
 				m_actfileres.putValue(Action.SELECTED_KEY, false);
@@ -251,6 +271,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 			case 3:
 			{
 				funcs = new BPPathTreeComputerFuncs(m_channelid);
+				initTreeFuncs(funcs, func);
 				m_ptree.setPathTreeFuncs(funcs);
 				m_actprjres.putValue(Action.SELECTED_KEY, false);
 				m_actfileres.putValue(Action.SELECTED_KEY, false);
@@ -263,6 +284,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 				BPPathTreeSpecialFuncs f = new BPPathTreeSpecialFuncs(m_channelid);
 				f.setNeedExist(m_checkexist == CHECKEXITFLAG.BLOCKNOTEXIST);
 				funcs = f;
+				initTreeFuncs(funcs, func);
 				m_ptree.setPathTreeFuncs(funcs);
 				m_actprjres.putValue(Action.SELECTED_KEY, false);
 				m_actfileres.putValue(Action.SELECTED_KEY, false);
@@ -272,22 +294,17 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 			}
 		}
 		m_actlocate.setEnabled(funcs != null ? funcs.canLocatePath() : false);
-		WeakReference<Predicate<BPResource>> filterref = m_filterref;
-		if (filterref != null)
-		{
-			Predicate<BPResource> filter = m_filterref.get();
-			if (filter != null)
-				funcs.setTreeFilter(filter);
-		}
+		return this;
 	}
 
-	public void setSelectType(SELECTTYPE flag)
+	public BPDialogSelectResource2 setSelectType(SELECTTYPE flag)
 	{
 		m_selecttype = flag;
 		m_ptree.refreshContextPath();
+		return this;
 	}
 
-	public void setScope(SELECTSCOPE scope)
+	public BPDialogSelectResource2 setScope(SELECTSCOPE scope)
 	{
 		switch (scope)
 		{
@@ -329,6 +346,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 			}
 		}
 		m_ptree.refreshContextPath();
+		return this;
 	}
 
 	protected boolean filterTreeItem(Object obj)
@@ -336,12 +354,13 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		BPResource res = (BPResource) obj;
 		if (m_selecttype == SELECTTYPE.DIR && res.isLeaf())
 			return false;
-		return true;
+		return LogicUtil.NVL(m_filterref.exec(cb -> cb.test(res)), true);
 	}
 
 	public void clearSubComponents()
 	{
 		m_ptree = null;
+		m_preselres = null;
 	}
 
 	public void showSave()
@@ -353,6 +372,12 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 	{
 		m_exts = exts;
 		m_checkexist = CHECKEXITFLAG.CONFIRMOVERWRITE;
+		if (m_preselres != null)
+		{
+			BPTreeFuncs funcs = m_ptree.getPathTreeFuncs();
+			if (funcs != null && funcs instanceof BPPathTreeFuncs)
+				((BPPathTreeFuncs) funcs).locatePath(m_ptree.getTreeComponent(), ((BPResourceFileSystem) m_preselres).getFileFullName());
+		}
 		setVisible(true);
 	}
 
@@ -383,6 +408,12 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 	{
 		m_checkexist = CHECKEXITFLAG.BLOCKNOTEXIST;
 		m_filenamep.setVisible(false);
+		if (m_preselres != null)
+		{
+			BPTreeFuncs funcs = m_ptree.getPathTreeFuncs();
+			if (funcs != null && funcs instanceof BPPathTreeFuncs)
+				((BPPathTreeFuncs) funcs).locatePath(m_ptree.getTreeComponent(), ((BPResourceFileSystem) m_preselres).getFileFullName());
+		}
 		setVisible(true);
 	}
 
@@ -391,9 +422,16 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		super.setVisible(flag);
 	}
 
-	public void setCheckExist(CHECKEXITFLAG flag)
+	public BPDialogSelectResource2 setCheckExist(CHECKEXITFLAG flag)
 	{
 		m_checkexist = flag;
+		return this;
+	}
+
+	public BPDialogSelectResource2 setMultiSelect(boolean flag)
+	{
+		m_ptree.getTreeComponent().setMultiSelect(flag);
+		return this;
 	}
 
 	public boolean doCallCommonAction(int command)
@@ -485,17 +523,17 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		return false;
 	}
 
-	public void setFilter(Predicate<BPResource> filter)
+	public BPDialogSelectResource2 setFilter(Predicate<BPResource> filter)
 	{
-		m_filterref = new WeakReference<Predicate<BPResource>>(filter);
-		BPTreeFuncs funcs = m_ptree.getPathTreeFuncs();
-		funcs.setTreeFilter(filter);
+		m_filterref.setTarget(filter);
 		m_ptree.refreshContextPath();
+		return this;
 	}
 
-	public void setTargetFilter(Predicate<BPResource> filter)
+	public BPDialogSelectResource2 setTargetFilter(Predicate<BPResource> filter)
 	{
 		m_targetfilterref = new WeakReference<Predicate<BPResource>>(filter);
+		return this;
 	}
 
 	public BPResource getSelectedResource()
@@ -509,23 +547,14 @@ public class BPDialogSelectResource2 extends BPDialogCommon
 		return rc;
 	}
 
+	public BPDialogSelectResource2 setPreSelectedResource(BPResource res)
+	{
+		m_preselres = res;
+		return this;
+	}
+
 	public BPResource[] getSelectedResources()
 	{
 		return m_files;
-	}
-
-	public static enum SELECTTYPE
-	{
-		FILE, DIR, ALL
-	}
-
-	public static enum SELECTSCOPE
-	{
-		WORKSPACE, PROJECT, COMPUTER, SPECIAL
-	}
-
-	public static enum CHECKEXITFLAG
-	{
-		DONOTHING, CONFIRMOVERWRITE, BLOCKNOTEXIST
 	}
 }

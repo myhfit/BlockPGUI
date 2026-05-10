@@ -34,6 +34,11 @@ public abstract class BPTableFuncsBase<T> implements BPTableFuncs<T>
 
 	public String getColumnName(int col)
 	{
+		return getColumnNames()[col];
+	}
+
+	public String getColumnLabel(int col)
+	{
 		return getColumnLabels()[col];
 	}
 

@@ -22,12 +22,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import bp.BPCore;
+import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.data.BPMData.BPMDataWMap;
 import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
@@ -36,6 +36,7 @@ import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogSimple;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
+import bp.ui.scomp.BPCommonDataChainPanel;
 import bp.ui.scomp.BPFileField;
 import bp.ui.scomp.BPHTMLEditorKit;
 import bp.ui.scomp.BPKVTable;
@@ -100,7 +101,22 @@ public class UIStd
 
 	public final static void info(String title, String message)
 	{
-		textarea(message, "BlockP - " + (title == null ? "info" : title), false);
+		textarea(message, BPGUICore.S_BP_TITLE + " - " + (title == null ? "info" : title), false);
+	}
+
+	public final static void showStructuredCommonDatas(Object data, boolean modal)
+	{
+		BPCommonDataChainPanel p = new BPCommonDataChainPanel();
+		p.setMode(CommonDataUIProcs.testDataMode(data));
+		p.setData(data);
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(p, 0, null);
+		dlg.setModal(modal);
+		p.initByData();
+		dlg.setTitle(BPGUICore.S_BP_TITLE);
+		dlg.setPreferredSize(UIUtil.getPercentDimension(0.8f, 0.8f));
+		dlg.pack();
+		dlg.setLocationRelativeTo(null);
+		dlg.setVisible(true);
 	}
 
 	public final static void showData(Object data)
@@ -177,7 +193,7 @@ public class UIStd
 			return false;
 		};
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(panc, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, dlgcallback);
-		dlg.setTitle(title != null ? title : BPLocaleHelpers.getValue(BPLocaleConstCC.INPUT));
+		dlg.setTitle(title != null ? title : BPLocaleConstCC.INPUT.text());
 		dlg.pack();
 		dlg.setLocationRelativeTo(null);
 		dlg.setModal(true);
@@ -193,14 +209,14 @@ public class UIStd
 		panc.setLayout(new BorderLayout());
 		panc.setBackground(UIConfigs.COLOR_TEXTBG());
 		BPLabel lbl = new BPLabel(prompt);
-		BPTextField tf = new BPFileField();
+		BPFileField tf = new BPFileField();
 		lbl.setLabelFont();
 		lbl.setOpaque(true);
 		lbl.setBackground(UIUtil.mix(UIConfigs.COLOR_WEAKBORDER(), UIConfigs.COLOR_WEAKBORDER().getAlpha() / 2));
 		lbl.setBorder(new CompoundBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()), new EmptyBorder(0, 2, 0, 2)));
-		tf.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(200, UIConfigs.TEXTFIELD_HEIGHT())));
+		tf.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(500, UIConfigs.TEXTFIELD_HEIGHT())));
 		tf.setMonoFont();
-		tf.setText(text);
+		tf.initText(text);
 		tf.selectAll();
 
 		panc.add(lbl, BorderLayout.WEST);
@@ -337,6 +353,11 @@ public class UIStd
 
 	public final static <T> T select(List<T> datas, String title, Function<Object, ?> renderer)
 	{
+		return select(datas, title, renderer, -1);
+	}
+
+	public final static <T> T select(List<T> datas, String title, Function<Object, ?> renderer, int selectedindex)
+	{
 		T rc = null;
 		JScrollPane scroll = new JScrollPane();
 		BPList<T> nlist = new BPList<T>();
@@ -346,6 +367,8 @@ public class UIStd
 		model.setDatas(datas);
 		if (renderer != null)
 			nlist.setCellRenderer(new BPList.BPListRenderer(renderer));
+		if (selectedindex > -1)
+			nlist.setSelectedIndex(selectedindex);
 		scroll.setViewportView(nlist);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(scroll, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, null);

@@ -18,6 +18,7 @@ import javax.swing.border.MatteBorder;
 
 import bp.config.UIConfigs;
 import bp.data.BPSLData;
+import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
@@ -56,7 +57,7 @@ public class BPFormPanelTaskSerial extends BPFormPanelTask
 
 		m_lsttasks = new BPBoxButtons<Map<String, Object>>(BoxLayout.Y_AXIS);
 		m_lsttasks.setShowSelect(false);
-		JLabel lbl = makeLineLabel("Sub Tasks", true);
+		JLabel lbl = makeLineLabel(BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Sub Tasks"), true);
 		JScrollPane scroll = new JScrollPane();
 		JPanel tpan = new JPanel();
 		JPanel tpan2 = new JPanel();

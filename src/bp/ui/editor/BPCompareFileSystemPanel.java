@@ -32,6 +32,7 @@ import bp.res.BPResource;
 import bp.res.BPResourceDirLocal;
 import bp.res.BPResourceFileSystem;
 import bp.ui.actions.BPAction;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPTextField;
 import bp.ui.tree.BPPathTreeEventHandler;
@@ -73,9 +74,12 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 	protected Action[] m_acts = null;
 
 	protected Consumer<BPEventCoreUI> m_refreshtreehandler;
+	protected BPEditorController m_ec;
 
 	public BPCompareFileSystemPanel()
 	{
+		m_ec = new BPEditorController(this);
+		
 		JPanel sp = new JPanel();
 
 		m_lp = new JPanel();
@@ -563,6 +567,11 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 			}
 			return acts.toArray(new Action[acts.size()]);
 		}
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 
 	public final static class BPEditorFactoryCompareFileSystem implements BPEditorFactory

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.RepaintManager;
 
 import bp.config.UIConfigs;
 import bp.ui.BPComponent;
@@ -79,6 +80,8 @@ public abstract class BPDialog extends JDialog implements BPRootContainer<JDialo
 
 	protected void init()
 	{
+		if (initWithUndecorated())
+			setUndecorated(true);
 		initUI();
 		initDatas();
 	}
@@ -93,11 +96,18 @@ public abstract class BPDialog extends JDialog implements BPRootContainer<JDialo
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 
+	protected boolean initWithUndecorated()
+	{
+		return false;
+	}
+
 	protected abstract void initUIComponents();
 
 	protected void initUIConfigs()
 	{
-		((JPanel) getContentPane()).setDoubleBuffered(UIConfigs.DOUBLE_BUFFER());
+		boolean b = UIConfigs.DOUBLE_BUFFER();
+		if (!b)
+			RepaintManager.currentManager(this).setDoubleBufferingEnabled(b);
 	}
 
 	protected void initBPEvents()

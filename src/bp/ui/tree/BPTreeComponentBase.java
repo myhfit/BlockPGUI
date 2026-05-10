@@ -15,6 +15,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeFuncs.BPTreeFuncsVoid;
@@ -52,6 +53,11 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 	{
 		TreeModel model = getModel();
 		return model instanceof BPTreeModel ? ((BPTreeModel) model).getTreeFuncs() : null;
+	}
+
+	public void setMultiSelect(boolean flag)
+	{
+		getSelectionModel().setSelectionMode(flag ? TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION : TreeSelectionModel.SINGLE_TREE_SELECTION);
 	}
 
 	public Object getSelectedNodeUserObject()

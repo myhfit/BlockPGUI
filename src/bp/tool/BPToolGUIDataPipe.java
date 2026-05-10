@@ -24,6 +24,7 @@ import bp.data.BPDataConsumer;
 import bp.data.BPDataEndpointFactory;
 import bp.format.BPFormatText;
 import bp.locale.BPLocaleConstCC;
+import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
@@ -45,12 +46,19 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 {
 	public String getName()
 	{
-		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_DPTOOL);
+		return BPActionConstCommon.TNAME_DPTOOL.text();
 	}
 
 	protected BPToolGUIContextDataPipe createToolContext()
 	{
 		return new BPToolGUIContextDataPipe();
+	}
+
+	public boolean canInput(Class<?> cls)
+	{
+		if (BPResource.class.equals(cls))
+			return true;
+		return super.canInput(cls);
 	}
 
 	protected static class BPToolGUIContextDataPipe implements BPToolGUIBase.BPToolGUIContext
@@ -141,6 +149,23 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 				{
 					setSource(p0, "byte[]", params.length > 1 ? (Boolean) params[1] : false);
 				}
+				else if (p0 instanceof BPResource[])
+				{
+					if (((BPResource[]) p0).length == 1)
+					{
+						p0 = ((BPResource[]) p0)[0];
+						if (p0 instanceof BPResource)
+							setSource(p0, "Resource:" + ((BPResource) p0).getExt());
+					}
+					else
+					{
+						setSource(null, BPFormatText.FORMAT_TEXT);
+					}
+				}
+				else if (p0 instanceof BPResource)
+				{
+					setSource(p0, "Resource:"+((BPResource)p0).getExt());
+				}
 				else
 				{
 					setSource(null, BPFormatText.FORMAT_TEXT);
@@ -185,6 +210,13 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 				{
 					m_src = tRef(src, hardref);
 					m_txtsrc.setText(TextUtil.toString((byte[]) src, "utf-8"));
+					m_txtsrc.setEditable(false);
+					m_isoutside = true;
+				}
+				else if (src instanceof BPResource)
+				{
+					m_src = tRef(src, hardref);
+					m_txtsrc.setText(((BPResource)src).getName());
 					m_txtsrc.setEditable(false);
 					m_isoutside = true;
 				}
@@ -310,7 +342,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			List<BPDataEndpointFactory> facs = new ArrayList<BPDataEndpointFactory>();
 			for (BPDataEndpointFactory fac : loader)
 				facs.add(fac);
-			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), obj -> ((BPDataEndpointFactory) obj).getName());
+			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), obj -> ((BPDataEndpointFactory) obj).getName());
 			if (fac != null)
 			{
 				List<String> fts = fac.getSupportedFormats();

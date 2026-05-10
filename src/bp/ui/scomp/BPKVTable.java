@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 import javax.swing.UIDefaults;
 
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.ui.table.BPTableFuncsBase;
 
 public class BPKVTable extends BPTable<BPKVTable.KV>
@@ -54,7 +53,7 @@ public class BPKVTable extends BPTable<BPKVTable.KV>
 		public BPKVTableFuncs()
 		{
 			m_colnames = new String[] { "Key", "Value" };
-			m_colnames = new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.KEY), BPLocaleHelpers.getValue(BPLocaleConstCC.VALUE) };
+			m_colnames = new String[] { BPLocaleConstCC.KEY.text(), BPLocaleConstCC.VALUE.text() };
 			m_cols = new Class<?>[] { String.class, Object.class };
 		}
 

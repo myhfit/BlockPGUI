@@ -40,17 +40,15 @@ import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogSetting;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.parallel.BPEventUISyncEditor;
-import bp.ui.parallel.BPSyncGUI;
-import bp.ui.parallel.BPSyncGUIController;
-import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
 
-public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextContainer>, BPSyncGUI
+public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextContainer>
 {
 	/**
 	 * 
@@ -64,9 +62,6 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 
 	protected BPTextContainer m_con = null;
 	protected WeakReference<Consumer<String>> m_dynainfo = null;
-	protected Consumer<BPEventUISyncEditor> m_synccb;
-	protected Consumer<BPEventUISyncEditor> m_syncactcb;
-	protected BPSyncGUIController m_syncobj;
 	protected AdjustmentListener m_scrollcb;
 
 	protected Action[] m_acts;
@@ -77,12 +72,13 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 
 	protected int m_channelid;
 
+	protected BPEditorController m_ec;
+
 	public BPTextPanel()
 	{
+		m_ec = new BPEditorController(this);
 		m_scrollcb = this::onScroll;
-		m_synccb = this::onSyncEditor;
-		m_syncactcb = this::onSyncEditorAction;
-		m_syncobj = new BPSyncGUIControllerBase(m_synccb);
+		m_ec.initStatusSync((BiConsumer<BPEventUISyncEditor, BPTextPanel>) BPTextPanel::onSyncEditorStatusOuter);
 		init();
 	}
 
@@ -336,8 +332,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 	public void setChannelID(int channelid)
 	{
 		m_channelid = channelid;
-		if (m_syncobj != null)
-			m_syncobj.setChannelID(channelid);
+		m_ec.setChannelID(channelid);
 	}
 
 	public int getChannelID()
@@ -464,6 +459,16 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 		return new String[] { ".txt" };
 	}
 
+	protected final static void onSyncEditorStatusOuter(BPEventUISyncEditor e, BPTextPanel editor)
+	{
+		editor.onSyncEditor(e);
+	}
+
+	protected final static void onSyncEditorActionOuter(BPEventUISyncEditor e, BPTextPanel editor)
+	{
+		editor.onSyncEditorAction(e);
+	}
+
 	protected void onSyncEditor(BPEventUISyncEditor e)
 	{
 		if (BPEventUISyncEditor.SYNC_POS.equals(e.subkey))
@@ -473,7 +478,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 				String id = (String) e.datas[0];
 				if (!(getID().equals(id)))
 				{
-					m_syncobj.blockSync(() ->
+					m_ec.syncstatus.blockSync(() ->
 					{
 						int[] xy = e.getSyncData();
 						m_scroll.getHorizontalScrollBar().setValue(xy[0]);
@@ -496,15 +501,26 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 
 	protected void onScroll(AdjustmentEvent e)
 	{
-		if (m_syncobj != null && m_syncobj.checkSyncAndNoBlock())
+		if (m_ec.syncstatus != null && m_ec.syncstatus.checkSyncAndNoBlock())
 		{
 			int[] xy = new int[] { m_scroll.getHorizontalScrollBar().getValue(), getScrollYPos() };
-			m_syncobj.trigger(BPEventUISyncEditor.syncPosition(getID(), SYNCPOSTYPE_TEXT, xy));
+			m_ec.syncstatus.trigger(BPEventUISyncEditor.syncPosition(getID(), SYNCPOSTYPE_TEXT, xy));
 		}
 	}
-	
-	public BPSyncGUIController getSyncStatusController()
+
+	public String[] getViewerFormat()
 	{
-		return m_syncobj;
+		return new String[] { BPFormatText.FORMAT_TEXT };
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getViewerData(String part, String format)
+	{
+		return (T) getTextPanel().getText();
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +93,10 @@ public class BPFormPanelMap extends BPFormPanel
 	protected void onDel(ActionEvent e)
 	{
 		List<KV> datas = m_tabkvs.getBPTableModel().getDatas();
-		datas.remove(m_tabkvs.convertRowIndexToModel(m_tabkvs.getSelectedRow()));
+		int[] rows = m_tabkvs.getSelectedModelRows();
+		Arrays.sort(rows);
+		for (int i = rows.length - 1; i >= 0; i--)
+			datas.remove(rows[i]);
 		m_tabkvs.getBPTableModel().fireTableDataChanged();
 	}
 

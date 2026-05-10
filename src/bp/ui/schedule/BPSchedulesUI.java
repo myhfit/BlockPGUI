@@ -19,6 +19,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
 import bp.schedule.BPSchedule;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
@@ -215,6 +216,7 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 
 		public BPTableFuncsSchedule()
 		{
+			m_collabels = new String[] { BPLocaleConstCC.NAME.text(), BPLocaleConstCC.STATUS.text(), BPLocaleConstCC.CLASS.text(), BPLocaleConstCC.SCHEDULER.text() };
 			m_colnames = new String[] { "Name", "Status", "Class", "Scheduler" };
 			m_cols = new Class<?>[] { String.class, String.class, String.class, String.class };
 		}

@@ -14,12 +14,14 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import bp.BPCore;
 import bp.config.BPSetting;
 import bp.event.BPEventCoreUI;
+import bp.locale.BPLocaleConstCC;
 import bp.task.BPTask;
 import bp.task.BPTaskManager;
 import bp.ui.BPComponent;
@@ -231,7 +233,7 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 		{
 			if (task.needConfirm())
 			{
-				if (UIStd.confirm(getFocusCycleRootAncestor(), "BlockP - Start task", "Confirm start task(s)?"))
+				if (UIStd.confirm(SwingUtilities.getWindowAncestor(this), UIUtil.wrapBPTitles(BPLocaleConstCC.START, BPLocaleConstCC.TASK), BPActionConstCommon.TXT_CONFIRMSTARTTASK.text() + "?"))
 					break;
 				else
 					return;

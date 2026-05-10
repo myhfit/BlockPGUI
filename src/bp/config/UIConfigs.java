@@ -76,7 +76,7 @@ public class UIConfigs extends BPConfigAdvBase
 	private static int S_TAB_SIZE = 8;
 
 	private static int S_DIVIDER_SIZE = 1;
-	private static boolean S_DOUBLE_BUFFER = false;
+	private static boolean S_DOUBLE_BUFFER = true;
 
 	private static boolean S_SYSTRAY = false;
 	private static boolean S_MIN2TRAY = false;
@@ -102,7 +102,7 @@ public class UIConfigs extends BPConfigAdvBase
 		}
 		MIF mif = new MIF(pmap);
 		mif.mif("TAB_SIZE", (v) -> S_TAB_SIZE = Integer.valueOf((String) v)).mif("DIVIDER_SIZE", (v) -> S_DIVIDER_SIZE = Integer.valueOf((String) v));
-		mif.mifnull("DOUBLE_BUFFER", v -> S_DOUBLE_BUFFER = "true".equals(v));
+		mif.mifnull("DOUBLE_BUFFER", v -> S_DOUBLE_BUFFER = !"false".equals(v));
 		mif.mifnull("SHOW_VMINFO", v -> S_SHOW_VMINFO = "true".equals(v));
 		mif.mifnull("LAF_CLASSNAME", v -> S_LAFCLSNAME = ObjUtil.toString(v));
 		mif.mifnull("MONO_FONT_NAME", v -> S_MONO_FONT_NAME = ObjUtil.toString(v));
@@ -131,9 +131,11 @@ public class UIConfigs extends BPConfigAdvBase
 			Std.err(e);
 		}
 
-		Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
-		S_STARTSCREEN_W = (int) ((float) d.getWidth() * 0.9f);
-		S_STARTSCREEN_H = (int) ((float) d.getHeight() * 0.9f);
+		{
+			Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+			S_STARTSCREEN_W = (int) ((float) d.getWidth() * 0.9f);
+			S_STARTSCREEN_H = (int) ((float) d.getHeight() * 0.9f);
+		}
 
 		mif.mifnull("MENU_FONT_NAME", null, (v) ->
 		{
@@ -250,7 +252,7 @@ public class UIConfigs extends BPConfigAdvBase
 		Std.debug("gcscale:" + f);
 		Std.info("UIConfigs::Loaded");
 
-		config.puts("_TAB_SIZE", 8, "_DIVIDER_SIZE", 1, "_SHOW_VMINFO", false, "_DOUBLE_BUFFER", false, "_LAF_CLASSNAME", "<AUTO>");
+		config.puts("_TAB_SIZE", 8, "_DIVIDER_SIZE", 1, "_SHOW_VMINFO", false, "_DOUBLE_BUFFER", true, "_LAF_CLASSNAME", "<AUTO>");
 		config.puts("_MONO_FONT_NAME", "monospaced", "_LABEL_FONT_NAME", "SansSerif", "_LIST_FONT_NAME", "SansSerif", "_TREE_FONT_NAME", "SansSerif", "_TABLE_FONT_NAME", "SansSerif", "_MENU_FONT_NAME", "SansSerif", "_MONO_FONT_SIZEDELTA", 0);
 		config.puts("_SYSTEM_TRAY", false, "_MIN_TO_TRAY", false);
 		config.putAll(pmap);

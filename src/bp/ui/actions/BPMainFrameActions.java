@@ -44,6 +44,7 @@ public class BPMainFrameActions
 	public Action navcmd;
 
 	public Action helpsysinfo;
+	public Action helpabout;
 
 	protected BPMainFrame m_mf;
 
@@ -79,6 +80,7 @@ public class BPMainFrameActions
 		navcmd = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVCMD, e -> m_mf.showCommandPane());
 
 		helpsysinfo = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUHELPSYSINFO, e -> CommonUIOperations.showSystemInfo());
+		helpabout = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUHELPABOUT, e -> CommonUIOperations.showAbout());
 	}
 
 	public Action[] getShortCutActions()

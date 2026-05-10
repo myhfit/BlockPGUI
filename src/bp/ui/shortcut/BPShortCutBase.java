@@ -7,7 +7,6 @@ import bp.config.BPSetting;
 import bp.config.BPSettingBase;
 import bp.config.BPSettingItem;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.util.TextUtil;
 
 public abstract class BPShortCutBase implements BPShortCut
@@ -54,7 +53,7 @@ public abstract class BPShortCutBase implements BPShortCut
 	public BPSetting getSetting()
 	{
 		BPSettingBase rc = new BPSettingBase();
-		rc.addItem(BPSettingItem.create("name", BPLocaleHelpers.getValue(BPLocaleConstCC.NAME), BPSettingItem.ITEM_TYPE_TEXT, null).setRequired(true));
+		rc.addItem(BPSettingItem.create("name", BPLocaleConstCC.NAME.text(), BPSettingItem.ITEM_TYPE_TEXT, null).setRequired(true));
 
 		rc.set("name", m_name);
 		return rc;

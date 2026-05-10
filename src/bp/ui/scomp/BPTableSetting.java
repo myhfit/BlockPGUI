@@ -16,7 +16,6 @@ import bp.config.BPSetting;
 import bp.config.BPSettingItem;
 import bp.config.UIConfigs;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.ui.scomp.BPComboBox.BPComboBoxModel;
 import bp.ui.table.BPTableFuncsBase;
@@ -163,7 +162,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 		public BPTableFuncsSettingItem()
 		{
 			m_colnames = new String[] { "Key", "Value" };
-			m_collabels = new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.KEY), BPLocaleHelpers.getValue(BPLocaleConstCC.VALUE) };
+			m_collabels = new String[] { BPLocaleConstCC.KEY.text(), BPLocaleConstCC.VALUE.text() };
 			m_cols = new Class<?>[] { String.class, String.class };
 		}
 

@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFileSystem;
@@ -74,12 +76,12 @@ public class BPFormPanelTaskUnpackFiles extends BPFormPanelTask
 			m_cmbowmode.setModel(model);
 		}
 
-		addLine(new String[] { "Source" }, new Component[] { m_txtsrc }, () -> !m_txtsrc.isEmpty());
-		addLine(new String[] { "Target" }, new Component[] { m_pantar });
-		addLine(new String[] { "Target Base" }, new Component[] { m_pantarbase });
-		addLine(new String[] { "Source Dir" }, new Component[] { m_pansrcdir });
-		addLine(new String[] { "Read Source List" }, new Component[] { m_chkpacklist });
-		addLine(new String[] { "Overwrite Mode" }, new Component[] { m_cmbowmode });
+		addLine(new String[] { BPLocaleConstCC.SOURCE.text() }, new Component[] { m_txtsrc }, () -> !m_txtsrc.isEmpty());
+		addLine(new String[] { BPLocaleConstCC.TARGET.text() }, new Component[] { m_pantar });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Target Base") }, new Component[] { m_pantarbase });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Source Dir") }, new Component[] { m_pansrcdir });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Read Source List") }, new Component[] { m_chkpacklist });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Overwrite Mode") }, new Component[] { m_cmbowmode });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

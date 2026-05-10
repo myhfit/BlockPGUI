@@ -17,10 +17,9 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellEditor;
 
-import bp.config.UIConfigs;
 import bp.config.Hotkeys.Hotkey;
+import bp.config.UIConfigs;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
@@ -29,7 +28,7 @@ import bp.ui.scomp.BPInputHotkey;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPTextField;
-import bp.ui.table.BPTableFuncsBase;
+import bp.ui.table.BPTableFuncsSimple;
 import bp.ui.util.UIUtil;
 import bp.util.ObjUtil;
 
@@ -41,7 +40,7 @@ public class BPFormPanelHotkeys extends BPFormPanel
 	private static final long serialVersionUID = 3559822840080814271L;
 
 	protected BPTable<Hotkey> m_tabhks;
-	protected BPTableFuncsHotkey m_tabfuncs;
+	protected BPTableFuncsSimple<Hotkey> m_tabfuncs;
 	protected BPToolBarSQ m_tb;
 
 	protected boolean needScroll()
@@ -107,7 +106,11 @@ public class BPFormPanelHotkeys extends BPFormPanel
 	protected void initForm()
 	{
 		m_tabhks = new BPTable<>();
-		BPTableFuncsHotkey funcs = new BPTableFuncsHotkey();
+		BPTableFuncsSimple<Hotkey> funcs = new BPTableFuncsSimple<Hotkey>();
+		funcs.setup(new String[] { "Sys", "Key", "Target" }, new String[] { BPLocaleConstCC.SYS.text(), BPLocaleConstCC.KEY.text(), BPLocaleConstCC.TARGET.text() }, new Class[] { Boolean.class, String.class, String.class });
+		funcs.setValueGetter(BPFormPanelHotkeys::getHotkeyValue);
+		funcs.setValueSetter(BPFormPanelHotkeys::setHotkeyValue);
+		funcs.setEditable(true);
 		m_tabhks.setModel(new BPTableModel<Hotkey>(funcs));
 		m_tabhks.initRowSorter();
 		m_tabfuncs = funcs;
@@ -142,48 +145,33 @@ public class BPFormPanelHotkeys extends BPFormPanel
 		return rc;
 	}
 
-	protected static class BPTableFuncsHotkey extends BPTableFuncsBase<Hotkey>
+	protected final static Object getHotkeyValue(Hotkey o, int row, int col)
 	{
-		public BPTableFuncsHotkey()
+		switch (col)
 		{
-			m_cols = new Class[] { Boolean.class, String.class, String.class };
-			m_colnames = new String[] { "Sys", "Key", "Target" };
-			m_collabels = new String[] { BPLocaleHelpers.getValue(BPLocaleConstCC.SYS), BPLocaleHelpers.getValue(BPLocaleConstCC.KEY), BPLocaleHelpers.getValue(BPLocaleConstCC.TARGET) };
+			case 0:
+				return o.issystem;
+			case 1:
+				return o.key != null ? o.key : "";
+			case 2:
+				return o.target != null ? o.target : "";
 		}
+		return "";
+	}
 
-		public Object getValue(Hotkey o, int row, int col)
+	public final static void setHotkeyValue(Object v, Hotkey hk, int row, int col)
+	{
+		switch (col)
 		{
-			switch (col)
-			{
-				case 0:
-					return o.issystem;
-				case 1:
-					return nvl(o.key);
-				case 2:
-					return nvl(o.target);
-			}
-			return "";
-		}
-
-		public void setValue(Object v, Hotkey hk, int row, int col)
-		{
-			switch (col)
-			{
-				case 0:
-					hk.issystem = ObjUtil.toBool(v, false);
-					break;
-				case 1:
-					hk.key = (String) v;
-					break;
-				case 2:
-					hk.target = (String) v;
-					break;
-			}
-		}
-
-		public boolean isEditable(Hotkey o, int row, int col)
-		{
-			return true;
+			case 0:
+				hk.issystem = ObjUtil.toBool(v, false);
+				break;
+			case 1:
+				hk.key = (String) v;
+				break;
+			case 2:
+				hk.target = (String) v;
+				break;
 		}
 	}
 

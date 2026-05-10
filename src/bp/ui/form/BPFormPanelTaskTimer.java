@@ -3,6 +3,8 @@ package bp.ui.form;
 import java.awt.Component;
 import java.util.Map;
 
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.scomp.BPTextField;
 import bp.util.ObjUtil;
 
@@ -33,8 +35,8 @@ public class BPFormPanelTaskTimer extends BPFormPanelTask
 		m_txtduration = makeSingleLineTextField();
 		m_txtinterval = makeSingleLineTextField();
 
-		addLine(new String[] { "Duration(ms)" }, new Component[] { m_txtduration }, () -> m_txtduration.isInt());
-		addLine(new String[] { "Interval(ms)" }, new Component[] { m_txtinterval }, false, () -> m_txtinterval.isEmpty() || m_txtinterval.isLong());
+		addLine(new String[] { BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, "Duration") + "(ms)" }, new Component[] { m_txtduration }, () -> m_txtduration.isInt());
+		addLine(new String[] { BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, "Interval") + "(ms)" }, new Component[] { m_txtinterval }, false, () -> m_txtinterval.isEmpty() || m_txtinterval.isLong());
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

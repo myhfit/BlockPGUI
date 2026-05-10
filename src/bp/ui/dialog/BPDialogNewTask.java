@@ -14,6 +14,7 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
 
 import bp.config.UIConfigs;
+import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
 import bp.task.BPTaskFactory;
 import bp.ui.actions.BPActionConstCommon;
@@ -69,7 +70,7 @@ public class BPDialogNewTask extends BPDialogCommon
 	private static Object transFacName(Object facobj)
 	{
 		BPTaskFactory fac = (BPTaskFactory) facobj;
-		return fac == null ? "" : fac.getName();
+		return fac == null ? "" : BPLocaleHelpers.translateByClass(BPTask.class, fac.getName());
 	}
 
 	protected void setPrefers()

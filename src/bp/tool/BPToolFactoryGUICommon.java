@@ -4,7 +4,6 @@ import java.util.function.BiConsumer;
 
 import bp.BPCore.BPPlatform;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 
 public class BPToolFactoryGUICommon implements BPToolFactory
 {
@@ -20,7 +19,7 @@ public class BPToolFactoryGUICommon implements BPToolFactory
 
 	public void install(BiConsumer<String, BPTool> installfunc, BPPlatform platform)
 	{
-		String packname = BPActionHelpers.getValue(BPActionConstCommon.TXT_COMMON);
+		String packname = BPActionConstCommon.TXT_COMMON.text();
 		installfunc.accept(packname, new BPToolGUIDataPipe());
 		installfunc.accept(packname, new BPToolGUIParallelEditor());
 		installfunc.accept(packname, new BPToolGUIUnits());

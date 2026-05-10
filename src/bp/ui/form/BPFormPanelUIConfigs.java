@@ -3,6 +3,7 @@ package bp.ui.form;
 import static bp.util.LogicUtil.IFVU;
 
 import java.awt.Component;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,6 @@ import bp.config.UIConfigs;
 import bp.locale.BPLocaleConstCC;
 import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSelectFont;
 import bp.ui.scomp.BPCheckBox;
@@ -148,7 +148,7 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 				String cn = classname.toLowerCase();
 				if (!laflist2.contains(classname) && (cn.contains("lookandfeel") || cn.contains("laf")))
 				{
-					if (ClassUtil.checkChildClass(LookAndFeel.class, classname, cl))
+					if (ClassUtil.checkChildClass(LookAndFeel.class, classname, cl, c -> !Modifier.isAbstract(c.getModifiers())))
 						laflist2.add(classname);
 				}
 			}
@@ -164,7 +164,7 @@ public class BPFormPanelUIConfigs extends BPFormPanel
 		{
 			laflist.add(lafinfo.getClassName());
 		}
-		List<String> laflist2 = UIUtil.block(this::getLAFClasses, BPActionHelpers.getValue(BPActionConstCommon.TXT_SEARCHING));
+		List<String> laflist2 = UIUtil.block(this::getLAFClasses, BPActionConstCommon.TXT_SEARCHING.text());
 		if (laflist2 != null)
 		{
 			for (String laf : laflist2)

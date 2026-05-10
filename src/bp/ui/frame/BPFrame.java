@@ -8,7 +8,7 @@ import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-import javax.swing.JPanel;
+import javax.swing.RepaintManager;
 
 import bp.config.UIConfigs;
 import bp.ui.BPComponent;
@@ -82,7 +82,9 @@ public abstract class BPFrame extends JFrame implements BPRootContainer<JFrame>
 
 	protected void initUIConfigs()
 	{
-		((JPanel) getContentPane()).setDoubleBuffered(UIConfigs.DOUBLE_BUFFER());
+		boolean b = UIConfigs.DOUBLE_BUFFER();
+		if (!b)
+			RepaintManager.currentManager(this).setDoubleBufferingEnabled(b);
 	}
 
 	protected void initBPEvents()

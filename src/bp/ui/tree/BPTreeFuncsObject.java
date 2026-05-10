@@ -1,12 +1,15 @@
 package bp.ui.tree;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import bp.typeext.Pair;
+import bp.typeext.Pair.PairBase;
 import bp.ui.scomp.BPTree.BPTreeNode;
 
-public class BPTreeFuncsObject implements BPTreeFuncs
+public class BPTreeFuncsObject extends BPTreeFuncsAbstract implements BPTreeFuncs
 {
 	protected Object m_root;
 	protected boolean m_sortkey;
@@ -26,6 +29,13 @@ public class BPTreeFuncsObject implements BPTreeFuncs
 	public void setSortKey(boolean issortkey)
 	{
 		m_sortkey = issortkey;
+	}
+
+	public void initNode(BPTreeNode node, Object userobj)
+	{
+		super.initNode(node, userobj);
+		if (userobj != null && userobj instanceof Pair)
+			node.setVirtual(true);
 	}
 
 	public List<?> getChildren(BPTreeNode node, boolean isdelta)
@@ -54,24 +64,34 @@ public class BPTreeFuncsObject implements BPTreeFuncs
 				Map<?, ?> vm = (Map<?, ?>) v;
 				for (Object k : vm.keySet())
 				{
-					rc.add(new Object[] { k, vm.get(k) });
+					rc.add(new PairBase<>(k, vm.get(k)));
 				}
 				if (m_sortkey)
 				{
-					rc.sort((a, b) ->
-					{
-						return ((String) ((Object[]) a)[0]).toLowerCase().compareTo(((String) ((Object[]) b)[0]).toLowerCase());
-					});
+					rc.sort((a, b) -> ((Pair<?, ?>) a).compareToByLeftText((Pair<?, ?>) b));
 				}
+			}
+			else if (v instanceof Pair)
+			{
+				rc = new ArrayList<Object>();
+				rc.add(((Pair<?, ?>) v).getRight());
 			}
 			else if (v.getClass().isArray())
 			{
 				rc = new ArrayList<Object>();
-				Object chdvs = ((Object[]) v)[1];
-				if (chdvs != null && (chdvs instanceof List || chdvs instanceof Map || chdvs.getClass().isArray()))
-					rc.addAll(getChildren(chdvs));
+				Object[] arr = null;
+				if (v instanceof Object[])
+				{
+					arr = (Object[]) v;
+				}
 				else
-					rc.add(chdvs);
+				{
+					int l = Array.getLength(v);
+					arr = new Object[l];
+					System.arraycopy(v, 0, arr, 0, l);
+				}
+				for (Object data : arr)
+					rc.add(data);
 			}
 		}
 		return rc;
@@ -82,6 +102,6 @@ public class BPTreeFuncsObject implements BPTreeFuncs
 		Object v = node.getUserObject();
 		if (v == null)
 			return false;
-		return !(v instanceof List || v instanceof Map || v.getClass().isArray());
+		return !(v instanceof List || v instanceof Map || v instanceof Pair || v.getClass().isArray());
 	}
 }

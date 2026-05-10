@@ -27,6 +27,7 @@ import bp.res.BPResource;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPDiagramComponent;
 import bp.ui.scomp.diagram.BPDiagramControllerRectangleSelect;
@@ -54,10 +55,12 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	protected Action m_actrectsel;
 	protected Action m_actlayout;
 	protected BiFunction<BPDiagramElement, BPDiagramComponent, JPopupMenu> m_oncontextcb;
+	protected BPEditorController m_ec;
 
 	public BPDiagramPanel()
 	{
 		m_oncontextcb = this::getElementContextMenu;
+		m_ec = new BPEditorController(this);
 
 		init();
 		initBPActions();
@@ -318,5 +321,10 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 			con.bind(res);
 			return con;
 		}
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

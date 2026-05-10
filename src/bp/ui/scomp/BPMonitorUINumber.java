@@ -101,7 +101,7 @@ public class BPMonitorUINumber extends JComponent
 
 	public void setMonoFont()
 	{
-		setFont(UIUtil.monoFont(Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
+		setFont(UIUtil.monoFont(Font.PLAIN, (int) Math.floor(UIConfigs.TEXTFIELDFONT_SIZE() * UIConfigs.GC_SCALE() * UIConfigs.FONT_SCALE())));
 	}
 
 	public void setText(String text)
@@ -222,7 +222,7 @@ public class BPMonitorUINumber extends JComponent
 		if (text == null)
 			return;
 		FontMetrics fm = g.getFontMetrics();
-		LineMetrics lm = g.getFontMetrics().getLineMetrics(text, g);
+		LineMetrics lm = fm.getLineMetrics(text, g);
 		Rectangle2D rect = fm.getStringBounds(text, g);
 		int sw = (int) rect.getWidth();
 		int sh = (int) ((int) lm.getHeight() - lm.getDescent());

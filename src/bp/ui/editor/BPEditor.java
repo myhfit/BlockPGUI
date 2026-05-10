@@ -10,6 +10,8 @@ import bp.data.BPDataContainer;
 import bp.data.BPDataContainerBase;
 import bp.res.BPResource;
 import bp.ui.BPComponent;
+import bp.ui.editor.controller.BPEditorController;
+import bp.ui.editor.controller.BPEditorEventController;
 
 public interface BPEditor<C extends Component> extends BPComponent<C>
 {
@@ -78,5 +80,36 @@ public interface BPEditor<C extends Component> extends BPComponent<C>
 	default String getEditorName()
 	{
 		return null;
+	}
+
+	default void installEditorEventHandler(Consumer<BPEditorEvent> handler)
+	{
+		BPEditorEventController c = getEditorEventController();
+		if (c != null)
+			c.installHandler(handler);
+	}
+
+	BPEditorController getEditorController();
+
+	default BPEditorEventController getEditorEventController()
+	{
+		BPEditorController c = getEditorController();
+		return c == null ? null : c.eventcontroller;
+	}
+
+	public static class BPEditorEvent
+	{
+		public String action;
+		public BPEditor<?> editor;
+		public Object data;
+		public Object[] params;
+
+		public BPEditorEvent(String action, BPEditor<?> editor, Object data, Object... params)
+		{
+			this.action = action;
+			this.editor = editor;
+			this.data = data;
+			this.params = params;
+		}
 	}
 }

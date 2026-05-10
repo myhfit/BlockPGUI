@@ -22,6 +22,7 @@ import bp.client.BPClientManager;
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPClientComponent;
 import bp.ui.scomp.BPComboBox;
@@ -44,9 +45,11 @@ public class BPClientPanel extends JPanel implements BPEditor<JPanel>
 	protected int m_channelid;
 
 	private BPAction m_actrunclient;
+	protected BPEditorController m_ec;
 
 	public BPClientPanel()
 	{
+		m_ec = new BPEditorController(this);
 		initUIComponents();
 		initDatas();
 	}
@@ -182,5 +185,10 @@ public class BPClientPanel extends JPanel implements BPEditor<JPanel>
 	protected void onRunClient(ActionEvent e)
 	{
 		m_ccomp.run();
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

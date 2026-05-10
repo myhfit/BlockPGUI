@@ -92,7 +92,7 @@ public class BPTree extends JTree implements TreeWillExpandListener
 				List<?> roots = treefunc.getRoots();
 				for (Object r : roots)
 				{
-					BPTreeNode n = new BPTreeNode(r);
+					BPTreeNode n = createNode(r);
 					rootnode.add(n);
 				}
 			}
@@ -107,7 +107,7 @@ public class BPTree extends JTree implements TreeWillExpandListener
 				List<?> roots = m_treefunc.getRoots();
 				for (Object r : roots)
 				{
-					BPTreeNode n = new BPTreeNode(r);
+					BPTreeNode n = createNode(r);
 					rootnode.add(n);
 				}
 			}
@@ -151,6 +151,13 @@ public class BPTree extends JTree implements TreeWillExpandListener
 			return m_treefunc;
 		}
 
+		protected BPTreeNode createNode(Object userobj)
+		{
+			BPTreeNode rc = new BPTreeNode(userobj);
+			m_treefunc.initNode(rc, userobj);
+			return rc;
+		}
+
 		public void expand(Object lastPathComponent)
 		{
 			expand(lastPathComponent, false);
@@ -167,7 +174,7 @@ public class BPTree extends JTree implements TreeWillExpandListener
 				{
 					for (Object c : chd)
 					{
-						DefaultMutableTreeNode newnode = new BPTreeNode(c);
+						DefaultMutableTreeNode newnode = createNode(c);
 						node.add(newnode);
 					}
 				}
@@ -200,7 +207,7 @@ public class BPTree extends JTree implements TreeWillExpandListener
 						}
 						else
 						{
-							DefaultMutableTreeNode newnode = new BPTreeNode(newchd);
+							DefaultMutableTreeNode newnode = createNode(newchd);
 							node.add(newnode);
 						}
 					}
@@ -245,6 +252,7 @@ public class BPTree extends JTree implements TreeWillExpandListener
 		protected Predicate<Object> m_filter;
 		protected List<Object> m_fchildren;
 		protected boolean m_loaded = false;
+		protected boolean m_isvirtual = false;
 
 		public BPTreeNode(Object o)
 		{
@@ -263,6 +271,16 @@ public class BPTree extends JTree implements TreeWillExpandListener
 						m_fchildren.add(o);
 				}
 			}
+		}
+
+		public void setVirtual(boolean flag)
+		{
+			m_isvirtual = flag;
+		}
+
+		public boolean isVirtual()
+		{
+			return m_isvirtual;
 		}
 
 		public void setChildren(List<BPTreeNode> nodes)

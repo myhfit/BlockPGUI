@@ -311,11 +311,15 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 		else if (comp instanceof AbstractButton)
 		{
 			AbstractButton bcomp = (AbstractButton) comp;
-			Boolean bvalue = ObjUtil.toBool(value, null);
+			Boolean dv = null;
+			if (data.containsKey("_" + key))
+			{
+				bcomp.setToolTipText("Default:" + ObjUtil.toString(data.get(dkey), ""));
+				dv = ObjUtil.toBool(data.get("_" + key), null);
+			}
+			Boolean bvalue = ObjUtil.toBool(value, dv);
 			if (bvalue != null)
 				bcomp.setSelected(bvalue);
-			if (data.containsKey("_" + key))
-				bcomp.setToolTipText("Default:" + ObjUtil.toString(data.get(dkey), ""));
 			bcomp.setEnabled(editable);
 		}
 		else if (comp instanceof JComboBox)

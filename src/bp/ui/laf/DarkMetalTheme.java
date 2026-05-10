@@ -1,5 +1,6 @@
 package bp.ui.laf;
 
+import javax.swing.UIDefaults;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 
@@ -22,6 +23,15 @@ public class DarkMetalTheme extends DefaultMetalTheme
 
 	public final static ColorUIResource w = new ColorUIResource(0.125f, 0.125f, 0.125f);
 	public final static ColorUIResource b = new ColorUIResource(0.95f, 0.95f, 0.95f);
+
+	public void addCustomEntriesToTable(UIDefaults table)
+	{
+		super.addCustomEntriesToTable(table);
+
+		table.put("ComboBox.background", getWhite());
+		table.put("ComboBox.selectionBackground", getPrimaryControl());
+//		table.put("CheckBox.background", getWhite());
+	}
 
 	public String getName()
 	{

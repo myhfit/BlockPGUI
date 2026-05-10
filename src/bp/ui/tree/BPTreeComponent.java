@@ -32,7 +32,9 @@ public interface BPTreeComponent<C extends Component> extends BPComponent<C>
 	<T> T[] getSelectedLeafs(Class<T> leafcls);
 
 	void setContextActionFixer(Function<List<Action>, List<Action>> fixer);
-	
+
+	void setMultiSelect(boolean flag);
+
 	public final static class BPTreeComponentFake implements BPTreeComponent<BPTree>
 	{
 		private Object m_root;
@@ -84,6 +86,10 @@ public interface BPTreeComponent<C extends Component> extends BPComponent<C>
 		}
 
 		public void setContextActionFixer(Function<List<Action>, List<Action>> fixer)
+		{
+		}
+
+		public void setMultiSelect(boolean flag)
 		{
 		}
 	}

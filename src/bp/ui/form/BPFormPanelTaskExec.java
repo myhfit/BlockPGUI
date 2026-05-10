@@ -4,13 +4,16 @@ import java.awt.Component;
 import java.util.Map;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
-import bp.ui.dialog.BPDialogSelectResource2;
-import bp.ui.dialog.BPDialogSelectResource2.SELECTTYPE;
+import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
+import bp.ui.util.CommonUIOperations;
 
 public class BPFormPanelTaskExec extends BPFormPanelTask
 {
@@ -50,11 +53,11 @@ public class BPFormPanelTaskExec extends BPFormPanelTask
 		m_chkwait = makeCheckBox();
 		m_chksyskill = makeCheckBox();
 
-		addLine(new String[] { "Target" }, new Component[] { m_pantar }, () -> !m_txttar.isEmpty());
-		addLine(new String[] { "Parameters" }, new Component[] { m_txtparams });
-		addLine(new String[] { "Working Directory" }, new Component[] { m_panworkdir });
-		addLine(new String[] { "Wait Target" }, new Component[] { wrapSingleLineComponent(m_chkwait) });
-		addLine(new String[] { "System Kill" }, new Component[] { wrapSingleLineComponent(m_chksyskill) });
+		addLine(new String[] { BPLocaleConstCC.TARGET.text() }, new Component[] { m_pantar }, () -> !m_txttar.isEmpty());
+		addLine(new String[] { BPLocaleConstCC.PARAMETERS.text() }, new Component[] { m_txtparams });
+		addLine(new String[] { BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, "Working Directory") }, new Component[] { m_panworkdir });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "Wait Target") }, new Component[] { wrapSingleLineComponent(m_chkwait) });
+		addLine(new String[] { BPLocaleHelpers.translateByClass(BPFormPanelTask.class, "System Kill") }, new Component[] { wrapSingleLineComponent(m_chksyskill) });
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)
@@ -70,28 +73,18 @@ public class BPFormPanelTaskExec extends BPFormPanelTask
 	protected String onSelectFile(String oldpath)
 	{
 		String rc = null;
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setSelectType(SELECTTYPE.FILE);
-		dlg.showOpen();
-		BPResource res = dlg.getSelectedResource();
+		BPResource res = CommonUIOperations.showSelectResource(null, cb -> cb.setSelectType(SELECTTYPE.FILE));
 		if (res != null)
-		{
 			rc = BPCore.getFileContext().comparePath(((BPResourceFileSystem) res).getFileFullName());
-		}
 		return rc;
 	}
 
 	protected String onSelectDir(String oldpath)
 	{
 		String rc = null;
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setSelectType(SELECTTYPE.DIR);
-		dlg.showOpen();
-		BPResource res = dlg.getSelectedResource();
+		BPResource res = CommonUIOperations.showSelectResource(null, cb -> cb.setSelectType(SELECTTYPE.DIR));
 		if (res != null)
-		{
 			rc = BPCore.getFileContext().comparePath(((BPResourceFileSystem) res).getFileFullName());
-		}
 		return rc;
 	}
 }

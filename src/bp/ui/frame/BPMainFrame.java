@@ -26,7 +26,6 @@ import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
-import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -175,7 +174,6 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	protected void initUIComponents()
 	{
-		((JPanel) getContentPane()).setDoubleBuffered(UIConfigs.DOUBLE_BUFFER());
 		m_actmain = new BPMainFrameActions(this);
 		m_acttree = new BPMainPathTreeActions(this);
 
@@ -269,6 +267,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		initToolMenu(mnutool);
 
 		mnuhelp.add(m_actmain.helpsysinfo);
+		mnuhelp.add(m_actmain.helpabout);
 
 		m_mnubar.add(mnufile);
 		m_mnubar.add(m_mnuedit);
@@ -704,7 +703,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 						}
 						else if (res instanceof BPResourceHolder || BPTreeNodeActions.ACTION_OPENRES.equals(actionname))
 						{
-							openResource(((BPResourceHolder) res), format, fac, false, null);
+							openResource(res, format, fac, false, null);
 						}
 						break;
 					}
@@ -1267,12 +1266,10 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 	public void showOpenWorkspace()
 	{
-		JFileChooser f = new JFileChooser();
-		f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		int s = f.showOpenDialog(this);
-		if (s == JFileChooser.APPROVE_OPTION)
+		String dir = CommonUIOperations.showOpenDirDialog(this, null);
+		if (dir != null)
 		{
-			BPCore.setLocalFileContext(f.getSelectedFile().getPath());
+			BPCore.setLocalFileContext(dir);
 			m_ptree.refreshContextPath();
 		}
 	}
@@ -1368,10 +1365,10 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		BPRoutableContainerBase par = new BPRoutableContainerBase();
 		BPProjectsOverviewPanel pnl = new BPProjectsOverviewPanel();
-		par.addRoute(BPCore.genID(BPCore.getFileContext()), BPActionHelpers.getValue(BPActionConstCommon.TXT_OW_PRJS), pnl);
+		par.addRoute(BPCore.genID(BPCore.getFileContext()), BPActionConstCommon.TXT_OW_PRJS.text(), pnl);
 		String parid = BPCore.genID(BPCore.getFileContext());
 		par.setID(parid);
-		m_editors.addBPTab(parid, null, BPActionHelpers.getValue(BPActionConstCommon.TXT_OW_PRJS), par, true);
+		m_editors.addBPTab(parid, null, BPActionConstCommon.TXT_OW_PRJS.text(), par, true);
 	}
 
 	public void showCommandPane()

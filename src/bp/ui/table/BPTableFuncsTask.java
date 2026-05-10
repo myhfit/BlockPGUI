@@ -1,11 +1,13 @@
 package bp.ui.table;
 
+import bp.locale.BPLocaleConstCC;
 import bp.task.BPTask;
 
 public class BPTableFuncsTask extends BPTableFuncsBase<BPTask<?>>
 {
 	public BPTableFuncsTask()
 	{
+		m_collabels = new String[] { BPLocaleConstCC.NAME.text(), BPLocaleConstCC.STATUS.text(), BPLocaleConstCC.PROGRESS.text() };
 		m_colnames = new String[] { "Name", "Status", "Progress" };
 		m_cols = new Class<?>[] { String.class, String.class, Float.class };
 	}
@@ -27,7 +29,7 @@ public class BPTableFuncsTask extends BPTableFuncsBase<BPTask<?>>
 		{
 			case 0:
 			{
-				return nvl(task.toString());
+				return task.toString();
 			}
 			case 1:
 			{

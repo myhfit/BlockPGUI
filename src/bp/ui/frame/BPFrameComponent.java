@@ -34,7 +34,7 @@ import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPEditors.BPEventUIEditors;
-import bp.ui.dialog.BPDialogSelectResource2;
+import bp.ui.dialog.BPDialogSelectResource;
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPTextEditor;
@@ -270,15 +270,17 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 	protected void saveAs()
 	{
 		BPComponent<?> comp = m_comp;
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
 		String[] exts = null;
 		String rext = LogicUtil.CHAIN_NN(comp, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource(), r -> ((BPResource) r).getExt());
 		if (rext != null)
 			exts = new String[] { rext };
 		else if (comp instanceof BPEditor)
 			exts = ((BPEditor<?>) comp).getExts();
-		dlg.showSave(exts);
-		BPResource file = dlg.getSelectedResource();
+		BPResource oldres = LogicUtil.CHAIN_NN(comp, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource());
+		Consumer<BPDialogSelectResource> cb = null;
+		if (oldres != null && oldres.isFileSystem())
+			cb = dlg -> dlg.switchPathTreeFunc(3).setPreSelectedResource((BPResourceFileSystem) oldres);
+		BPResource file = CommonUIOperations.showSaveResource(null, exts, cb);
 		if (file != null)
 		{
 			boolean success = false;

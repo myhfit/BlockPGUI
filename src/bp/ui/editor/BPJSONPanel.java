@@ -156,6 +156,7 @@ public class BPJSONPanel extends BPCodeAndPreviewPanel<BPTreeComponent<BPTree>>
 
 	public void clearResource()
 	{
+		super.clearResource();
 		m_tree.clearResource();
 		m_sp.removeAll();
 	}

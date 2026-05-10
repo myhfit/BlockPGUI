@@ -23,7 +23,6 @@ import bp.config.UIConfigs;
 import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPCodePane;
@@ -39,7 +38,7 @@ public class BPToolGUIUnits extends BPToolGUIBase<BPToolGUIUnits.BPToolGUIContex
 {
 	public String getName()
 	{
-		return BPActionHelpers.getValue(BPActionConstCommon.TNAME_UNITS);
+		return BPActionConstCommon.TNAME_UNITS.text();
 	}
 
 	protected BPToolGUIContextUnits createToolContext()

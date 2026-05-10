@@ -3,6 +3,8 @@ package bp.ui.form;
 import java.awt.Component;
 import java.util.Map;
 
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.scomp.BPTextField;
 
 public class BPFormPanelTaskRemind extends BPFormPanelTask
@@ -27,7 +29,7 @@ public class BPFormPanelTaskRemind extends BPFormPanelTask
 
 		m_txtcontent = makeSingleLineTextField();
 
-		addLine(new String[] { "Content" }, new Component[] { m_txtcontent }, () -> !m_txtcontent.isEmpty());
+		addLine(new String[] { BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, "Content") }, new Component[] { m_txtcontent }, () -> !m_txtcontent.isEmpty());
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

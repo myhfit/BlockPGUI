@@ -2,7 +2,6 @@ package bp.ui.scomp;
 
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -14,6 +13,7 @@ import javax.swing.JList;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
@@ -75,7 +75,7 @@ public class BPList<T> extends JList<T>
 		finddlgref.run(dlg -> dlg.dispose());
 		finddlgref.setTarget(null);
 
-		BPDialogFind dlg = new BPDialogFind((Window) this.getFocusCycleRootAncestor());
+		BPDialogFind dlg = new BPDialogFind(SwingUtilities.getWindowAncestor(this));
 		dlg.setReplaceable(false);
 		dlg.setFindCallBack(m_findcb);
 		finddlgref.setTarget(dlg);

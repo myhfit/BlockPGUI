@@ -18,7 +18,6 @@ import javax.swing.event.ListSelectionEvent;
 
 import bp.config.UIConfigs;
 import bp.locale.BPLocaleConstCC;
-import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPTextField;
@@ -79,8 +78,8 @@ public class BPDialogSelectFont extends BPDialogCommon
 		m_lbltest = new JLabel("Test");
 		m_lbltest.setHorizontalAlignment(SwingConstants.CENTER);
 		m_lbltest.setVerticalAlignment(SwingConstants.CENTER);
-		JLabel lbltest = new JLabel(" " + BPLocaleHelpers.getValue(BPLocaleConstCC.TEXT) + ":");
-		JLabel lbltestsize = new JLabel(" " + BPLocaleHelpers.getValue(BPLocaleConstCC.SIZE) + ":");
+		JLabel lbltest = new JLabel(" " + BPLocaleConstCC.TEXT.text() + ":");
+		JLabel lbltestsize = new JLabel(" " + BPLocaleConstCC.SIZE.text() + ":");
 		lbltest.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
 		lbltestsize.setFont(new Font(UIConfigs.LABEL_FONT_NAME(), Font.PLAIN, UIConfigs.TEXTFIELDFONT_SIZE()));
 

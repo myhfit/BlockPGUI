@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
@@ -14,9 +15,8 @@ import bp.console.BPConsole;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.editor.BPCodePanel;
+import bp.ui.editor.BPTextPanel;
 import bp.ui.parallel.BPEventUISyncEditor;
-import bp.ui.parallel.BPSyncGUIController;
-import bp.ui.parallel.BPSyncGUIControllerBase;
 import bp.ui.scomp.BPConsolePane;
 import bp.ui.util.UIUtil;
 
@@ -27,7 +27,6 @@ public class BPConsolePanel extends BPCodePanel
 	 */
 	private static final long serialVersionUID = -2242830294327033326L;
 	protected Consumer<String> m_onruncmd;
-	protected BPSyncGUIController m_syncactobj;
 
 	public final static String SYNCACTIONNAME_CONSOLE_RUNCMD = "CONSOLE_RUNCMD";
 	public final static String SYNCACTIONNAME_CONSOLE_CLEAR = "CONSOLE_CLEAR";
@@ -63,8 +62,8 @@ public class BPConsolePanel extends BPCodePanel
 		{
 			((BPConsolePane) m_txt).addOnEnterSync(m_onruncmd);
 		}
-		if (m_syncactobj == null)
-			m_syncactobj = new BPSyncGUIControllerBase(m_syncactcb);
+		if (m_ec.syncaction == null)
+			m_ec.initActionSync((BiConsumer<BPEventUISyncEditor, BPTextPanel>) BPTextPanel::onSyncEditorActionOuter);
 	}
 
 	public String getEditorName()
@@ -75,13 +74,6 @@ public class BPConsolePanel extends BPCodePanel
 	public BPConsole getConsole()
 	{
 		return ((BPConsolePane) m_txt).getConsole();
-	}
-
-	public void setChannelID(int channelid)
-	{
-		super.setChannelID(channelid);
-		if (m_syncactobj != null)
-			m_syncactobj.setChannelID(channelid);
 	}
 
 	protected List<Action> makeActionsAtPos(int pos)
@@ -98,22 +90,17 @@ public class BPConsolePanel extends BPCodePanel
 
 	protected void onRunCommand(String cmd)
 	{
-		if (m_syncactobj.checkSyncAndNoBlock())
-			m_syncactobj.trigger(BPEventUISyncEditor.syncAction(getID(), SYNCACTIONNAME_CONSOLE_RUNCMD, cmd));
+		if (m_ec.syncaction.checkSyncAndNoBlock())
+			m_ec.syncaction.trigger(BPEventUISyncEditor.syncAction(getID(), SYNCACTIONNAME_CONSOLE_RUNCMD, cmd));
 	}
 
 	protected void onClear(ActionEvent e)
 	{
 		((BPConsolePane) m_txt).runClear();
-		if (m_syncactobj.checkSyncAndNoBlock())
-			m_syncactobj.trigger(BPEventUISyncEditor.syncAction(getID(), SYNCACTIONNAME_CONSOLE_CLEAR));
+		if (m_ec.syncaction.checkSyncAndNoBlock())
+			m_ec.syncaction.trigger(BPEventUISyncEditor.syncAction(getID(), SYNCACTIONNAME_CONSOLE_CLEAR));
 	}
 
-	public BPSyncGUIController getSyncActionController()
-	{
-		return m_syncactobj;
-	}
-	
 	protected int getScrollYPos()
 	{
 		return UIUtil.getScrollBarPosCheckMax(m_scroll.getVerticalScrollBar());
@@ -130,13 +117,13 @@ public class BPConsolePanel extends BPCodePanel
 				String cmd = (String) ((Object[]) e.datas[2])[0];
 				if (cmd != null && cmd.length() > 0)
 				{
-					m_syncobj.blockSync(() -> m_syncactobj.blockSync(() -> ((BPConsolePane) m_txt).runCommandFromOutside(cmd)));
+					m_ec.syncstatus.blockSync(() -> m_ec.syncaction.blockSync(() -> ((BPConsolePane) m_txt).runCommandFromOutside(cmd)));
 				}
 				dealed = true;
 			}
 			else if (SYNCACTIONNAME_CONSOLE_CLEAR.equals(actionname))
 			{
-				m_syncobj.blockSync(() -> m_syncactobj.blockSync(() -> ((BPConsolePane) m_txt).runClear()));
+				m_ec.syncstatus.blockSync(() -> m_ec.syncaction.blockSync(() -> ((BPConsolePane) m_txt).runClear()));
 				dealed = true;
 			}
 		}

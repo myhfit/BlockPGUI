@@ -2,7 +2,6 @@ package bp.ui.scomp;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +14,7 @@ import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.MatteBorder;
 
 import bp.config.UIConfigs;
@@ -31,7 +31,7 @@ import bp.util.JSONUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
 
-public class BPPipedFilterDataListPanel<DATA> extends JPanel
+public class BPPipedFilterDataListPanel<DATA> extends JPanel implements BPFilterComponent<DATA>
 {
 	/**
 	 * 
@@ -86,7 +86,7 @@ public class BPPipedFilterDataListPanel<DATA> extends JPanel
 			fobjs.add(ObjUtil.objToMap(f));
 		}
 		String txt = JSONUtil.encode(fobjs);
-		BPResource res = CommonUIOperations.selectResource((Window) this.getFocusCycleRootAncestor(), true);
+		BPResource res = CommonUIOperations.selectResource(SwingUtilities.getWindowAncestor(this), true);
 		IOUtil.write((BPResourceIO) res, TextUtil.fromString(txt, "utf-8"));
 	}
 

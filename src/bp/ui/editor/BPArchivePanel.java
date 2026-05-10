@@ -16,6 +16,7 @@ import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.ui.BPViewer;
+import bp.ui.editor.controller.BPEditorController;
 import bp.ui.tree.BPArchiveTreeFuncs;
 import bp.ui.tree.BPArchiveTreeFuncs.BPTreeCellRendererZip;
 import bp.ui.tree.BPArchiveTreeFuncs.BPZipFileTreeFuncs;
@@ -43,8 +44,11 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 
 	protected BPFormat m_format;
 
+	protected BPEditorController m_ec;
+
 	public BPArchivePanel()
 	{
+		m_ec = new BPEditorController(this);
 		init();
 	}
 
@@ -249,7 +253,11 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	{
 		if (m_con != null)
 			unbind();
-
 		removeAll();
+	}
+
+	public BPEditorController getEditorController()
+	{
+		return m_ec;
 	}
 }

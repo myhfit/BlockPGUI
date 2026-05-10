@@ -1,6 +1,7 @@
 package bp.ui.scomp;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.util.List;
 import java.util.function.Consumer;
@@ -131,10 +132,8 @@ public class BPBoxButtons<T> extends JPanel
 			lbl = m_renderer.apply(data);
 		else
 			lbl = data.toString();
-		BPToolSQButton btn = new BPToolSQButton(lbl, () ->
-		{
-			onClick(data);
-		});
+		BPToolSQButton btn = new BPToolSQButton(lbl, () -> onClick(data));
+		btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		btn.setText(lbl);
 		return btn;
 	}
