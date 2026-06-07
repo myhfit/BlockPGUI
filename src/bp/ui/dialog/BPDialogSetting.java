@@ -78,4 +78,14 @@ public class BPDialogSetting extends BPDialogCommon
 	{
 		m_tbsetting.setEnabled(b);
 	}
+
+	public final static BPSetting showSetting(BPSetting setting)
+	{
+		BPDialogSetting dlg = new BPDialogSetting();
+		dlg.setSetting(setting);
+		dlg.setVisible(true);
+		if (dlg.getActionResult() == BPDialogSetting.COMMAND_OK)
+			return dlg.getResult();
+		return null;
+	}
 }

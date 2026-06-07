@@ -25,6 +25,7 @@ public class BPCommonDataChainPanel extends JPanel
 	protected BPCommonDataPanel m_root;
 	protected List<BPCommonDataPanel> m_subs;
 	protected BiConsumer<Object, BPCommonDataPanel> m_selcb;
+	protected BiConsumer<Object, BPCommonDataPanel> m_opencb;
 	protected JPanel m_cp;
 	protected JScrollPane m_scroll;
 
@@ -33,7 +34,7 @@ public class BPCommonDataChainPanel extends JPanel
 		m_root = new BPCommonDataPanel();
 		m_subs = new ArrayList<BPCommonDataPanel>();
 		m_selcb = this::onSelect;
-
+		m_opencb = this::onOpen;
 		m_cp = new JPanel();
 		m_scroll = new JScrollPane();
 		m_scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
@@ -54,7 +55,7 @@ public class BPCommonDataChainPanel extends JPanel
 	{
 		p.setMinimumSize(new Dimension(150, 400));
 		p.setPreferredSize(new Dimension(300, 400));
-		p.setActions(m_selcb, null);
+		p.setActions(m_selcb, m_opencb);
 	}
 
 	protected BPCommonDataPanel getLastDataPanel()
@@ -79,6 +80,17 @@ public class BPCommonDataChainPanel extends JPanel
 
 	public void onSelect(Object data, BPCommonDataPanel panel)
 	{
+		onChain(data, panel, false);
+	}
+
+	public void onOpen(Object data, BPCommonDataPanel panel)
+	{
+		onChain(data, panel, true);
+	}
+	
+	protected void onChain(Object data, BPCommonDataPanel panel, boolean isopen)
+	{
+		if ((panel.getMode() >= CommonDataUIProcs.MODE_RESOURCE) == isopen)
 		{
 			List<BPCommonDataPanel> delps = new ArrayList<BPCommonDataPanel>();
 			if (m_root == panel)
@@ -103,16 +115,16 @@ public class BPCommonDataChainPanel extends JPanel
 				m_subs.removeAll(delps);
 			}
 			delps.clear();
-		}
 
-		BPCommonDataPanel p = new BPCommonDataPanel();
-		p.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
-		preparePanel(p);
-		m_cp.add(p);
-		p.setData(data);
-		p.setMode(CommonDataUIProcs.testDataMode(data));
-		p.initByData();
-		m_subs.add(p);
-		updateUI();
+			BPCommonDataPanel p = new BPCommonDataPanel();
+			p.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
+			preparePanel(p);
+			m_cp.add(p);
+			p.setData(data);
+			p.setMode(CommonDataUIProcs.testDataMode(data));
+			p.initByData();
+			m_subs.add(p);
+			updateUI();
+		}
 	}
 }

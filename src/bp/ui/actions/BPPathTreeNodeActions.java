@@ -207,4 +207,9 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 	{
 		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCOPYTO, new EventUtil.EventConsumerNodeAction(ress, channelid, ACTION_COPYTO));
 	}
+
+	public BPAction getPasteAction(BPTreeComponent<BPTree> tree, BPResource res, int channelid)
+	{
+		return BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUPASTE, new EventUtil.EventConsumerNodeAction(new BPResource[] {res}, channelid, ACTION_PASTE));
+	}
 }

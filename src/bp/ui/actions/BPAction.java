@@ -21,6 +21,7 @@ public class BPAction extends AbstractAction
 	public final static String SUB_ACTIONS_FUNC = "SubActs_Func";
 	public final static String SUB_ACTIONS_FUNC_AUTOCLEAR = "SubActs_Func_CC";
 	public final static String IS_SEPARATOR = "IsSeparator";
+	public final static String IS_TITLE = "IsTitle";
 
 	protected Consumer<ActionEvent> m_cb;
 
@@ -125,6 +126,12 @@ public class BPAction extends AbstractAction
 		public <T> T getValue(String key)
 		{
 			return (T) action.getValue(key);
+		}
+
+		public BPActionBuilder putValue(String key, Object value)
+		{
+			action.putValue(key, value);
+			return this;
 		}
 	}
 }

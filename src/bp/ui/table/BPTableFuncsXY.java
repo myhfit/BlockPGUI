@@ -8,6 +8,7 @@ import java.util.ServiceLoader;
 import javax.swing.Action;
 
 import bp.BPCore;
+import bp.config.BPSetting;
 import bp.config.PredefinedDataPipes;
 import bp.data.BPDataEndpointFactory;
 import bp.data.BPDataPipes;
@@ -15,7 +16,9 @@ import bp.data.BPJSONContainerBase;
 import bp.data.BPXData;
 import bp.data.BPXYData;
 import bp.format.BPFormatText;
+import bp.format.BPFormatTreeData;
 import bp.format.BPFormatUnknown;
+import bp.format.BPFormatXYData;
 import bp.locale.BPLocaleConstCC;
 import bp.res.BPResource;
 import bp.transform.BPTransformer;
@@ -24,6 +27,7 @@ import bp.transform.BPTransformerManager;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
+import bp.ui.dialog.BPDialogSetting;
 import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
@@ -35,8 +39,10 @@ import bp.util.ObjUtil;
 public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 {
 	protected BPXYData m_xydata;
-	protected boolean m_deletable_user;
 	protected boolean m_readonly;
+	protected boolean m_checkcol;
+	protected boolean m_row_deletable;
+	protected boolean m_row_insertable;
 
 	public BPTableFuncsXY(BPXYData xydata)
 	{
@@ -65,9 +71,20 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		m_readonly = flag;
 	}
 
-	public void setUserDeletable(boolean flag)
+	public void setColCheck(boolean flag)
 	{
-		m_deletable_user = flag;
+		m_checkcol = flag;
+	}
+
+	public void setStructureEditable(boolean flag)
+	{
+		m_row_deletable = flag;
+		m_row_insertable = flag;
+	}
+
+	public void setRowDeletable(boolean flag)
+	{
+		m_row_deletable = flag;
 	}
 
 	public Object getValue(BPXData o, int row, int col)
@@ -75,7 +92,9 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 		Object rc = null;
 		if (o != null)
 		{
-			return o.getColValue(col);
+			if (!m_checkcol)
+				return o.getColValue(col);
+			return o.length() > col ? o.getColValue(col) : null;
 		}
 		return rc;
 	}
@@ -94,10 +113,12 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 			if (m_cols != null)
 				rv = ObjUtil.castObject(rv, m_cols[col], null);
 		}
-		o.setColValue(col, rv);
+		if (!m_checkcol)
+			o.setColValue(col, rv);
+		else
+			o.setColValueOrResize(col, rv);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public List<Action> getActions(BPTable<BPXData> table, List<BPXData> datas, int[] rows, int r, int c)
 	{
 		List<Action> rc = new ArrayList<Action>();
@@ -107,16 +128,26 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 			BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUEDIT, e -> edit(table, datas, rows));
 			BPAction actviewcell = BPActionHelpers.getActionWithAlias(BPActionConstCommon.CTX_MNUVIEW, BPActionConstCommon.CTX_MNUVIEW_CELL, e -> viewcell(table, datas, rows, r, c));
 			BPAction acteditcell = BPActionHelpers.getActionWithAlias(BPActionConstCommon.CTX_MNUEDIT, BPActionConstCommon.CTX_MNUEDIT_CELL, e -> editcell(table, datas, rows, r, c));
-			BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDEL, e -> delete(table, datas, rows));
 			rc.add(actview);
 			rc.add(actedit);
 			rc.add(BPAction.separator());
 			rc.add(actviewcell);
 			rc.add(acteditcell);
-			if (m_deletable_user)
+			if (m_row_deletable || m_row_insertable)
 			{
 				rc.add(BPAction.separator());
-				rc.add(actdel);
+				if (m_row_insertable)
+				{
+					BPAction actinsertp = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUINSERTPREV, e -> insert(table, datas, rows, false));
+					BPAction actinsertn = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUINSERTNEXT, e -> insert(table, datas, rows, true));
+					rc.add(actinsertp);
+					rc.add(actinsertn);
+				}
+				if (m_row_deletable)
+				{
+					BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDEL, e -> delete(table, datas, rows));
+					rc.add(actdel);
+				}
 			}
 			if (datas.size() > 0)
 			{
@@ -140,62 +171,37 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 					{
 						BPAction acttrans = BPActionHelpers.getAction(BPActionConstCommon.XYTBL_CTX_MNUTRANSCELL, null);
 						List<Action> actsub = new ArrayList<Action>();
-						Map<String, BPTransformer<?>> ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOSTRING);
-						if (ts != null && ts.size() > 0)
-						{
-							String tarfix = ">" + BPLocaleConstCC.TEXT.text();
-							for (String tkey : ts.keySet())
-							{
-								BPTransformer t = ts.get(tkey);
-								BPAction acttt = BPAction.build(tkey + tarfix).getAction();
-								actsub.add(acttt);
-								List<Action> actss = new ArrayList<Action>();
-								ServiceLoader<BPDataEndpointFactory> facs = ClassUtil.getServices(BPDataEndpointFactory.class);
-								for (BPDataEndpointFactory fac : facs)
-								{
-									if (fac.canHandle(BPFormatText.FORMAT_TEXT))
-									{
-										actss.add(BPAction.build(fac.getName()).callback(e ->
-										{
-											t.setOutput(fac.create(BPFormatText.FORMAT_TEXT));
-											t.runSegment(() -> t.accept(o));
-										}).getAction());
-									}
-								}
-								acttt.putValue(BPAction.SUB_ACTIONS, actss.toArray(new Action[actss.size()]));
-							}
-						}
-
-						ts = BPTransformerManager.getTransformer(o, BPTransformerFactory.TF_TOBYTEARRAY);
-						if (ts != null && ts.size() > 0)
-						{
-							String tarfix = ">" + BPLocaleConstCC.BYTEARR.text();
-							for (String tkey : ts.keySet())
-							{
-								BPTransformer t = ts.get(tkey);
-								BPAction acttt = BPAction.build(tkey + tarfix).getAction();
-								actsub.add(acttt);
-								List<Action> actss = new ArrayList<Action>();
-								ServiceLoader<BPDataEndpointFactory> facs = ClassUtil.getServices(BPDataEndpointFactory.class);
-								for (BPDataEndpointFactory fac : facs)
-								{
-									if (fac.canHandle(BPFormatUnknown.FORMAT_NA))
-									{
-										actss.add(BPAction.build(fac.getName()).callback(e ->
-										{
-											t.setOutput(fac.create(BPFormatUnknown.FORMAT_NA));
-											t.runSegment(() -> t.accept(o));
-										}).getAction());
-									}
-								}
-								acttt.putValue(BPAction.SUB_ACTIONS, actss.toArray(new Action[actss.size()]));
-							}
-						}
-
+						assembleTransformer(actsub, o, BPTransformerFactory.TF_TOSTRING, BPFormatText.FORMAT_TEXT, ">" + BPLocaleConstCC.TEXT.text());
+						actsub.add(BPAction.separator());
+						assembleTransformer(actsub, o, BPTransformerFactory.TF_TOBYTEARRAY, BPFormatUnknown.FORMAT_NA, ">" + BPLocaleConstCC.BYTEARR.text());
 						acttrans.putValue(BPAction.SUB_ACTIONS, actsub.toArray(new Action[actsub.size()]));
 						rc.add(acttrans);
 					}
+				}
 
+				{
+					if (o == null)
+						rc.add(BPAction.separator());
+					BPAction acttrans = BPActionHelpers.getAction(BPActionConstCommon.XYTBL_CTX_MNUTRANSROW, null);
+					List<Action> actsub = new ArrayList<Action>();
+					BPXData row = datas.get(0);
+					Map<String, Object> rowmap = m_xydata.toMap(row);
+					assembleTransformer(actsub, rowmap, BPTransformerFactory.TF_TOMAP, BPFormatTreeData.FORMAT_TREEDATA, ">" + BPLocaleConstCC.TEXT.text());
+					acttrans.putValue(BPAction.SUB_ACTIONS, actsub.toArray(new Action[actsub.size()]));
+					rc.add(acttrans);
+				}
+
+				{
+					BPAction acttrans = BPActionHelpers.getAction(BPActionConstCommon.XYTBL_CTX_MNUTRANSSEL, null);
+					List<Action> actsub = new ArrayList<Action>();
+					BPXYData xy2 = m_xydata.reList(datas);
+					assembleTransformer(actsub, xy2, BPTransformerFactory.TF_TOXY, BPFormatXYData.FORMAT_XYDATA, ">" + BPActionConstCommon.TXT_DATA.text());
+					acttrans.putValue(BPAction.SUB_ACTIONS, actsub.toArray(new Action[actsub.size()]));
+					rc.add(acttrans);
+				}
+				if (o != null)
+				{
+					rc.add(BPAction.separator());
 					{
 						BPAction actpdps = BPActionHelpers.getAction(BPActionConstCommon.TXT_DATAPIPES, null);
 						List<Action> actsub = new ArrayList<Action>();
@@ -225,14 +231,69 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 					}
 				}
 			}
+
+			if (m_customacts != null)
+				ObjUtil.mergeList(BPAction::separator, rc, m_customacts);
 		}
 		return rc;
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected void assembleTransformer(List<Action> actpar, Object o, String functiontype_in, String formatname_out, String tarfix)
+	{
+		Map<String, BPTransformer<?>> ts = BPTransformerManager.getTransformer(o, functiontype_in);
+		if (ts != null && ts.size() > 0)
+		{
+			for (String tkey : ts.keySet())
+			{
+				BPTransformer t = ts.get(tkey);
+				BPAction acttt = BPAction.build(tkey + tarfix).getAction();
+				actpar.add(acttt);
+				List<Action> actss = new ArrayList<Action>();
+				ServiceLoader<BPDataEndpointFactory> facs = ClassUtil.getServices(BPDataEndpointFactory.class);
+				for (BPDataEndpointFactory fac : facs)
+				{
+					if (fac.canHandle(formatname_out))
+					{
+						actss.add(BPAction.build(fac.getName()).callback(e ->
+						{
+							if (t.needSettingUI())
+							{
+								BPSetting setting = BPDialogSetting.showSetting(t.getSetting());
+								if (setting == null)
+									return;
+								t.setSetting(setting);
+							}
+							t.setOutput(fac.create(formatname_out));
+							t.runSegment(() -> t.accept(o));
+						}).getAction());
+					}
+				}
+				acttt.putValue(BPAction.SUB_ACTIONS, actss.toArray(new Action[actss.size()]));
+			}
+		}
 	}
 
 	protected void delete(BPTable<BPXData> table, List<BPXData> datas, int[] rows)
 	{
+		if(rows.length==0)
+			return;
 		BPTableModel<BPXData> model = table.getBPTableModel();
 		model.delete(rows);
+		model.fireTableDataChanged();
+	}
+
+	protected void insert(BPTable<BPXData> table, List<BPXData> datas, int[] rows, boolean next)
+	{
+		if (rows.length == 0)
+			return;
+		BPTableModel<BPXData> model = table.getBPTableModel();
+		int si;
+		if (next)
+			si = rows[rows.length - 1] + 1;
+		else
+			si = rows[0];
+		model.insert(si, datas.get(0).cloneX(false));
 		model.fireTableDataChanged();
 	}
 

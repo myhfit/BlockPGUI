@@ -124,6 +124,7 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 			acts.add(actmovedown);
 		}
 		m_toolbar.setBorderVertical(0);
+		m_toolbar.setMaxScrollSize();
 		m_toolbar.setActions(acts.toArray(new Action[acts.size()]), this);
 
 		setLayout(new BorderLayout());

@@ -12,6 +12,8 @@ public abstract class BPTableFuncsBase<T> implements BPTableFuncs<T>
 	protected String[] m_collabels;
 	protected Class<?>[] m_cols;
 
+	protected List<Action> m_customacts;
+
 	public String[] getColumnNames()
 	{
 		return m_colnames;
@@ -56,9 +58,14 @@ public abstract class BPTableFuncsBase<T> implements BPTableFuncs<T>
 	{
 
 	}
+	
+	public void setCustomActions(List<Action> acts)
+	{
+		m_customacts = acts;
+	}
 
 	public List<Action> getActions(BPTable<T> table, List<T> datas, int[] rows, int r, int c)
 	{
-		return null;
+		return m_customacts;
 	}
 }

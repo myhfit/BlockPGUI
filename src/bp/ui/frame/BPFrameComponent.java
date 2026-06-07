@@ -407,6 +407,24 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		}
 	}
 
+	public void toggleEditorLeftPanel()
+	{
+		if (m_comp instanceof BPEditor)
+		{
+			BPEditor<?> editor = (BPEditor<?>) m_comp;
+			editor.toggleLeftPanel();
+		}
+	}
+
+	public void toggleEditorBottomPanel()
+	{
+		if (m_comp instanceof BPEditor)
+		{
+			BPEditor<?> editor = (BPEditor<?>) m_comp;
+			editor.toggleBottomPanel();
+		}
+	}
+
 	public List<BPComponent<?>> getEditorList()
 	{
 		List<BPComponent<?>> rc = new ArrayList<BPComponent<?>>();

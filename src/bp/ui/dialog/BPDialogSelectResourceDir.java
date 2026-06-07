@@ -22,7 +22,9 @@ import bp.cache.BPCacheDataFileSystem;
 import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
+import bp.locale.BPLocaleConstCC;
 import bp.res.BPResource;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPCommonDialogActions;
 import bp.ui.tree.BPPathTreeLocalFuncs;
 import bp.ui.tree.BPPathTreeNodeCommonHandler;
@@ -105,7 +107,7 @@ public class BPDialogSelectResourceDir extends BPDialogCommon
 		m_ptree.refreshContextPath();
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_ptree.getCoreUIRefreshPathTreeHandler());
 
-		setTitle("Select Directory");
+		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.DIR));
 		setModal(true);
 	}
 

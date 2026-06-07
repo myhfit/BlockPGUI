@@ -8,7 +8,11 @@ import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,10 +33,13 @@ import bp.config.BPConfigSimple;
 import bp.config.BPSetting;
 import bp.context.BPFileContext;
 import bp.context.BPProjectsContext;
+import bp.data.BPInstanceFactory;
 import bp.event.BPEventCoreUI;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.project.BPProjectItemFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
@@ -42,6 +49,7 @@ import bp.res.BPResourceFileLocal;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
 import bp.schedule.BPSchedule;
+import bp.schedule.BPScheduleFactory;
 import bp.task.BPTask;
 import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
@@ -50,11 +58,11 @@ import bp.ui.actions.BPActionConstCommon;
 import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommonCategoryView;
+import bp.ui.dialog.BPDialogCommonCreator;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogLocateCachedResource;
 import bp.ui.dialog.BPDialogLocateProjectItem;
 import bp.ui.dialog.BPDialogNewProject;
-import bp.ui.dialog.BPDialogNewSchedule;
 import bp.ui.dialog.BPDialogNewTask;
 import bp.ui.dialog.BPDialogSelectResource;
 import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
@@ -608,16 +616,22 @@ public class CommonUIOperations
 			BPCore.addTask(task);
 		}
 	}
+	
+	public final static <T> T showCreate(Class<? extends BPInstanceFactory<T>> facclass)
+	{
+		BPDialogCommonCreator<T> dlg = new BPDialogCommonCreator<T>();
+		dlg.setFactoryInterface(facclass);
+		String factypename = ClassUtil.callMethod(facclass, "getFactoryTypeName", null, null, false);
+		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_CREATE) + " " + BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, factypename, "INSTFAC_"));
+		dlg.setVisible(true);
+		return dlg.getResult();
+	}
 
 	public final static void showNewSchedule()
 	{
-		BPDialogNewSchedule dlg = new BPDialogNewSchedule();
-		dlg.setVisible(true);
-		BPSchedule sd = dlg.getSchedule();
+		BPSchedule sd = showCreate(BPScheduleFactory.class);
 		if (sd != null)
-		{
 			ScheduleUtil.addScheduleAndSave(sd);
-		}
 	}
 
 	public final static void showNewProject()
@@ -663,7 +677,7 @@ public class CommonUIOperations
 		long l = ClassUtil.useClass("bp.BPCore", (urls) -> ClassUtil.getURLTime(urls.get(0), "bp/BPCore.class"));
 		Map<String, Object> kv = new LinkedHashMap<String, Object>();
 		kv.put(bpname + " Core VerTime", new Date(l));
-		kv.put("Work Dir", System.getProperty("user.dir"));
+		kv.put("Workdir", System.getProperty("user.dir"));
 		kv.put("Workspace", BPCore.getFileContext().getRootDir().getFileFullName());
 		UIStd.showData(kv);
 	}
@@ -828,7 +842,130 @@ public class CommonUIOperations
 			clipboard.setContents(new FileTransferable(rs), null);
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	public final static void pasteToResource(BPResource res, Window par)
+	{
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable tdata = clipboard.getContents(null);
+		if (tdata != null)
+		{
+			DataFlavor[] dfarr = tdata.getTransferDataFlavors();
+			for(DataFlavor df:dfarr)
+			{
+				if(df.isFlavorJavaFileListType())
+				{
+					List<String> filenames=null;
+					try
+					{
+						filenames=(List<String>) tdata.getTransferData(df);
+					}
+					catch (UnsupportedFlavorException | IOException e)
+					{
+						UIStd.err(e);
+					}
+					if(filenames!=null&&filenames.size()>0)
+					{
+						if (res.isLeaf())
+							res = res.getParentResource();
+						showCopyResourcesTo(filenames, res, par);
+						refreshPathTree(res, false);
+						refreshResourceCache(res);
+					}
+					return;
+				}
+			}
+		}
+	}
 
+	public final static void showCopyResourcesTo(List<String> files, BPResource res, Window par)
+	{
+		if (files == null || files.size() == 0)
+			return;
+		List<String> srcs = new ArrayList<String>();
+		List<String> tars = new ArrayList<String>();
+
+		boolean confirmed = false;
+		long total = 0;
+		long success = 0;
+		List<String> errs = new ArrayList<String>();
+		boolean p = false;
+		for (String file : files)
+		{
+			File srcfile = new File(file);
+
+			BPResourceDir resdir = (BPResourceDir) res;
+			FileUtil.genCopyList(srcfile.getAbsolutePath(), resdir.getFileFullName(), srcs, tars);
+			if (srcs.size() == tars.size())
+			{
+				for (int i = 0; i < srcs.size(); i++)
+				{
+					total++;
+					File src = new File(srcs.get(i));
+					File tar = new File(tars.get(i));
+					try
+					{
+						tar.getParentFile().mkdirs();
+						p = false;
+						if (confirmed)
+						{
+							p = true;
+						}
+						else
+						{
+							if (!tar.exists())
+							{
+								p = true;
+							}
+							else
+							{
+								if (UIStd.confirm(par, null, tar.getAbsolutePath() + " Exists, Confirm overwrite?"))
+								{
+									confirmed = true;
+									p = true;
+								}
+							}
+						}
+						if (p)
+						{
+							if (FileUtil.copyFile(src, tar))
+								success++;
+							else
+								errs.add(src.getAbsolutePath() + ">" + tar.getAbsolutePath());
+						}
+					}
+					catch (Exception e)
+					{
+						errs.add(src.getAbsolutePath() + ">" + tar.getAbsolutePath());
+					}
+				}
+			}
+			else
+			{
+				errs.add("Error when generate copy filelist:" + srcfile.getAbsolutePath() + ">>" + resdir.getFileFullName());
+			}
+
+			srcs.clear();
+			tars.clear();
+		}
+		if (errs.size() > 0)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.append("Success:" + ObjUtil.toString(success) + "/" + ObjUtil.toString(total));
+			sb.append("\nFailed:" + errs.size());
+			for (String e : errs)
+			{
+				sb.append("\n  ");
+				sb.append(e);
+			}
+			UIStd.textarea(sb.toString(), BPGUICore.S_BP_TITLE);
+		}
+		else
+		{
+			UIStd.info("Success copy files:" + ObjUtil.toString(success) + "/" + ObjUtil.toString(total));
+		}
+	}
+	
 	public final static void showCopyResourcesTo(BPResource[] ress, Window par)
 	{
 		if (ress == null || ress.length == 0)

@@ -130,16 +130,18 @@ public class BPComboBox<E> extends JComboBox<E>
 	@SuppressWarnings("serial")
 	public static class BPComboBoxRenderer extends DefaultListCellRenderer
 	{
-		protected Function<Object, Object> m_transfunc;
+		protected Function<?, ?> m_transfunc;
 
-		public BPComboBoxRenderer(Function<Object, Object> transfunc)
+		@SuppressWarnings("rawtypes")
+		public BPComboBoxRenderer(Function transfunc)
 		{
 			m_transfunc = transfunc;
 		}
 
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
-			return super.getListCellRendererComponent(list, m_transfunc == null ? value : m_transfunc.apply(value), index, isSelected, cellHasFocus);
+			return super.getListCellRendererComponent(list, m_transfunc == null ? value : ((Function) m_transfunc).apply(value), index, isSelected, cellHasFocus);
 		}
 	}
 }

@@ -23,6 +23,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_PROCESSOR, "Processor", null, null, null, null);
 		putAction(actmap, TXT_DATAPIPES, "DataPipes", null, null, null, null);
 		putAction(actmap, TXT_SYSINFO, "System Info", null, null, null, null);
+		putAction(actmap, TXT_INFO, "Info", null, null, null, null);
 		putAction(actmap, TXT_SEL, "Select", null, null, null, null);
 		putAction(actmap, TXT_SELEDITOR, "Select Editor", null, null, null, null);
 		putAction(actmap, TXT_EDITOR, "Editor", null, null, null, null);
@@ -58,6 +59,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_AUTO, "Auto", null, null, null, null);
 		putAction(actmap, TXT_RAW, "Raw", null, null, null, null);
 		putAction(actmap, TXT_ESCAPED, "Escaped", null, null, null, null);
+		putAction(actmap, TXT_ENCODED, "Encoded", null, null, null, null);
 		putAction(actmap, TXT_PROPS, "Properties", null, null, null, null);
 		putAction(actmap, TXT_MODE, "Mode", null, null, null, null);
 		putAction(actmap, TXT_DECODE, "Decode", null, null, null, null);
@@ -68,6 +70,12 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_LAF, "LookAndFeel", null, null, null, null);
 		putAction(actmap, TXT_SEARCHING, "Searching", null, null, null, null);
 		putAction(actmap, TXT_CONFIRMSTARTTASK, "Confirm start task(s)", null, null, null, null);
+		putAction(actmap, TXT_REFRESHING, "Refreshing", null, null, null, null);
+		putAction(actmap, TXT_NEWPRJ, "Create Project", null, null, null, null);
+		putAction(actmap, TXT_SHOW, "Show", null, null, null, null);
+		putAction(actmap, TXT_LOADING, "Loading", null, null, null, null);
+		
+		putAction(actmap, TXT_ACT_SELMORE, "Select...", null, null, null, "S");
 		
 		// Common dialog
 		putAction(actmap, DLG_OK, "OK", null, null, "ctrl ENTER", "O");
@@ -115,7 +123,6 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, MF_MNUVIEWTOGGLEBOTTOMPAN, "Toggle Bottom Panel", null, null, "alt W", null);
 		putAction(actmap, MF_MNUVIEWTOGGLERIGHTPAN, "Toggle Right Panel", null, null, "alt R", null);
 		putAction(actmap, MF_MNUVIEWFULLSCREEN, "FullScreen", null, null, "F11", null);
-		putAction(actmap, MF_MNUVIEWSELLOCALE, "Select...", null, null, null, "S");
 
 		putAction(actmap, MF_MNUSCSWITCHNEXTTAB, "SwitchNextTab", null, null, "ctrl TAB", null);
 		putAction(actmap, MF_MNUSCSWITCHLASTTAB, "SwitchLastTab", null, null, "ctrl shift TAB", null);
@@ -194,12 +201,16 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNSET, "Set", "Set", BPIconResV::START, null, null);
 		putAction(actmap, ACT_BTNFILTER, "filter", "Filter", BPIconResV::CLONE, null, null);
 		putAction(actmap, ACT_BTNCHAINFILTER, "chain filter", "Chain filter", BPIconResV::CLONE, null, null);
+		putAction(actmap, ACT_BTNTOGGLESYNC_STATUS, "syncstatus", "Toggle Sync Status", BPIconResV::REFRESH, "alt shift S", null);
+		putAction(actmap, ACT_BTNTOGGLESYNC_ACTION, "syncaction", "Toggle Sync Action", BPIconResV::REFRESH, "alt shift A", null);
 
 		// rmenu
 		putAction(actmap, CTX_MNUCOPY, "Copy", null, null, null, "C");
+		putAction(actmap, CTX_MNUCOPY_ACC, null, null, null, "ctrl C", null);
 		putAction(actmap, CTX_MNUCOPYTO, "Copy To...", null, null, null, null);
 		putAction(actmap, CTX_MNUCUT, "Cut", null, null, null, "T");
 		putAction(actmap, CTX_MNUPASTE, "Paste", null, null, null, "P");
+		putAction(actmap, CTX_MNUPASTE_ACC, null, null, null, "ctrl V", null);
 		putAction(actmap, CTX_MNUCLEAR, "Clear", null, null, null, null);
 
 		putAction(actmap, CTX_MNUADD, "Add", null, null, null, "A");
@@ -214,6 +225,9 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, CTX_MNUOPENEXTPRINT, "Print", null, null, null, "P");
 		putAction(actmap, CTX_MNUOPENEXTASSOC, "System Assoc", null, null, null, null);
 		putAction(actmap, CTX_MNUOPENTOOL, "Open With Tool", null, null, null, "W");
+		putAction(actmap, CTX_MNUINSERT, "Insert", null, null, null, "I");
+		putAction(actmap, CTX_MNUINSERTPREV, "Insert Prev", null, null, null, null);
+		putAction(actmap, CTX_MNUINSERTNEXT, "Insert Next", null, null, null, null);
 		putAction(actmap, CTX_MNUDEL, "Delete", null, null, null, "D");
 		putAction(actmap, CTX_MNUEDIT, "Edit", null, null, null, "E");
 		putAction(actmap, CTX_MNUEDIT_CELL, "Edit Cell", null, null, null, null);
@@ -227,6 +241,14 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 
 		putAction(actmap, CTX_MNUENABLE, "Enable", null, null, null, null);
 		putAction(actmap, CTX_MNUDISABLE, "Disable", null, null, null, null);
+		putAction(actmap, CTX_MNUCLONERAW, "Clone Raw Data", null, null, null, null);
+		putAction(actmap, CTX_MNUCLONESEEN, "Clone Seen Data", null, null, null, null);
+		putAction(actmap, CTX_MNUTABLECFILTER, "Common Filter", null, null, null, null);
+		
+		putAction(actmap, CTX_MNUTABCLOSE, "Close", null, null, null, null);
+		putAction(actmap, CTX_MNUTABCLOSEALL, "Close All", null, null, null, null);
+		putAction(actmap, CTX_MNUTABCLOSEOTHERS, "Close Others", null, null, null, null);
+		putAction(actmap, CTX_MNUTABSPLITNEWWIN, "Split(New Window)", null, null, null, null);
 
 		// PTree
 		putAction(actmap, PTREE_REFRESH, "Refresh", "Refresh", BPIconResV::REFRESH, null, null);
@@ -237,6 +259,8 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 
 		// XYTable
 		putAction(actmap, XYTBL_CTX_MNUTRANSCELL, "Transform Cell", null, null, null, null);
+		putAction(actmap, XYTBL_CTX_MNUTRANSROW, "Transform Row", null, null, null, null);
+		putAction(actmap, XYTBL_CTX_MNUTRANSSEL, "Transform Selection", null, null, null, null);
 
 		// RawEditor
 		putAction(actmap, RAWET_CTX_MNUCOPYHEX, "Copy(Hex)", null, null, null, null);

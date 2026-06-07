@@ -26,8 +26,8 @@ public class BPFormPanelScheduleFileSystem extends BPFormPanelSchedule
 		super.initForm();
 		m_txtwatchfile = makeSingleLineTextField();
 
-		addSeparator("Condition");
-		addLine(new String[] { "Watch File" }, new Component[] { m_txtwatchfile }, () -> !m_txtwatchfile.isEmpty());
+		addSeparator(m_lh.translate("Condition"));
+		addLine(new String[] { m_lh.translate("Watch File") }, new Component[] { m_txtwatchfile }, () -> !m_txtwatchfile.isEmpty());
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)

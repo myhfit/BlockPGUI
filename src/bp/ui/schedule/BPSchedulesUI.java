@@ -184,7 +184,7 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 				return null;
 			}, sd.getClass(), BPSchedule.class);
 			dlg.setup(c == null ? sd.getClass().getName() : c.getName(), sd);
-			dlg.setTitle("Schedule:" + sd.getName());
+			dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SCHEDULE) + ":" + sd.getName());
 			dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(700, 600)));
 			dlg.pack();
 			dlg.setLocationRelativeTo(null);
@@ -252,7 +252,7 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 				}
 				case 1:
 				{
-					return sd.isEnabled() ? "Enabled" : "Disabled";
+					return sd.isEnabled() ? BPLocaleConstCC.ENABLED.text() : BPLocaleConstCC.DISABLED.text();
 				}
 				case 2:
 				{

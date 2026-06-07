@@ -120,7 +120,6 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		setLayout(new BorderLayout());
 		m_toolbar = new BPToolBarSQ(true);
 		m_toolbar.setBorderVertical(0);
-		m_toolbar.setNoScrollSize();
 		m_tablefuncs = new BPTableFuncsResourceFiles();
 		m_table = new BPTable<BPResource>(m_tablefuncs);
 		m_table.addMouseListener(new UIUtil.BPMouseListener(this::onTableClick, null, null, null, null));
@@ -673,6 +672,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 			List<BPResource> ress = m_table.getSelectedDatas();
 			if (ress != null && ress.size() > 0)
 			{
+				m_ec.eventcontroller.dispatchEvent(BPEditorEvent.ACT_OPEN, ress.get(0));
 				BPGUICore.EVENTS_UI.trigger(m_channelid,
 						new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress.toArray(new BPResource[ress.size()]), BPFileActions.ACTION_OPEN, null }, UIUtil.getRouteContext(e.getSource())));
 			}
@@ -826,28 +826,33 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 
 	protected void onSelectionChanged(ListSelectionEvent e)
 	{
-		if (e.getValueIsAdjusting() && m_ec.syncstatus.checkSyncAndNoBlock())
+		if (e.getValueIsAdjusting())
 		{
-			List<BPResource> ress = m_table.getSelectedDatas();
-			String[] resstrs = new String[ress.size()];
-			BPResource base = m_tablefuncs.getBaseResource();
-			if (base.isFileSystem() && !base.isLeaf())
+			if (m_ec.syncstatus.checkSyncAndNoBlock())
 			{
-				String basestr = ((BPResourceFileSystem) base).getFileFullName();
-				for (int i = 0; i < ress.size(); i++)
+				List<BPResource> ress = m_table.getSelectedDatas();
+				String[] resstrs = new String[ress.size()];
+				BPResource base = m_tablefuncs.getBaseResource();
+				if (base.isFileSystem() && !base.isLeaf())
 				{
-					resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
+					String basestr = ((BPResourceFileSystem) base).getFileFullName();
+					for (int i = 0; i < ress.size(); i++)
+					{
+						resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
+					}
+					m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 				}
-				m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
-			}
-			else
-			{
-				for (int i = 0; i < ress.size(); i++)
+				else
 				{
-					resstrs[i] = ress.get(i).getName();
+					for (int i = 0; i < ress.size(); i++)
+					{
+						resstrs[i] = ress.get(i).getName();
+					}
+					m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 				}
-				m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 			}
+			if (m_table.getSelectedData() != null)
+				m_ec.eventcontroller.dispatchEvent(BPEditorEvent.ACT_SELECT, m_table.getSelectedData());
 		}
 	}
 

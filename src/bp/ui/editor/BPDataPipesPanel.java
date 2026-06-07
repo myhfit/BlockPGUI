@@ -304,10 +304,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		BPSetting setting = c.getSetting();
 		if (setting != null)
 		{
-			BPDialogSetting dlg = new BPDialogSetting();
-			dlg.setSetting(setting);
-			dlg.setVisible(true);
-			setting = dlg.getResult();
+			setting = BPDialogSetting.showSetting(setting);
 			if (setting != null)
 			{
 				c.setSetting(setting);
@@ -418,7 +415,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		if (fac != null)
 		{
 			List<String> fts = fac.getSupportedFormats();
-			String ft = UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FORMAT), null);
+			String ft = fac.refuseSelectFormat() ? fts.get(0) : UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FORMAT), null);
 			if (ft != null)
 			{
 				BPDataConsumer<?> dc = fac.create(ft);

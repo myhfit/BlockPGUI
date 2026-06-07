@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -57,7 +56,6 @@ import bp.ui.editor.controller.BPEditorController;
 import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.event.BPResourceOperationCommonHandler;
 import bp.ui.parallel.BPSyncGUIController;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPGUIInfoPanel;
 import bp.ui.scomp.BPPopupComboList;
 import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
@@ -120,10 +118,8 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		m_mainp = new JPanel();
 		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
 		BPAction actcompare = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCOMPARE, this::onCompare);
-		m_actsyncstatus = BPAction.build("syncstatus").tooltip("Toggle Sync Status").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.ALT_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK)).vIcon(BPIconResV.REFRESH())
-				.callback(this::onToggleSyncStatus).getAction();
-		m_actsyncaction = BPAction.build("syncaction").tooltip("Toggle Sync Action").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.ALT_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK)).vIcon(BPIconResV.REFRESH())
-				.callback(this::onToggleSyncAction).getAction();
+		m_actsyncstatus = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNTOGGLESYNC_STATUS, this::onToggleSyncStatus);
+		m_actsyncaction = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNTOGGLESYNC_ACTION, this::onToggleSyncAction);
 		m_actsyncstatus.putValue(Action.SELECTED_KEY, true);
 		m_actsyncaction.putValue(Action.SELECTED_KEY, false);
 		Action[] acts = new Action[] { actadd, actcompare, BPAction.separator(), m_actsyncstatus, m_actsyncaction };
@@ -284,9 +280,9 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		}
 	}
 
-	public void removeEditor(int index)
+	public void removeEditorByIndex(int index)
 	{
-		m_eps.get(index).clearEditor();
+		m_eps.get(index).removeEditor();
 		int s = m_eps.size();
 		if (s > 2)
 		{
@@ -479,6 +475,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		protected Consumer<BPEventUIEditors> m_editorcb;
 		protected Action m_actsave;
 		protected JPanel m_pnltb;
+		protected Action[] m_subacts;
 
 		public BPEditorSubPanel()
 		{
@@ -523,10 +520,10 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			m_pch.on(BPEventUIEditors.EVENTKEY_EDITORS, m_editorcb);
 		}
 
-		public void clearEditor()
+		public void removeEditor()
 		{
-			BPEditor<?> editor = m_editor;
 			clearResource();
+			BPEditor<?> editor = m_editor;
 			if (editor != null)
 				remove(editor.getComponent());
 			setTitle("");
@@ -538,9 +535,10 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		{
 			m_pnltb.setVisible(flag);
 		}
-
+		
 		public void clearResource()
 		{
+			clearSubActions();
 			BPEditor<?> editor = m_editor;
 			if (editor != null)
 			{
@@ -555,13 +553,28 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		{
 			return m_editor;
 		}
+		
+		protected void clearSubActions()
+		{
+			Action[] subacts = m_subacts;
+			if (subacts != null)
+			{
+				m_subacts = null;
+				for (Action subact : subacts)
+				{
+					KeyStroke ks = (KeyStroke) subact.getValue(Action.ACCELERATOR_KEY);
+					if (ks != null)
+						unregisterKeyboardAction(ks);
+				}
+			}
+		}
 
 		protected Action[] getEditorAction(BPEditor<?> editor)
 		{
 			BPAction actcreate = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_CREATEEDITOR, this::createEditor);
 			BPAction actopen = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNOPEN, BPActionConstCommon.ACT_BTNOPEN_ACC, this::loadEditor);
 			m_actsave = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSAVE, BPActionConstCommon.ACT_BTNSAVE_ACC, this::onSave);
-			BPAction actclose = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNCLOSETAB, BPActionConstCommon.ACT_BTNCLOSETAB_ACC, e -> removeEditor(m_editorindex));
+			BPAction actclose = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNCLOSETAB, BPActionConstCommon.ACT_BTNCLOSETAB_ACC, e -> removeEditorByIndex(m_editorindex));
 			return new Action[] { actcreate, actopen, m_actsave, actclose };
 		}
 
@@ -653,7 +666,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 
 		public void onSave(ActionEvent e)
 		{
-			BPEditor<?> editor=m_editor;
+			BPEditor<?> editor = m_editor;
 			if (!(editor instanceof BPViewer))
 				return;
 			BPDataContainer con = ((BPViewer<?>) editor).getDataContainer();
@@ -778,6 +791,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 			BPEditor<?> oldeditor = m_editor;
 			if (oldeditor != null)
 			{
+				clearSubActions();
 				{
 					BPEditorController ec = oldeditor.getEditorController();
 					if (ec != null && ec.canSync())
@@ -805,6 +819,17 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 					BPEditorController ec = editor.getEditorController();
 					if (ec != null && ec.canSync())
 						ec.startSyncStatus();
+				}
+				Action[] subacts = editor.getSeparatorActions();
+				if (subacts != null)
+				{
+					for (Action subact : subacts)
+					{
+						KeyStroke ks = (KeyStroke) subact.getValue(Action.ACCELERATOR_KEY);
+						if (ks != null)
+							registerKeyboardAction(subact, ks, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+					}
+					m_subacts = subacts;
 				}
 			}
 			updateUI();

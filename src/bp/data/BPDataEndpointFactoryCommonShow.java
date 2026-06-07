@@ -7,7 +7,9 @@ import bp.format.BPFormat;
 import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
 import bp.format.BPFormatText;
+import bp.format.BPFormatTreeData;
 import bp.format.BPFormatUnknown;
+import bp.format.BPFormatXYData;
 import bp.ui.util.UIStd;
 import bp.util.ObjUtil;
 
@@ -24,9 +26,14 @@ public class BPDataEndpointFactoryCommonShow implements BPDataEndpointFactory
 		return (BPDataConsumer<D>) new BPDataConsumerCommonShow();
 	}
 
+	public boolean refuseSelectFormat()
+	{
+		return true;
+	}
+
 	public List<String> getSupportedFormats()
 	{
-		List<String> rc = ObjUtil.makeList(BPFormatText.FORMAT_TEXT, BPFormatUnknown.FORMAT_NA);
+		List<String> rc = ObjUtil.makeList(BPFormatText.FORMAT_TEXT, BPFormatUnknown.FORMAT_NA, BPFormatTreeData.FORMAT_TREEDATA, BPFormatXYData.FORMAT_XYDATA);
 		List<BPFormat> fs = BPFormatManager.getFormatsByFeature(BPFormatFeature.IMAGE);
 		for (BPFormat f : fs)
 			rc.add(f.getName());

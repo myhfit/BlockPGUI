@@ -8,6 +8,7 @@ import javax.swing.JMenuItem;
 
 import bp.BPGUICore;
 import bp.config.UIConfigs;
+import bp.ui.actions.BPAction;
 
 public class BPMenuItem extends JMenuItem
 {
@@ -19,6 +20,9 @@ public class BPMenuItem extends JMenuItem
 	public BPMenuItem(Action a)
 	{
 		super(a);
+		Boolean istitle = (Boolean) a.getValue(BPAction.IS_TITLE);
+		if (Boolean.TRUE.equals(istitle))
+			setEnabled(false);
 		Integer vi = (Integer) a.getValue(Action.MNEMONIC_KEY);
 		if (vi != null)
 			setMnemonic(vi);

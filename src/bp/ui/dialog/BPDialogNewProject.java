@@ -2,9 +2,10 @@ package bp.ui.dialog;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.Vector;
 
 import javax.swing.JPanel;
 import javax.swing.border.MatteBorder;
@@ -12,9 +13,12 @@ import javax.swing.event.ListSelectionEvent;
 
 import bp.BPCore;
 import bp.config.UIConfigs;
+import bp.locale.BPLocaleConstProjectDict;
+import bp.locale.BPLocaleHelpers;
 import bp.project.BPProjectFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResourceDirLocal;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPList;
@@ -49,14 +53,15 @@ public class BPDialogNewProject extends BPDialogCommon
 		add(leftpan, BorderLayout.WEST);
 
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
-		setTitle("New Project");
+		setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_NEWPRJ));
 		setModal(true);
 	}
 
 	private static Object transFacName(Object facobj)
 	{
 		BPProjectFactory fac = (BPProjectFactory) facobj;
-		return fac == null ? "" : fac.getName();
+		String facname = fac == null ? "" : fac.getName();
+		return BPLocaleHelpers.translate(BPLocaleConstProjectDict.S, facname, "PRJNAME_");
 	}
 
 	protected void setPrefers()
@@ -68,11 +73,9 @@ public class BPDialogNewProject extends BPDialogCommon
 	protected void initDatas()
 	{
 		ServiceLoader<BPProjectFactory> facs = ClassUtil.getExtensionServices(BPProjectFactory.class);
-		Vector<BPProjectFactory> datas = new Vector<BPProjectFactory>();
+		List<BPProjectFactory> datas = new ArrayList<BPProjectFactory>();
 		for (BPProjectFactory fac : facs)
-		{
 			datas.add(fac);
-		}
 		((BPList.BPListModel<BPProjectFactory>) m_lstfacs.getModel()).setDatas(datas);
 		m_lstfacs.addListSelectionListener(this::onListSelectionChange);
 	}

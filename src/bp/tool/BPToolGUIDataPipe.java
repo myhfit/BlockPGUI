@@ -346,7 +346,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			if (fac != null)
 			{
 				List<String> fts = fac.getSupportedFormats();
-				String ft = UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FORMAT), null);
+				String ft = fac.refuseSelectFormat() ? fts.get(0) : UIStd.select(fts, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_FORMAT), null);
 				if (ft != null)
 				{
 					BPDataConsumer<?> dc = fac.create(ft);
@@ -394,11 +394,8 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			BPSetting setting = c.getSetting();
 			if (setting != null)
 			{
-				BPDialogSetting dlg = new BPDialogSetting();
-				dlg.setSetting(setting);
-				dlg.setVisible(true);
-				setting = dlg.getResult();
-				if (setting != null)
+				BPSetting newsetting = BPDialogSetting.showSetting(setting);
+				if (newsetting != null)
 					c.setSetting(setting);
 			}
 		}

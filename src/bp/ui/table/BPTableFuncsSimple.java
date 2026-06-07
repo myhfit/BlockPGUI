@@ -16,6 +16,8 @@ public class BPTableFuncsSimple<T> extends BPTableFuncsBase<T>
 	protected WeakRefGo<BPTableFuncsOpenActionHandler<T>> m_oahandlerref;
 	protected boolean m_editable;
 
+	protected volatile Object m_userobj;
+
 	public BPTableFuncsSimple()
 	{
 		m_vgetterref = new WeakRefGo<>();
@@ -30,6 +32,11 @@ public class BPTableFuncsSimple<T> extends BPTableFuncsBase<T>
 		m_colnames = colnames;
 		m_collabels = collabels;
 		m_cols = cols;
+	}
+
+	public void setUserObject(Object obj)
+	{
+		m_userobj = obj;
 	}
 
 	public static interface BPTableFuncsValueGetter<T>

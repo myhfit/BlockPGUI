@@ -172,7 +172,7 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 		{
 			BPTextField tf = isleft ? m_lpath : m_rpath;
 			String path = tf.getText();
-			BPResource res = BPCore.getFileContext().getDir(path);
+			BPResource res = BPCore.getFileContext().getRes(path);
 			if (isleft)
 			{
 				setLeftResource(res, null);
@@ -258,6 +258,8 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 			m_lp.remove(m_leftcomp);
 			m_leftcomp = null;
 		}
+		if (format == null)
+			format = BPFormatManager.getFormatByExt(res.getExt());
 		if (format != null && format.checkFeature(BPFormatFeature.ARCHIVE))
 		{
 			BPArchivePanel pnl = new BPArchivePanel();
@@ -266,6 +268,7 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 			pnl.setFormat(format);
 			pnl.bind(con);
 			m_lp.add(pnl, BorderLayout.CENTER);
+			m_lp.updateUI();
 			m_leftcomp = pnl;
 			m_lpath.setText(((BPResourceFileSystem) res).getFileFullName());
 		}
@@ -307,6 +310,8 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 			m_rp.remove(m_rightcomp);
 			m_rightcomp = null;
 		}
+		if (format == null)
+			format = BPFormatManager.getFormatByExt(res.getExt());
 		if (format != null && format.checkFeature(BPFormatFeature.ARCHIVE))
 		{
 			BPArchivePanel pnl = new BPArchivePanel();
@@ -315,6 +320,7 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 			pnl.setFormat(format);
 			pnl.bind(con);
 			m_rp.add(pnl, BorderLayout.CENTER);
+			m_rp.updateUI();
 			m_rightcomp = pnl;
 			m_rpath.setText(((BPResourceFileSystem) res).getFileFullName());
 		}

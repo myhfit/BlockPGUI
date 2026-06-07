@@ -17,6 +17,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import bp.ui.actions.BPAction;
 import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeFuncs.BPTreeFuncsVoid;
 import bp.ui.util.UIUtil;
@@ -209,6 +210,22 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 				getTreeFuncs().onDelete(this, getSelectedNode());
 				break;
 			}
+			default:
+			{
+				if(UIUtil.checkISCopy(e))
+				{
+					if (getTreeFuncs().isOverwriteCopy())
+					{
+						e.consume();
+						getTreeFuncs().onCopy(this, getSelectedNode());
+					}
+				}
+				else if(UIUtil.checkISPaste(e))
+				{
+					e.consume();
+					getTreeFuncs().onPaste(this, getSelectedNode());
+				}
+			}
 		}
 	}
 
@@ -231,30 +248,51 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 		}
 		else if (btn == MouseEvent.BUTTON3)
 		{
+			TreePath[] selpaths = getSelectionPaths();
 			TreePath path = getPathForLocation(e.getX(), e.getY());
-			if (path != null)
+			boolean isselempty = path == null;
+			boolean isshift = e.isShiftDown();
+			if (path == null && !isshift)
 			{
-				// check current selection
-				TreePath[] paths = getSelectionPaths();
-				boolean flag = false;
-				if (paths != null && paths.length > 1)
+				int h = getRowHeight();
+				int r = e.getY() / h;
+				if (r < getRowCount())
 				{
-					Object lo = path.getLastPathComponent();
-					for (TreePath selp : paths)
+					TreePath path2 = getPathForRow(r);
+					if (path2 != null)
 					{
-						if (selp.getLastPathComponent() == lo)
+						if (checkInPaths(selpaths, path2))
 						{
-							flag = true;
-							break;
+							path = path2;
+							isselempty = false;
+						}
+						else if (path2.getPathCount() == 2)
+						{
+							path = path2;
+							isselempty = false;
+						}
+						else if (path2.getPathCount() > 2)
+						{
+							path = path2.getParentPath();
 						}
 					}
 				}
-				if (!flag)
+			}
+			if (path != null)
+			{
+				if (!checkInPaths(selpaths, path))
 					setSelectionPath(path);
 			}
 			List<Action> acts = tryFixAction(getTreeFuncs().getActions(this, ((path != null) ? (BPTreeNode) path.getLastPathComponent() : null)));
 			if (acts != null && acts.size() > 0)
 			{
+				if (isselempty)
+				{
+					Action act = BPAction.build("@" + ((BPTreeNode) path.getLastPathComponent()).toString()).getAction();
+					act.putValue(BPAction.IS_TITLE, true);
+					acts.add(0,act);
+					acts.add(1,BPAction.separator());
+				}
 				JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
 				JPopupMenu pop = new JPopupMenu();
 				for (JComponent item : items)
@@ -264,6 +302,24 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 				pop.show(this, e.getX(), e.getY());
 			}
 		}
+	}
+	
+	protected final static boolean checkInPaths(TreePath[] selpaths,TreePath path)
+	{
+		boolean rc = false;
+		if (path != null && selpaths != null && selpaths.length > 0)
+		{
+			Object lo = path.getLastPathComponent();
+			for (TreePath selp : selpaths)
+			{
+				if (selp.getLastPathComponent() == lo)
+				{
+					rc = true;
+					break;
+				}
+			}
+		}
+		return rc;
 	}
 
 	protected List<Action> tryFixAction(List<Action> acts)
@@ -284,6 +340,9 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 
 	public void clearResource()
 	{
+		BPTreeFuncs tf = getTreeFuncs();
+		if (tf != null)
+			tf.clearResource();
 		setModel(new BPTreeModel(new BPTreeFuncsVoid()));
 	}
 

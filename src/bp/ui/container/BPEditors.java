@@ -388,8 +388,8 @@ public class BPEditors extends BPTabbedContainerBase
 
 	protected void initTab(Tab tab)
 	{
-		tab.pan.setMenu(new Object[][] { new Object[] { "Close", "close" }, new Object[] { "Close All", "closeall" }, new Object[] { "Close Others", "closeother" }, new Object[] { "-", null, (Predicate<String>) this::canSplit },
-				new Object[] { "Split(New Window)", "split", (Predicate<String>) this::canSplit } }, m_mnucb);
+		tab.pan.setMenu(new Object[][] { new Object[] { BPActionConstCommon.CTX_MNUTABCLOSE.text(), "close" }, new Object[] { BPActionConstCommon.CTX_MNUTABCLOSEALL.text(), "closeall" }, new Object[] { BPActionConstCommon.CTX_MNUTABCLOSEOTHERS.text(), "closeother" }, new Object[] { "-", null, (Predicate<String>) this::canSplit },
+				new Object[] { BPActionConstCommon.CTX_MNUTABSPLITNEWWIN.text(), "split", (Predicate<String>) this::canSplit } }, m_mnucb);
 	}
 
 	protected boolean canSplit(String id)

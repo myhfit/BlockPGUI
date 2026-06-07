@@ -33,16 +33,21 @@ public class BPTabbedPanel extends JPanel
 	{
 		switchTab(id);
 	};
-
+	
 	public BPTabbedPanel()
+	{
+		this(false);
+	}
+
+	public BPTabbedPanel(boolean isbottom)
 	{
 		setLayout(new BorderLayout());
 		m_tabbar = new BPTabBar();
-		m_tabbar.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()));
+		m_tabbar.setBorder(new MatteBorder(isbottom ? 1 : 0, 0, isbottom ? 0 : 1, 0, UIConfigs.COLOR_WEAKBORDER()));
 		m_tabbar.setup(m_switchfunc, m_closefunc);
 
 		m_con = new JPanel();
-		add(m_tabbar, BorderLayout.NORTH);
+		add(m_tabbar, isbottom ? BorderLayout.SOUTH : BorderLayout.NORTH);
 		add(m_con, BorderLayout.CENTER);
 
 		m_con.setLayout(new BorderLayout());

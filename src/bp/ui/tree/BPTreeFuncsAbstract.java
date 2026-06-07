@@ -39,4 +39,9 @@ public abstract class BPTreeFuncsAbstract implements BPTreeFuncs
 	{
 		return m_tahandlerref.get();
 	}
+
+	public void clearResource()
+	{
+		m_tahandlerref.setTarget(null);
+	}
 }

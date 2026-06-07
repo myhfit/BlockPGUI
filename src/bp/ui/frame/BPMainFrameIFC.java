@@ -1,9 +1,12 @@
 package bp.ui.frame;
 
+import java.util.function.Function;
+
 import javax.swing.Action;
 
 import bp.event.BPEventUI;
 import bp.ui.container.BPTabbedContainer;
+import bp.ui.editor.BPEditor;
 
 public interface BPMainFrameIFC extends BPFrameHostIFC
 {
@@ -17,13 +20,13 @@ public interface BPMainFrameIFC extends BPFrameHostIFC
 
 	public void toggleBottomPanel();
 
-//	public void toggleRightPanel();
-
 	public void toggleVisible();
 
 	public void enterStandaloneMode();
 
 	public boolean isVisible();
+
+	public <T> T useCurrentEditor(Function<? extends BPEditor<?>, T> seg);
 
 	default void registerMenu(String key, String title, Action[] actions)
 	{

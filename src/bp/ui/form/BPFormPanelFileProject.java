@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import bp.BPCore;
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstProjectDict;
+import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.ui.dialog.BPDialogSelectResourceDir;
@@ -50,8 +53,8 @@ public class BPFormPanelFileProject extends BPFormPanelResourceBase
 
 		m_chknocache.setLabelFont();
 
-		addLine(new String[] { "Path" }, new Component[] { m_pathpan }, () -> !m_txtpath.isEmpty());
-		addLine(new String[] { "NoCache" }, new Component[] { wrapSingleLineComponent(m_chknocache) });
+		addLine(new String[] { BPLocaleConstCC.PATH.text() }, new Component[] { m_pathpan }, () -> !m_txtpath.isEmpty());
+		addLine(new String[] { BPLocaleHelpers.translate(BPLocaleConstProjectDict.S, "NoCache") }, new Component[] { wrapSingleLineComponent(m_chknocache) });
 
 		m_checks.set(0, LogicUtil.andCheck(m_checks.get(0), this::checkProjectName));
 	}

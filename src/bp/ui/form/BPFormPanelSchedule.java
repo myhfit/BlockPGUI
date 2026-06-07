@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelperDict;
 import bp.schedule.BPScheduleTargetFactory;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPComboBox;
@@ -24,6 +26,7 @@ public class BPFormPanelSchedule extends BPFormPanel
 	protected BPCheckBox m_chkenabled;
 	protected BPComboBox<String> m_cmbtargetfac;
 	protected BPTextField m_txttargetparams;
+	protected BPLocaleHelperDict<?> m_lh;
 
 	public Map<String, Object> getFormData()
 	{
@@ -33,6 +36,11 @@ public class BPFormPanelSchedule extends BPFormPanel
 		rc.put("targetfac", m_cmbtargetfac.getSelectedItem());
 		rc.put("targetparams", m_txttargetparams.getNotEmptyText());
 		return rc;
+	}
+	
+	protected void initLocale()
+	{
+		m_lh = new BPLocaleHelperDict.BPLocaleHelperDictClass(BPFormPanelSchedule.class.getName());
 	}
 
 	protected void initForm()
@@ -44,11 +52,11 @@ public class BPFormPanelSchedule extends BPFormPanel
 
 		m_chkenabled.setSelected(true);
 
-		addLine(new String[] { "Name" }, new Component[] { m_txtname }, () -> !m_txtname.isEmpty() && m_txtname.checkSTName());
-		addLine(new String[] { "Enabled" }, new Component[] { m_chkenabled }, true, null);
-		addSeparator("Target");
-		addLine(new String[] { "Target Type" }, new Component[] { m_cmbtargetfac }, () -> m_cmbtargetfac.getSelectedItem() != null);
-		addLine(new String[] { "Target Params" }, new Component[] { m_txttargetparams });
+		addLine(new String[] { BPLocaleConstCC.NAME.text() }, new Component[] { m_txtname }, () -> !m_txtname.isEmpty() && m_txtname.checkSTName());
+		addLine(new String[] { BPLocaleConstCC.ENABLED.text() }, new Component[] { m_chkenabled }, true, null);
+		addSeparator(BPLocaleConstCC.TARGET.text());
+		addLine(new String[] { m_lh.translate("Target Type") }, new Component[] { m_cmbtargetfac }, () -> m_cmbtargetfac.getSelectedItem() != null);
+		addLine(new String[] { m_lh.translate("Target Params") }, new Component[] { m_txttargetparams });
 		initTargetFacs();
 	}
 

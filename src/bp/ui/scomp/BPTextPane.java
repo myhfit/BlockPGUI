@@ -1,7 +1,9 @@
 package bp.ui.scomp;
 
+import java.awt.Font;
 import java.awt.GraphicsConfiguration;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.Reader;
@@ -21,6 +23,7 @@ import javax.swing.text.ViewFactory;
 
 import bp.ui.actions.BPAction;
 import bp.ui.dialog.BPDialogFindText;
+import bp.ui.util.UIUtil;
 import bp.util.TextUtil;
 
 public class BPTextPane extends BPEditorPane
@@ -39,6 +42,21 @@ public class BPTextPane extends BPEditorPane
 
 		getInputMap().put(KeyStroke.getKeyStroke("control F"), "find");
 		getActionMap().put("find", BPAction.build("find").callback(this::onFind).getAction());
+	}
+
+	public void onMouseWheelZoom(MouseWheelEvent e)
+	{
+		if ((e.getModifiersEx() & MouseWheelEvent.CTRL_DOWN_MASK) != 0)
+		{
+			Font f = getFont();
+			int z = e.getWheelRotation() * -1;
+			int z2 = f.getSize() + z;
+			if (z2 < 5 || z2 > 200)
+				return;
+			setFont(UIUtil.deltaFont(f, z));
+			resizeDoc();
+			e.consume();
+		}
 	}
 
 	protected void onFind(ActionEvent e)

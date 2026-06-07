@@ -89,6 +89,7 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	protected BiConsumer<byte[], Integer> m_previewcb;
 	protected WeakReference<Consumer<String>> m_dynainfo;
 	protected BiConsumer<String, Boolean> m_statechangedcb;
+	protected Consumer<String> m_leswcb;
 
 	protected BPBlockCache m_cache;
 	protected BPEditorController m_ec;
@@ -166,8 +167,10 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		m_readcb = this::onRead;
 		m_rawreadcb = this::onRawRead;
 		m_previewcb = this::onPreview;
+		m_leswcb = this::onSwitchLE;
 		m_ec.initStatusSync((BiConsumer<BPEventUISyncEditor, BPRawEditor>) BPRawEditor::onSyncEditorOuter);
 		m_ec.startsynccb = (Consumer<BPRawEditor>) BPRawEditor::startSyncFixer;
+		swrlt.setSwitchCallback(m_leswcb);
 
 		m_hexp.setContextActions(makeContextActions());
 		m_hexp.getScrollBar().addAdjustmentListener(this::onScroll);
@@ -262,6 +265,12 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		dlg.pack();
 		dlg.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
 		dlg.setVisible(true);
+	}
+	
+	protected void onSwitchLE(String le)
+	{
+		boolean isle="LE".equals(le);
+		m_calcp.setLE(isle);
 	}
 
 	protected void onPreview(byte[] bs, Integer linesize)
@@ -634,6 +643,11 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public boolean hasPreview()
 	{
 		return !m_nopreview;
+	}
+
+	public void clearResource()
+	{
+		m_calcp.clearResource();
 	}
 
 	protected void onScroll(AdjustmentEvent e)

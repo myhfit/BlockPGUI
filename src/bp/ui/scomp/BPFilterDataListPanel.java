@@ -164,10 +164,7 @@ public class BPFilterDataListPanel<DATA> extends JPanel implements BPFilterCompo
 		BPSetting setting = tf.getSetting();
 		if (setting != null)
 		{
-			BPDialogSetting dlg = new BPDialogSetting();
-			dlg.setSetting(setting);
-			dlg.setVisible(true);
-			BPSetting r = dlg.getResult();
+			BPSetting r = BPDialogSetting.showSetting(setting);
 			if (r != null)
 			{
 				tf.setSetting(r);

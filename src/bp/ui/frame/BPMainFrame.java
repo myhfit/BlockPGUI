@@ -7,11 +7,18 @@ import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -314,6 +322,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		refreshShortCuts();
 
 		addWindowListener(this);
+		setDropTarget(new DropTarget(this,DnDConstants.ACTION_COPY_OR_MOVE, new UIUtil.BPDropTargetListener(null, null, null, null, this::onDrop)));
 
 		initActions();
 
@@ -348,10 +357,38 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			mnuexit.addActionListener(e -> exit());
 			mnutray.add(mnuexit);
 		}
-		TrayIcon ti = new TrayIcon(img, "BlockP", null);
+		TrayIcon ti = new TrayIcon(img, BPGUICore.S_BP_TITLE, null);
 		UIStd.wrapSegE(() -> SystemTray.getSystemTray().add(ti));
 		ti.addMouseListener(new UIUtil.BPMouseListener(null, this::onSysTrayDown, null, null, null));
 		m_trayicon = ti;
+	}
+
+	protected void onDrop(DropTargetDropEvent e)
+	{
+		Transferable t = e.getTransferable();
+		try
+		{
+			if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+			{
+				e.acceptDrop(DnDConstants.ACTION_MOVE);
+				List<?> fs = (List<?>) t.getTransferData(DataFlavor.javaFileListFlavor);
+				for (Object fobj : fs)
+				{
+					File f = (File) fobj;
+					BPResource res = null;
+					if (f.isFile())
+						res = new BPResourceFileLocal(f);
+					else if (f.isDirectory())
+						res = new BPResourceDirLocal(f);
+					openResource(res, null, null, false, null);
+				}
+			}
+			e.dropComplete(true);
+		}
+		catch (UnsupportedFlavorException | IOException e1)
+		{
+			UIStd.err(e1);
+		}
 	}
 
 	protected void onSysTrayDown(MouseEvent e)
@@ -419,7 +456,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		String l = Locale.getDefault().toLanguageTag();
 		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.TXT_AUTO, e -> setBPLocale(null), b -> b.name(b.getValue(Action.NAME) + "(" + l + ")")));
-		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWSELLOCALE, e-> showSelectLocale()));
+		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.TXT_ACT_SELMORE, e-> showSelectLocale()));
 	}
 
 	protected void initToolMenu(JMenu mnutool)
@@ -786,6 +823,10 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 					{
 						CommonUIOperations.showCopyResourcesTo(event.getSelectedResources(), this);
 						break;
+					}
+					case BPPathTreeNodeActions.ACTION_PASTE:
+					{
+						CommonUIOperations.pasteToResource(event.getSelectedResource(), this);
 					}
 				}
 				break;
@@ -1226,17 +1267,25 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		return m_bottomtab;
 	}
 
+	@SuppressWarnings("unchecked")
+	public <T> T useCurrentEditor(Function<? extends BPEditor<?>, T> seg)
+	{
+		BPComponent<?> comp = m_editors.getCurrent();
+		if (comp != null && comp instanceof BPRoutableContainer)
+		{
+			comp = ((BPRoutableContainer<?>) comp).getCurrent();
+			if (comp instanceof BPEditor)
+				return (T) ((Function<BPEditor<?>, T>) seg).apply((BPEditor<?>) comp);
+		}
+		return null;
+	}
+
 	public BPComponent<?> getCurrentEditor()
 	{
 		BPComponent<?> comp = m_editors.getCurrent();
 		if (comp != null && comp instanceof BPRoutableContainer)
 			comp = ((BPRoutableContainer<?>) comp).getCurrent();
 		return comp;
-	}
-
-	public BPComponent<?> getCurrentEditorRaw()
-	{
-		return m_editors.getCurrent();
 	}
 
 	public BPEditors getEditors()
@@ -1297,6 +1346,30 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			if (comp instanceof BPEditor)
 			{
 				((BPEditor<?>) comp).toggleRightPanel();
+			}
+		}
+	}
+
+	public void toggleEditorLeftPanel()
+	{
+		BPComponent<?> comp = m_editors.getCurrent();
+		if (comp != null)
+		{
+			if (comp instanceof BPEditor)
+			{
+				((BPEditor<?>) comp).toggleLeftPanel();
+			}
+		}
+	}
+
+	public void toggleEditorBottomPanel()
+	{
+		BPComponent<?> comp = m_editors.getCurrent();
+		if (comp != null)
+		{
+			if (comp instanceof BPEditor)
+			{
+				((BPEditor<?>) comp).toggleBottomPanel();
 			}
 		}
 	}

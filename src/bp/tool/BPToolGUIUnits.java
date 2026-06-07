@@ -71,8 +71,8 @@ public class BPToolGUIUnits extends BPToolGUIBase<BPToolGUIUnits.BPToolGUIContex
 			m_cmbl = new BPComboBox<>();
 			m_cmbr = new BPComboBox<>();
 			BPToolBarSQ toolbar = new BPToolBarSQ();
-			Action acttoright = BPAction.build(">").vIcon(BPIconResV.TORIGHT()).callback(this::onToRight).tooltip("Convert to right(F5)").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)).getAction();
-			Action acttoleft = BPAction.build("<").vIcon(BPIconResV.TOLEFT()).callback(this::onToLeft).tooltip("Convert to left(F6)").acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)).getAction();
+			Action acttoright = BPAction.build(">").vIcon(BPIconResV.TORIGHT()).callback(this::onToRight).tooltip(BPLocaleHelpers.translateByClass(BPToolGUI.class, "Convert to right")).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0)).getAction();
+			Action acttoleft = BPAction.build("<").vIcon(BPIconResV.TOLEFT()).callback(this::onToLeft).tooltip(BPLocaleHelpers.translateByClass(BPToolGUI.class, "Convert to left")).acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)).getAction();
 			toolbar.setBarHeight(UIConfigs.BAR_HEIGHT_COMBO());
 			toolbar.setActions(new Action[] { acttoleft, BPAction.separator(), acttoright, BPAction.separator(), });
 			toolbar.add(m_cmbunits);

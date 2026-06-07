@@ -73,7 +73,35 @@ public interface BPEditor<C extends Component> extends BPComponent<C>
 		return BPEditorActionManager.getBarActions(this);
 	}
 
+	default Action[] getSeparatorActions()
+	{
+		return null;
+	}
+
+	default void toggleLeftPanel()
+	{
+		toggleLeftPanel(null);
+	}
+
+	default void toggleLeftPanel(Boolean v)
+	{
+	}
+
 	default void toggleRightPanel()
+	{
+		toggleRightPanel(null);
+	}
+	
+	default void toggleRightPanel(Boolean v)
+	{
+	}
+
+	default void toggleBottomPanel()
+	{
+		toggleBottomPanel(null);
+	}
+
+	default void toggleBottomPanel(Boolean v)
 	{
 	}
 
@@ -99,6 +127,10 @@ public interface BPEditor<C extends Component> extends BPComponent<C>
 
 	public static class BPEditorEvent
 	{
+		public final static String ACT_SELECT = "SELECT";
+		public final static String ACT_OPEN = "OPEN";
+		public final static String ACT_DELETE = "DELETE";
+		
 		public String action;
 		public BPEditor<?> editor;
 		public Object data;

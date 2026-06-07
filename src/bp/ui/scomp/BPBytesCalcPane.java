@@ -33,6 +33,8 @@ public class BPBytesCalcPane extends JPanel
 
 	protected boolean m_bigendian = true;
 
+	protected byte[] m_bs;
+
 	public BPBytesCalcPane()
 	{
 		m_txtbin = new BPTextField();
@@ -105,6 +107,7 @@ public class BPBytesCalcPane extends JPanel
 	{
 		if (bs == null)
 			return;
+		m_bs = bs;
 		m_txtbin.setText(toBin(bs));
 		m_txtuint8.setText(toUInt(bs, 1));
 		m_txtuint16.setText(toUInt(bs, 2));
@@ -124,6 +127,7 @@ public class BPBytesCalcPane extends JPanel
 	public void setLE(boolean flag)
 	{
 		m_bigendian = flag;
+		setBytes(m_bs);
 	}
 
 	protected final static Number toFloatNumber(byte[] bs, boolean isle, int len)
@@ -197,5 +201,10 @@ public class BPBytesCalcPane extends JPanel
 			return "";
 		byte b = bs[0];
 		return Integer.toString(Byte.toUnsignedInt(b), 2);
+	}
+	
+	public void clearResource()
+	{
+		m_bs = null;
 	}
 }

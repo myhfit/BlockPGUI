@@ -124,10 +124,7 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 
 			if (setting != null)
 			{
-				BPDialogSetting dlg = new BPDialogSetting();
-				dlg.setSetting(setting);
-				dlg.setVisible(true);
-				setting = dlg.getResult();
+				setting = BPDialogSetting.showSetting(setting);
 				if (setting != null)
 				{
 					name = setting.get("name");
@@ -157,10 +154,7 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 		if (sckey != null)
 		{
 			BPSetting setting = BPShortCutManager.getSetting(sckey);
-			BPDialogSetting dlg = new BPDialogSetting();
-			dlg.setSetting(setting);
-			dlg.setVisible(true);
-			setting = dlg.getResult();
+			setting = BPDialogSetting.showSetting(setting);
 			if (setting != null)
 			{
 				String name = setting.get("name");

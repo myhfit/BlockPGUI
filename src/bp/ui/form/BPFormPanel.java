@@ -73,6 +73,7 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 		}
 		m_labelwidth = (int) (100 * UIConfigs.UI_SCALE());
 		m_checks = new ArrayList<Supplier<Boolean>>();
+		initLocale();
 		initForm();
 		completeForm();
 	}
@@ -85,6 +86,11 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 	public void setGridWeakBorder(boolean flag)
 	{
 		m_gridweakborder = flag;
+	}
+
+	protected void initLocale()
+	{
+
 	}
 
 	protected abstract void initForm();

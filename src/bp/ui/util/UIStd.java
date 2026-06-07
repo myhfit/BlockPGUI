@@ -29,6 +29,7 @@ import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
 import bp.task.BPTask;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogCommonCategoryView;
@@ -75,7 +76,7 @@ public class UIStd
 
 	public final static void info_small(String message, String title)
 	{
-		String dlgtitle = "BlockP - " + (title == null ? "info" : title);
+		String dlgtitle = BPGUICore.S_BP_TITLE + " - " + (title == null ? BPActionConstCommon.TXT_INFO.text() : title);
 		BPLabel lbl = new BPLabel(message);
 		lbl.setLabelFont();
 		lbl.setHorizontalAlignment(BPLabel.CENTER);
@@ -101,7 +102,7 @@ public class UIStd
 
 	public final static void info(String title, String message)
 	{
-		textarea(message, BPGUICore.S_BP_TITLE + " - " + (title == null ? "info" : title), false);
+		textarea(message, BPGUICore.S_BP_TITLE + " - " + (title == null ? BPActionConstCommon.TXT_INFO.text() : title), false);
 	}
 
 	public final static void showStructuredCommonDatas(Object data, boolean modal)
@@ -139,19 +140,20 @@ public class UIStd
 				BPDialogCommonCategoryView<Object, Object> dlg = new BPDialogCommonCategoryView<Object, Object>();
 				dlg.setup(lst, null, ctt, false);
 				dlg.setCommandBarMode(BPDialogCommonCategoryView.COMMANDBAR_OKESCAPE);
-				dlg.setTitle("BlockP - Show Data");
+				dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SHOW, BPLocaleConstCC.DATA));
 				dlg.setVisible(true);
 			}
 			else
 			{
-				viewList(lst, "BlockP - Show Data", null);
+				viewList(lst, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SHOW, BPLocaleConstCC.DATA), null);
 			}
 		}
 		else if (data instanceof Map)
 		{
 			BPDialogForm dlg = new BPDialogForm();
 			dlg.setEditable(false);
-			dlg.setTitle("BlockP");
+			dlg.setCommandBarMode(BPDialogForm.COMMANDBAR_OKESCAPE);
+			dlg.setTitle(BPGUICore.S_BP_TITLE);
 			BPMDataWMap w = (BPMDataWMap) ObjUtil.wrapUIData(data);
 			dlg.setup(w.getClass().getName(), w);
 			dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));

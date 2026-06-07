@@ -15,6 +15,7 @@ import javax.swing.event.ListSelectionEvent;
 
 import bp.config.UIConfigs;
 import bp.data.BPInstanceFactory;
+import bp.locale.BPLocaleHelperDict;
 import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPList;
@@ -37,6 +38,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 	protected WeakRefGo<Predicate<BPInstanceFactory<T>>> m_filter;
 	protected Class<? extends BPInstanceFactory<T>> m_facintf;
 	protected WeakRefGoConsumer<BPForm<?>> m_initformcb;
+	protected BPLocaleHelperDict<?> m_lh;
 
 	public BPDialogCommonCreator()
 	{
@@ -46,7 +48,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 	{
 		m_lstfacs = new BPList<BPInstanceFactory<T>>();
 		m_lstfacs.setModel(new BPList.BPListModel<BPInstanceFactory<T>>());
-		m_lstfacs.setCellRenderer(new BPList.BPListRenderer(BPDialogCommonCreator::transFacName));
+		m_lstfacs.setCellRenderer(new BPList.BPListRenderer(this::transFacName));
 		m_lstfacs.setListFont();
 
 		JPanel leftpan = new JPanel();
@@ -63,10 +65,13 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 		setModal(true);
 	}
 
-	private static Object transFacName(Object facobj)
+	protected Object transFacName(Object facobj)
 	{
 		BPInstanceFactory<?> fac = (BPInstanceFactory<?>) facobj;
-		return fac == null ? "" : fac.getName();
+		String name = fac == null ? "" : fac.getName();
+		if (m_lh != null)
+			name = m_lh.translate(name);
+		return name;
 	}
 
 	protected void setPrefers()
@@ -84,6 +89,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 	public void setFactoryInterface(Class<? extends BPInstanceFactory<T>> facintf)
 	{
 		m_facintf = facintf;
+		m_lh = facintf == null ? null : new BPLocaleHelperDict.BPLocaleHelperDictClass(facintf.getName());
 		initDatas();
 	}
 
@@ -129,7 +135,8 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 		{
 			if (m_form != null)
 				remove(m_form.getComponent());
-			BPForm<?> form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), m_lstfacs.getSelectedValue().getInstanceClass(), Object.class);
+			BPInstanceFactory<T> fac = m_lstfacs.getSelectedValue();
+			BPForm<?> form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), fac.getInstanceClass(), fac.getInstanceRootClass());
 			if (form != null)
 			{
 				WeakRefGoConsumer<BPForm<?>> initformcb = m_initformcb;

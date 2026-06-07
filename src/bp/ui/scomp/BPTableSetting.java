@@ -17,9 +17,12 @@ import bp.config.BPSettingItem;
 import bp.config.UIConfigs;
 import bp.locale.BPLocaleConstCC;
 import bp.res.BPResource;
+import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPComboBox.BPComboBoxModel;
 import bp.ui.table.BPTableFuncsBase;
 import bp.ui.util.CommonUIOperations;
+import bp.util.ObjUtil;
+import bp.util.ResourceUtil;
 
 public class BPTableSetting extends BPTable<BPSettingItem>
 {
@@ -138,10 +141,16 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 				m_isressave = BPSettingItem.ITEM_TYPE_RESOURCE_SAVE.equals(item.itemtype);
 				m_sb = 2;
 				BPButton btn = m_btn;
-				if (value != null && value instanceof BPResource)
-					btn.setText(((BPResource) value).getName());
+				if (value != null)
+				{
+					if (value instanceof BPResource)
+						btn.setText(ResourceUtil.getResourceLink((BPResource) value));
+					else
+						btn.setText(ObjUtil.toString(value));
+					btn.setUserObject(value);
+				}
 				else
-					btn.setText("Select...");
+					btn.setText(BPActionConstCommon.TXT_ACT_SELMORE.text());
 				btn.setEnabled(!item.readonly);
 				return btn;
 			}

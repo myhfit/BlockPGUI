@@ -17,6 +17,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import bp.BPCore;
+import bp.data.BPXYData;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
@@ -26,6 +27,7 @@ import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
 import bp.ui.editor.BPTextEditor;
 import bp.ui.editor.BPTextPanel;
+import bp.ui.editor.BPXYDEditor;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
@@ -41,6 +43,7 @@ public final class CommonDataUIProcs
 
 	public final static int MODE_OBJTREE = 1;
 	public final static int MODE_OBJLIST = 2;
+	public final static int MODE_XY = 3;
 
 	public final static int MODE_DATA_EMPTY = 16;
 	public final static int MODE_DATA_TEXT = 17;
@@ -80,6 +83,8 @@ public final class CommonDataUIProcs
 			return MODE_DATA_IMAGE;
 		if (obj instanceof BPResource)
 			return MODE_RESOURCE;
+		if (obj instanceof BPXYData)
+			return MODE_XY;
 
 		{
 			Class<?> cls = obj.getClass();
@@ -112,6 +117,12 @@ public final class CommonDataUIProcs
 		lbl.setMonoFont();
 		rc.setLayout(new FlowLayout(FlowLayout.LEFT));
 		rc.add(lbl);
+		return rc;
+	}
+
+	public final static BPXYDEditor<?> createTablePanel(Object data)
+	{
+		BPXYDEditor<?> rc = new BPXYDEditor<>();
 		return rc;
 	}
 
@@ -150,6 +161,11 @@ public final class CommonDataUIProcs
 		comp.getTextPanel().setText(ObjUtil.toString(data));
 	}
 
+	public final static void initTablePanel(BPXYDEditor<?> comp, BPXYData data)
+	{
+		comp.setXYData(data);
+	}
+
 	public final static void initObjTreePanel(BPTreeComponentBase comp, Object data)
 	{
 		BPTreeFuncs tf = new BPTreeFuncsObject(data);
@@ -168,6 +184,7 @@ public final class CommonDataUIProcs
 		registerProc(MODE_DATA_EMPTY, CommonDataUIProcs::createEmptyPanel, null);
 		registerProc(MODE_OBJTREE, CommonDataUIProcs::createTreePanel, (BiConsumer<BPTreeComponentBase, Object>) CommonDataUIProcs::initObjTreePanel);
 		registerProc(MODE_OBJLIST, CommonDataUIProcs::createTreePanel, (BiConsumer<BPTreeComponentBase, Object>) CommonDataUIProcs::initObjTreePanel);
+		registerProc(MODE_XY, CommonDataUIProcs::createTablePanel, (BiConsumer<BPXYDEditor<?>, BPXYData>) CommonDataUIProcs::initTablePanel);
 		registerProc(MODE_RESOURCE, (Function<BPResource, ?>) CommonDataUIProcs::createResourcePanel, null);
 	}
 

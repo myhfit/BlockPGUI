@@ -48,6 +48,27 @@ public interface BPTreeFuncs
 		if (h != null)
 			h.onTreeEvent(BPTreeActionType.DELETE, tree, node);
 	}
+	
+	default void onPaste(BPTree tree, BPTreeNode node)
+	{
+		BPTreeActionEventHandler h = getTreeActionHandler();
+		if (h != null)
+			h.onTreeEvent(BPTreeActionType.PASTE, tree, node);
+	}
+	
+	default void onCopy(BPTree tree, BPTreeNode node)
+	{
+		BPTreeActionEventHandler h = getTreeActionHandler();
+		if (h != null)
+			h.onTreeEvent(BPTreeActionType.COPY, tree, node);
+	}
+	
+	default void onRename(BPTree tree, BPTreeNode node)
+	{
+		BPTreeActionEventHandler h = getTreeActionHandler();
+		if (h != null)
+			h.onTreeEvent(BPTreeActionType.RENAME, tree, node);
+	}
 
 	default void setTreeFilter(Predicate<?> filter)
 	{
@@ -76,6 +97,16 @@ public interface BPTreeFuncs
 	{
 		return null;
 	}
+	
+	default void clearResource()
+	{
+
+	}
+
+	default boolean isOverwriteCopy()
+	{
+		return false;
+	}
 
 	public static interface BPTreeActionEventHandler
 	{
@@ -84,7 +115,7 @@ public interface BPTreeFuncs
 
 	public static enum BPTreeActionType
 	{
-		SELECT, OPEN, DELETE
+		SELECT, OPEN, DELETE, COPY, PASTE, RENAME
 	}
 
 	public final static class BPTreeFuncsVoid implements BPTreeFuncs

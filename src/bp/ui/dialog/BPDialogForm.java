@@ -80,6 +80,11 @@ public class BPDialogForm extends BPDialogCommon
 		initDatas();
 	}
 
+	public void setCommandBarMode(int mode)
+	{
+		super.setCommandBarMode(mode);
+	}
+
 	public Map<String, Object> getFormData()
 	{
 		return m_result;

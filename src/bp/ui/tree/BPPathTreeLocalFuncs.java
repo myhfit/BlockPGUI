@@ -257,6 +257,33 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 			}
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	public void onCopy(BPTree tree, BPTreeNode node)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+				m_actptree.getCopyAction((BPTreeComponent<BPTree>) tree, res, m_channelid).actionPerformed(null);
+		}
+	}
+	
+	public boolean isOverwriteCopy()
+	{
+		return true;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void onPaste(BPTree tree, BPTreeNode node)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+				m_actptree.getPasteAction((BPTreeComponent<BPTree>) tree, res, m_channelid).actionPerformed(null);
+		}
+	}
 
 	public final static BPPathTreeLocalFuncs OnlySelect()
 	{

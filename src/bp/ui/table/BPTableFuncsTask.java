@@ -1,6 +1,8 @@
 package bp.ui.table;
 
 import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
 
 public class BPTableFuncsTask extends BPTableFuncsBase<BPTask<?>>
@@ -33,7 +35,7 @@ public class BPTableFuncsTask extends BPTableFuncsBase<BPTask<?>>
 			}
 			case 1:
 			{
-				return nvl(task.getStatus());
+				return BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, nvl(task.getStatus()), "TASK_STATUS_");
 			}
 			case 2:
 			{

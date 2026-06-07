@@ -50,9 +50,14 @@ import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 
 import bp.config.UIConfigs;
+import bp.data.BPXData;
+import bp.data.BPXYData;
+import bp.data.BPXYData.BPXYDataList;
 import bp.locale.BPLocaleConstCC;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
+import bp.ui.actions.BPDataActionFactory.BPDataActionFactoryCommon;
 import bp.ui.dialog.BPDialogFind;
 import bp.ui.dialog.BPDialogFind.BPFindPs;
 import bp.ui.dialog.BPDialogFind.BPReplacePs;
@@ -73,7 +78,7 @@ public class BPTable<T> extends JTable
 	protected BPTableFuncs<T> m_tablefuncs;
 	protected WeakRefGo<BPDialogFind> m_finddlgref;
 	protected Function<BPFindPs, Boolean> m_findcb;
-	protected boolean m_celleditorreanonly;
+	protected boolean m_celleditorreadonly;
 
 	public BPTable()
 	{
@@ -214,13 +219,13 @@ public class BPTable<T> extends JTable
 
 	public void setCellEditorReadonly(boolean flag)
 	{
-		m_celleditorreanonly = flag;
+		m_celleditorreadonly = flag;
 	}
 
 	public Component prepareEditor(TableCellEditor editor, int row, int column)
 	{
 		Component rc = super.prepareEditor(editor, row, column);
-		if (m_celleditorreanonly)
+		if (m_celleditorreadonly)
 		{
 			if (rc instanceof JTextComponent)
 			{
@@ -375,14 +380,15 @@ public class BPTable<T> extends JTable
 	{
 		if (e.isPopupTrigger())
 		{
-			List<Action> acts = makeTableHeaderActions(null);
+			JTableHeader header = getTableHeader();
+			List<Action> acts = makeTableHeaderActions(header);
 			if (acts != null && acts.size() > 0)
 			{
 				JPopupMenu pop = new JPopupMenu();
 				JComponent[] comps = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
 				for (JComponent comp : comps)
 					pop.add(comp);
-				pop.show(getTableHeader(), e.getX(), e.getY());
+				pop.show(header, e.getX(), e.getY());
 			}
 		}
 	}
@@ -391,9 +397,13 @@ public class BPTable<T> extends JTable
 	{
 		List<Action> rc = new ArrayList<Action>();
 		Action actfind = BPAction.build(BPActionConstCommon.FDLG_FIND.text() + "/" + BPActionConstCommon.FDLG_REPLACE.text()).callback(this::onFind).getAction();
-		Action actfilter = BPAction.build(BPLocaleConstCC.FILTER.text()).callback(this::onFilter).getAction();
+		Action actfilter = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUTABLECFILTER, this::onFilter);
+		Action actcloneraw = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONERAW, this::onCloneEditor);
+//		Action actcloneseen = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONESEEN, this::onCloneSeenEditor);
 		rc.add(actfind);
 		rc.add(actfilter);
+		rc.add(actcloneraw);
+//		rc.add(actcloneseen);
 		return rc;
 	}
 
@@ -527,6 +537,51 @@ public class BPTable<T> extends JTable
 				sorter.sort();
 			}
 		}
+	}
+
+	public void onCloneEditor(ActionEvent e)
+	{
+		BPXYData xydata = cloneXYData(true);
+		BPDataActionFactoryCommon.cloneXYDataToNewEditor(xydata, e);
+	}
+
+	public void onCloneSeenEditor(ActionEvent e)
+	{
+		BPXYData xydata = cloneXYData(false);
+		BPDataActionFactoryCommon.cloneXYDataToNewEditor(xydata, e);
+	}
+
+	public BPXYData cloneXYData(boolean raw)
+	{
+		BPXYDataList rc = null;
+		BPTableModel<T> m = getBPTableModel();
+		if (m != null)
+		{
+			BPTableFuncs<T> f = m.getTableFuncs();
+			if (f != null)
+			{
+				String[] colnames = f.getColumnNames();
+				int c = colnames.length;
+				String[] collabels = new String[c];
+				for (int i = 0; i < c; i++)
+					collabels[i] = f.getColumnLabel(i);
+				Class<?>[] colcls = f.getColumnClasses();
+				List<T> datas = m.getDatas();
+				rc = new BPXYDataList(colcls, colnames, collabels, null, true);
+				for (int i = 0; i < datas.size(); i++)
+				{
+					T data = datas.get(i);
+					Object[] arr = new Object[c];
+					for (int j = 0; j < c; j++)
+					{
+						arr[j] = f.getValue(data, i, j);
+					}
+					BPXData xdata = new BPXData.BPXDataArray(arr);
+					rc.add(xdata);
+				}
+			}
+		}
+		return rc;
 	}
 
 	public void onFind(ActionEvent e)
@@ -1089,9 +1144,16 @@ public class BPTable<T> extends JTable
 		public void delete(int[] rows)
 		{
 			for (int i = rows.length - 1; i >= 0; i--)
-			{
 				m_datas.remove(rows[i]);
-			}
+			dispatchDataChanged();
+		}
+
+		public void insert(int row, T data)
+		{
+			if (row >= m_datas.size())
+				m_datas.add(data);
+			else
+				m_datas.add(row, data);
 			dispatchDataChanged();
 		}
 

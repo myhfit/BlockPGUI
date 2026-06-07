@@ -362,7 +362,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	public void setXYData(BPXYData data)
 	{
 		m_funcs = new BPTableFuncsXY(data);
-		m_funcs.setUserDeletable(true);
+		m_funcs.setStructureEditable(true);
 		m_model = new BPTableModel<BPXData>(m_funcs);
 		m_model.setShowLineNum(true);
 		m_model.setDatas(data.getDatas());
@@ -374,6 +374,12 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		{
 			tcm.getColumn(i).setPreferredWidth(i == 0 ? 60 : 180);
 		}
+
+		postInitTable();
+	}
+
+	protected void postInitTable()
+	{
 	}
 
 	public void addXDatas(List<BPXData> datas)

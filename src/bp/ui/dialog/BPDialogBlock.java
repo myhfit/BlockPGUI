@@ -9,6 +9,9 @@ import java.util.function.Supplier;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.editor.BPTextPanel;
 import bp.ui.scomp.BPLabel;
@@ -62,7 +65,7 @@ public class BPDialogBlock<T> extends BPDialogCommon
 		getContentPane().removeAll();
 		getContentPane().add(resultp);
 		resultp.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(400, 300)));
-		setTitle(iserr ? "Error" : "Completed");
+		setTitle(iserr ? BPLocaleConstCC.ERR.text() : BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, "Completed"));
 		setCommandBarMode(COMMANDBAR_OKENTER);
 		pack();
 		setLocationRelativeTo(getParent());

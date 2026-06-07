@@ -28,6 +28,10 @@ public interface BPFrameHostIFC
 
 	void toggleRightPanel();
 
+	void toggleEditorLeftPanel();
+
+	void toggleEditorBottomPanel();
+
 	void fullScreen();
 	
 	void toFront();

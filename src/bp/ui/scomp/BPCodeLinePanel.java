@@ -2,6 +2,7 @@ package bp.ui.scomp;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -32,12 +33,17 @@ public class BPCodeLinePanel extends JPanel
 	protected WeakReference<JScrollPane> m_scrollcompref;
 	protected Color m_bd = UIConfigs.COLOR_WEAKBORDER();
 	protected Color m_fg = UIUtil.mix2Plain(UIConfigs.COLOR_TEXTFG(), UIConfigs.COLOR_TEXTBG(), 80);
+	protected int m_lastfontsize = 0;
 
 	public void setup(JEditorPane textcomp, JScrollPane scrollcomp)
 	{
 		m_textcompref = new WeakReference<JEditorPane>(textcomp);
 		m_scrollcompref = new WeakReference<JScrollPane>(scrollcomp);
-		setFont(textcomp.getFont());
+		{
+			Font f=textcomp.getFont();
+			setFont(f);
+			m_lastfontsize=f.getSize();
+		}
 		setBackground(UIConfigs.COLOR_TEXTBG());
 	}
 
@@ -53,6 +59,15 @@ public class BPCodeLinePanel extends JPanel
 		JScrollPane scrollcomp = m_scrollcompref.get();
 		if (textcomp == null || scrollcomp == null)
 			return;
+		Font f = textcomp.getFont();
+		{
+			int fn = f.getSize();
+			if (fn != m_lastfontsize)
+			{
+				m_lastfontsize = fn;
+				setFont(f);
+			}
+		}
 		Graphics2D g2d = (Graphics2D) g;
 		g.setColor(m_fg);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
@@ -63,7 +78,7 @@ public class BPCodeLinePanel extends JPanel
 		Element ele = doc.getDefaultRootElement();
 		int startline = ele.getElementIndex(start) + 1;
 		int endline = ele.getElementIndex(end) + 1;
-		FontMetrics fm = g.getFontMetrics();
+		FontMetrics fm = g.getFontMetrics(f);
 		int fontheight = fm.getHeight();
 		int fontdesc = fm.getDescent();
 		int sy = -1;

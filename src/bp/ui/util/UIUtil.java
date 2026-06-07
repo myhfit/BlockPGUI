@@ -286,6 +286,16 @@ public class UIUtil
 		}
 	}
 
+	public final static boolean checkISCopy(KeyEvent e)
+	{
+		return e.getKeyCode() == KeyEvent.VK_C && e.isControlDown();
+	}
+
+	public final static boolean checkISPaste(KeyEvent e)
+	{
+		return e.getKeyCode() == KeyEvent.VK_V && e.isControlDown();
+	}
+
 	public final static class ActionRunnable implements Runnable, Consumer<ActionEvent>
 	{
 		private Action act;

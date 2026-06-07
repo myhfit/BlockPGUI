@@ -21,6 +21,16 @@ public class BPTabbedContainerBase extends BPTabbedPanel implements BPTabbedCont
 
 	protected Map<String, BPComponent<?>> m_compmap = new HashMap<String, BPComponent<?>>();
 
+	public BPTabbedContainerBase()
+	{
+		super();
+	}
+
+	public BPTabbedContainerBase(boolean isbottom)
+	{
+		super(isbottom);
+	}
+
 	public void addBPTab(String id, Icon icon, String title, BPComponent<?> c)
 	{
 		super.addTab(id, title, icon, c.getComponent());

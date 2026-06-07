@@ -38,7 +38,6 @@ import bp.res.BPResourceHolder;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
-import bp.ui.dialog.BPDialogCommon;
 import bp.ui.dialog.BPDialogSetting;
 import bp.ui.editor.controller.BPEditorController;
 import bp.ui.parallel.BPEventUISyncEditor;
@@ -108,6 +107,8 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			m_scroll.getHorizontalScrollBar().addAdjustmentListener(m_scrollcb);
 			m_scroll.getVerticalScrollBar().removeAdjustmentListener(m_scrollcb);
 			m_scroll.getVerticalScrollBar().addAdjustmentListener(m_scrollcb);
+			if(m_txt!=null)
+				m_scroll.addMouseWheelListener(m_txt::onMouseWheelZoom);
 		}
 	}
 
@@ -299,9 +300,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 						pt = c.getMagicCaretPosition();
 				}
 				if (pt != null)
-				{
-					showContextMenu(m_txt, pt.x, pt.y);
-				}
+					showContextMenu(m_txt, pt.x, pt.y + (int) Math.round(getFont().getSize() / 2f * 3f));
 				break;
 			}
 		}
@@ -401,12 +400,9 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			}
 			if (p.needSettingUI())
 			{
-				BPDialogSetting dlg = new BPDialogSetting();
-				dlg.setSetting(setting);
-				dlg.setVisible(true);
-				if (dlg.getActionResult() != BPDialogCommon.COMMAND_OK)
-					return;
-				setting = dlg.getResult();
+				BPSetting ns = BPDialogSetting.showSetting(setting);
+				if (ns != null)
+					setting = ns;
 			}
 		}
 		if (outtext)

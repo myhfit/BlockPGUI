@@ -83,13 +83,13 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 		{
 			setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 			setMinimumSize(new Dimension((int) (barheight * UIConfigs.UI_SCALE()), 0));
-			setPreferredSize(new Dimension((int) (barheight * UIConfigs.UI_SCALE()), 2000));
+			setPreferredSize(new Dimension((int) (barheight * UIConfigs.UI_SCALE()), 0));
 		}
 		else
 		{
 			setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 			setMinimumSize(new Dimension(0, (int) (barheight * UIConfigs.UI_SCALE())));
-			setPreferredSize(new Dimension(4000, (int) (barheight * UIConfigs.UI_SCALE())));
+			setPreferredSize(new Dimension(0, (int) (barheight * UIConfigs.UI_SCALE())));
 		}
 	}
 
@@ -199,11 +199,11 @@ public class BPToolBarSQ extends JPanel implements BPToolBar<JPanel>
 		add(Box.createGlue());
 	}
 
-	public void setNoScrollSize()
+	public void setMaxScrollSize()
 	{
 		if (m_isvertical)
-			setPreferredSize(new Dimension((int) (m_barheight * UIConfigs.UI_SCALE()), 0));
+			setPreferredSize(new Dimension((int) (m_barheight * UIConfigs.UI_SCALE()), 2000));
 		else
-			setPreferredSize(new Dimension(0, (int) (m_barheight * UIConfigs.UI_SCALE())));
+			setPreferredSize(new Dimension(4000, (int) (m_barheight * UIConfigs.UI_SCALE())));
 	}
 }
