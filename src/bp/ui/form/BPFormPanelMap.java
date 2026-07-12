@@ -15,13 +15,13 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellEditor;
 
+import bp.typeext.KV;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.scomp.BPKVTable;
 import bp.ui.scomp.BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable;
-import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPTextField;
@@ -104,7 +104,7 @@ public class BPFormPanelMap extends BPFormPanel
 	{
 		m_tabkvs = new BPKVTable();
 		BPKVTableFuncsEditable funcs = new BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable();
-		m_tabkvs.setModel(new BPTableModel<BPKVTable.KV>(funcs));
+		m_tabkvs.setModel(new BPTableModel<KV>(funcs));
 		m_tabkvs.getBPTableModel().setDatas(new ArrayList<KV>());
 		m_tabkvs.initRowSorter();
 		m_tabfuncs = funcs;

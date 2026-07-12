@@ -21,7 +21,7 @@ public class BPShortCutConsole extends BPShortCutBase
 		String cmd = getParam(SC_KEY_CMD);
 		String dir = TextUtil.eds(getParam(SC_KEY_DIR));
 		String encoding = TextUtil.eds(getParam(SC_KEY_ENCODING));
-		BPGUICore.runOnMainFrame(mf -> mf.createEditorByFileSystem(null, null, "Console", null, cmd, dir, encoding));
+		BPGUICore.runOnMainFrameDynamic("createEditorByFileSystem", null, null, "Console", null, new Object[] { cmd, dir, encoding });
 		return true;
 	}
 

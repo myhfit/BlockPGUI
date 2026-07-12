@@ -32,6 +32,7 @@ import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
 import bp.ui.scomp.BPTableSetting;
 import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
+import bp.util.CompareUtil;
 
 public class BPDialogSelectFormatEditor extends BPDialogCommon
 {
@@ -78,6 +79,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 	{
 		setLayout(new BorderLayout());
 		m_popupc = new BPPopupComboController(this::listEditors, this::getEditorText, (Consumer<BPEditorFactory>) this::submitEditor);
+		m_popupc.completefunc = (Consumer<BPEditorFactory>) this::completeEditor;
 		JPanel pmain = new JPanel();
 		JScrollPane scroll = new JScrollPane();
 		JScrollPane scroll2 = new JScrollPane();
@@ -163,6 +165,30 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		return rc;
 	}
 
+	protected void completeEditor(BPEditorFactory fac)
+	{
+		String[] fs = fac.getFormats();
+		if (fs == null || fs.length == 0)
+			return;
+		String ff = fs[0];
+		BPFormat tf = BPFormatManager.getFormatByName(ff);
+		for (String f : fs)
+		{
+			if (fac.handleFormat(f))
+			{
+				BPFormat ttf = BPFormatManager.getFormatByName(f);
+				if (ttf != null)
+					tf = ttf;
+				break;
+			}
+		}
+		if (tf != null)
+		{
+			m_lstformat.setSelectedValue(tf, true);
+			m_lsteditorfac.setSelectedValue(fac, true);
+		}
+	}
+
 	protected void submitEditor(BPEditorFactory fac)
 	{
 		m_editorfac = fac;
@@ -211,7 +237,7 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 			if (!formats.contains(format))
 				formats.add(format);
 		}
-		formats.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+		formats.sort(CompareUtil.COMPARATOR_NAMEABLE());
 		formats.add(new BPFormatUnknown());
 		modelf.setDatas(formats);
 		m_lstformat.setModel(modelf);

@@ -119,7 +119,7 @@ public class Hotkeys extends BPConfigAdvBase
 		{
 			case "togglemfvis":
 			{
-				BPGUICore.runOnMainFrame(mf -> mf.toggleVisible());
+				BPGUICore.runOnMainFrameDynamic("toggleVisible");
 				break;
 			}
 			case "task":
@@ -145,7 +145,7 @@ public class Hotkeys extends BPConfigAdvBase
 			case "frame":
 			{
 				if (v != null)
-					BPGUICore.runOnCurrentFrame(f -> f.runFrameFunction(v));
+					BPGUICore.runOnCurrentFrameDynamic("runFrameFunction", v);
 				break;
 			}
 		}

@@ -9,8 +9,8 @@ import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.ui.editor.BPEditorFactory;
 import bp.ui.editor.BPEditorManager;
+import bp.ui.frame.BPMainFrameIFC;
 import bp.ui.util.CommonUIOperations;
-import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 
 public class BPCommandHandlerGUICore extends BPCommandHandlerBase implements BPCommandHandler
@@ -46,8 +46,10 @@ public class BPCommandHandlerGUICore extends BPCommandHandlerBase implements BPC
 		if (ps[0] == null || ps[0].length() == 0)
 			return null;
 		BPResource res = BPCore.getFileContext().getRes(ps[0]);
-		BPFormat format = LogicUtil.PAR_NN(ps.length > 1 ? ps[1] : null, fstr -> fstr != null ? BPFormatManager.getFormatByName((String) fstr) : null);
-		BPEditorFactory fac = LogicUtil.PAR_NN(ps.length > 2 ? ps[2] : null, facstr -> facstr != null ? BPEditorManager.getFactory(ps.length > 1 ? ps[1] : null, (String) facstr) : null);
+		String formatname = ps.length > 1 ? ps[1] : null;
+		String editorfacname = ps.length > 2 ? ps[2] : null;
+		BPFormat format = formatname != null ? BPFormatManager.getFormatByName(formatname) : null;
+		BPEditorFactory fac = editorfacname != null ? BPEditorManager.getFactory(formatname, editorfacname) : null;
 		if (res != null)
 		{
 			CommonUIOperations.openResource(res, format, fac);
@@ -66,7 +68,11 @@ public class BPCommandHandlerGUICore extends BPCommandHandlerBase implements BPC
 			if (!BPGUICore.checkMainFrameVisible())
 				CommonUIOperations.openFileNewWindow(filename, null, null, null);
 			else
-				BPGUICore.runOnMainFrame(mf -> mf.openEditorByFileSystem(filename, null, null, null));
+			{
+				BPMainFrameIFC mf = BPGUICore.getMainFrame();
+				if (mf != null)
+					mf.openEditorByFileSystem(filename, null, null, null);
+			}
 			return BPCommandResult.OK(null);
 		}
 		return null;

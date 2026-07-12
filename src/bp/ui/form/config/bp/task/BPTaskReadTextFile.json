@@ -1,0 +1,9 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskReadTextFile",
+	"items":
+	[
+		{"itemtype":"textfield_more","key":"filename","label":"FILENAME","lbltr":"c,c_c","required":true},
+		{"itemtype":"textfield_more","key":"encoding","label":"ENCODING","lbltr":"c,c_c"}
+	]
+}

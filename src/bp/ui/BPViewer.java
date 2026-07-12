@@ -1,6 +1,7 @@
 package bp.ui;
 
 import bp.data.BPDataContainer;
+import bp.res.BPResource;
 
 public interface BPViewer<C extends BPDataContainer>
 {
@@ -28,5 +29,11 @@ public interface BPViewer<C extends BPDataContainer>
 	default <T> T getViewerData(String part, String format)
 	{
 		return null;
+	}
+
+	default BPResource tryGetResource()
+	{
+		BPDataContainer dc = getDataContainer();
+		return dc != null ? dc.getResource() : null;
 	}
 }

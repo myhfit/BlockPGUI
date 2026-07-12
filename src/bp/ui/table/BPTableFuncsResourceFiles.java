@@ -52,6 +52,23 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 		}
 	}
 
+	public int getColumnWidth(int col)
+	{
+		switch (col)
+		{
+			case 0:
+				return 200;
+			case 2:
+				return 80;
+			case 3:
+				return 80;
+			case 4:
+				return 120;
+			default:
+				return 0;
+		}
+	}
+
 	protected String getRelativePath(BPResource res)
 	{
 		if (res.isFileSystem())
@@ -73,6 +90,10 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 			BPResourceFileSystem fres = (BPResourceFileSystem) res;
 			if (fres.isFile() || fres.isDirectory())
 				return fres.getLastModified();
+		}
+		else
+		{
+			return res.getMeta("lastModified");
 		}
 		return null;
 	}
@@ -125,6 +146,8 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 		}
 		else
 		{
+			if(!res.isLeaf())
+				return BPFormatDir.EXT_DIR;
 			return FileUtil.getExt(res.getName());
 		}
 		return null;

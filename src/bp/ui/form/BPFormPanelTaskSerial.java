@@ -20,12 +20,13 @@ import bp.config.UIConfigs;
 import bp.data.BPSLData;
 import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
+import bp.task.BPTaskFactory;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogForm;
-import bp.ui.dialog.BPDialogNewTask;
 import bp.ui.scomp.BPBoxButtons;
 import bp.ui.scomp.BPToolVIconButton;
+import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIUtil;
 import bp.util.ObjUtil;
 
@@ -93,13 +94,9 @@ public class BPFormPanelTaskSerial extends BPFormPanelTask
 
 	protected void onAdd(ActionEvent e)
 	{
-		BPDialogNewTask dlg = new BPDialogNewTask();
-		dlg.setVisible(true);
-		BPTask<?> task = dlg.getTask();
+		BPTask<?> task = CommonUIOperations.showCreate(BPTaskFactory.class);
 		if (task != null)
-		{
 			m_lsttasks.addData(task.getSaveData());
-		}
 	}
 
 	protected void onClickTask(Map<String, Object> task)

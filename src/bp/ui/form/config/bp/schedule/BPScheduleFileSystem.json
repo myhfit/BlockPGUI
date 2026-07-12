@@ -1,0 +1,8 @@
+{
+	"parent":"bp.schedule.BPScheduleBase",
+	"items":
+	[
+		{"itemtype":"separator","key":"sp_condi","label":"Condition","lbltr":"lh,bp.ui.form.BPFormPanelSchedule"},
+		{"itemtype":"textfield","key":"watchfile","label":"Watch File","lbltr":"lh,bp.ui.form.BPFormPanelSchedule","required":true,"params":{"canempty":true}}
+	]
+}

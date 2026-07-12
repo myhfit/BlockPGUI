@@ -14,17 +14,19 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 import bp.BPCore;
 import bp.BPGUICore;
@@ -33,6 +35,7 @@ import bp.config.BPConfigSimple;
 import bp.config.BPSetting;
 import bp.context.BPFileContext;
 import bp.context.BPProjectsContext;
+import bp.data.BPDataWrapper;
 import bp.data.BPInstanceFactory;
 import bp.event.BPEventCoreUI;
 import bp.format.BPFormat;
@@ -51,19 +54,21 @@ import bp.res.BPResourceFileSystemLocal;
 import bp.schedule.BPSchedule;
 import bp.schedule.BPScheduleFactory;
 import bp.task.BPTask;
+import bp.task.BPTaskFactory;
 import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
+import bp.typeext.KV.KVs;
+import bp.typeext.Pair.Leader;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.container.BPRoutableContainer;
 import bp.ui.dialog.BPDialogBlock;
-import bp.ui.dialog.BPDialogCommonCategoryView;
 import bp.ui.dialog.BPDialogCommonCreator;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogLocateCachedResource;
 import bp.ui.dialog.BPDialogLocateProjectItem;
 import bp.ui.dialog.BPDialogNewProject;
-import bp.ui.dialog.BPDialogNewTask;
+import bp.ui.dialog.BPDialogSelectFormatEditor;
 import bp.ui.dialog.BPDialogSelectResource;
 import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
 import bp.ui.dialog.BPDialogSelectResource2;
@@ -154,7 +159,7 @@ public class CommonUIOperations
 
 	public final static BPResource showSelectResource(Window par, Consumer<BPDialogSelectResource> builder)
 	{
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2(par);
 		if (builder != null)
 			builder.accept(dlg);
 		dlg.showOpen();
@@ -174,6 +179,7 @@ public class CommonUIOperations
 	public final static BPResource showSaveResource(Window par, String[] exts, Consumer<BPDialogSelectResource> builder)
 	{
 		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		dlg.setFilterWithExts(exts);
 		if (builder != null)
 			builder.accept(dlg);
 		dlg.showSave(exts);
@@ -500,46 +506,66 @@ public class CommonUIOperations
 		{
 			BPDialogForm dlg = new BPDialogForm();
 			Class<?> cls = res.getClass();
-			String clsname = ClassUtil.tryLoopSuperClass((rcls) -> BPFormManager.containsKey(rcls.getName()) ? rcls.getName() : null, cls, BPResource.class);
-			if (clsname != null)
+
+			BPSetting setting = res.getSetting();
 			{
-				BPSetting setting = res.getSetting();
-				if (setting != null && BPFormManager.isSettingForm(clsname))
+				boolean flag = false;
+				if (setting != null)
 				{
-					dlg.setup(clsname, ObjUtil.makeMap("_setting", setting));
+					String clsname = ClassUtil.tryLoopSuperClass((rcls) -> BPFormManager.containsKey(rcls.getName()) ? rcls.getName() : null, cls, BPResource.class);
+					if (BPFormManager.isSettingForm(clsname))
+					{
+						flag = true;
+						dlg.setup(clsname, ObjUtil.makeMap("_setting", setting));
+					}
 				}
-				else
+				if (!flag)
 				{
 					setting = null;
-					dlg.setup(clsname, res);
+					dlg.setup(res.getClass(), null, res);
 				}
-				dlg.setTitle(BPActionConstCommon.TXT_PROPS.text() + ":" + res.getResType());
-				dlg.setVisible(true);
-				Map<String, Object> data = dlg.getFormData();
-				if (data != null)
+			}
+			dlg.setTitle(BPActionConstCommon.TXT_PROPS.text() + ":" + res.getResType());
+			dlg.setVisible(true);
+			Map<String, Object> data = dlg.getFormData();
+			if (data != null)
+			{
+				if (setting != null)
+					res.setSetting(setting);
+				else
+					res.setMappedData(data);
+				if (root != null && root instanceof BPResourceProject)
 				{
-					if (setting != null)
-						res.setSetting(setting);
-					else
-						res.setMappedData(data);
-					if (root != null && root instanceof BPResourceProject)
+					if (root != res)
 					{
-						if (root != res)
-						{
-							BPResourceProject project = (BPResourceProject) root;
-							project.save(res);
-						}
-						if (res instanceof BPResourceProject)
-						{
-							((BPResourceProject) res).savePrjFile();
-							BPProjectsContext prjcontext = BPCore.getProjectsContext();
-							prjcontext.saveProjects();
-							prjcontext.sendProjectChangedEvent();
-						}
+						BPResourceProject project = (BPResourceProject) root;
+						project.save(res);
+					}
+					if (res instanceof BPResourceProject)
+					{
+						((BPResourceProject) res).savePrjFile();
+						BPProjectsContext prjcontext = BPCore.getProjectsContext();
+						prjcontext.saveProjects();
+						prjcontext.sendProjectChangedEvent();
 					}
 				}
 			}
 		}
+	}
+
+	public final static boolean showSelectFormat(BPDataWrapper<BPFormat> formatref, BPDataWrapper<BPEditorFactory> facref, BPDataWrapper<BPConfig> optionsref)
+	{
+		BPDialogSelectFormatEditor dlg = new BPDialogSelectFormatEditor();
+		dlg.setFormat(formatref.get());
+		dlg.setVisible(true);
+		if (dlg.getActionResult() == BPDialogSelectFormatEditor.COMMAND_OK)
+		{
+			formatref.set(dlg.getSelectedFormat());
+			facref.set(dlg.getSelectedEditorFactory());
+			optionsref.set(dlg.getEditorOptions());
+			return true;
+		}
+		return false;
 	}
 
 	public final static BPResourceProject getSelectedProject(BPTreeComponent<? extends BPTree> tree)
@@ -608,21 +634,24 @@ public class CommonUIOperations
 
 	public final static void showNewTask()
 	{
-		BPDialogNewTask dlg = new BPDialogNewTask();
-		dlg.setVisible(true);
-		BPTask<?> task = dlg.getTask();
+		BPTask<?> task = showCreate(BPTaskFactory.class);
 		if (task != null)
-		{
 			BPCore.addTask(task);
-		}
 	}
-	
+
 	public final static <T> T showCreate(Class<? extends BPInstanceFactory<T>> facclass)
+	{
+		return showCreate(facclass, null);
+	}
+
+	public final static <T> T showCreate(Class<? extends BPInstanceFactory<T>> facclass, Consumer<BPDialogCommonCreator<T>> initcb)
 	{
 		BPDialogCommonCreator<T> dlg = new BPDialogCommonCreator<T>();
 		dlg.setFactoryInterface(facclass);
 		String factypename = ClassUtil.callMethod(facclass, "getFactoryTypeName", null, null, false);
 		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_CREATE) + " " + BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, factypename, "INSTFAC_"));
+		if(initcb!=null)
+			initcb.accept(dlg);
 		dlg.setVisible(true);
 		return dlg.getResult();
 	}
@@ -652,34 +681,33 @@ public class CommonUIOperations
 			}
 		}
 	}
+	
+	public final static String showSelectCharset(String encoding)
+	{
+		SortedMap<String, Charset> charsetmap = Charset.availableCharsets();
+		List<String> charsetnames = new ArrayList<String>(charsetmap.keySet());
+		return UIStd.select(charsetnames, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.ENCODING), null, encoding == null ? -1 : charsetnames.indexOf(encoding));
+	}
 
 	public final static void showSystemInfo()
 	{
 		List<String> cats = SystemUtil.getSystemInfoKeys();
-		Function<String, Object> ctt = (cat) ->
-		{
-			Object sysinfo = SystemUtil.getSystemInfo(cat);
-			Object rc = null;
-			if (sysinfo != null)
-				rc = ObjUtil.wrapUIData(sysinfo);
-			return rc;
-		};
-		BPDialogCommonCategoryView<String, Object> dlg = new BPDialogCommonCategoryView<String, Object>();
-		dlg.setup(cats, null, ctt, false);
-		dlg.setCommandBarMode(BPDialogCommonCategoryView.COMMANDBAR_OKESCAPE);
-		dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SYSINFO));
-		dlg.setVisible(true);
+		List<Leader<Supplier<Object>>> leaders = new ArrayList<>();
+		for (String cat : cats)
+			leaders.add(new Leader<>(cat, () -> SystemUtil.getSystemInfo(cat)));
+		UIStd.showStructuredCommonDatas(leaders, true, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_SYSINFO), ObjUtil.makeMap("maxlevel", 2, "previewmode", true, "dlg.width", 800, "dlg.height", 600));
 	}
-	
+
 	public final static void showAbout()
 	{
 		String bpname = BPGUICore.S_BP_TITLE;
 		long l = ClassUtil.useClass("bp.BPCore", (urls) -> ClassUtil.getURLTime(urls.get(0), "bp/BPCore.class"));
 		Map<String, Object> kv = new LinkedHashMap<String, Object>();
 		kv.put(bpname + " Core VerTime", new Date(l));
+		kv.put(bpname + " Main Repo", "https://github.com/myhfit/BlockP");
 		kv.put("Workdir", System.getProperty("user.dir"));
 		kv.put("Workspace", BPCore.getFileContext().getRootDir().getFileFullName());
-		UIStd.showData(kv);
+		UIStd.showStructuredCommonDatas(new KVs(kv), true, null, ObjUtil.makeMap("maxlevel", 1, "dlg.width", 600, "dlg.height", 600));
 	}
 
 	public final static void refreshResourceCache(BPResource res)
@@ -842,8 +870,7 @@ public class CommonUIOperations
 			clipboard.setContents(new FileTransferable(rs), null);
 		}
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	public final static void pasteToResource(BPResource res, Window par)
 	{
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -851,23 +878,31 @@ public class CommonUIOperations
 		if (tdata != null)
 		{
 			DataFlavor[] dfarr = tdata.getTransferDataFlavors();
-			for(DataFlavor df:dfarr)
+			for (DataFlavor df : dfarr)
 			{
-				if(df.isFlavorJavaFileListType())
+				if (df.isFlavorJavaFileListType())
 				{
-					List<String> filenames=null;
+					List<?> files = null;
 					try
 					{
-						filenames=(List<String>) tdata.getTransferData(df);
+						files = (List<?>) tdata.getTransferData(df);
 					}
 					catch (UnsupportedFlavorException | IOException e)
 					{
 						UIStd.err(e);
 					}
-					if(filenames!=null&&filenames.size()>0)
+					if (files != null && files.size() > 0)
 					{
 						if (res.isLeaf())
 							res = res.getParentResource();
+						List<String> filenames = new ArrayList<String>();
+						for (Object f : files)
+						{
+							if (f instanceof File)
+								filenames.add(((File) f).getAbsolutePath());
+							else
+								filenames.add(f.toString());
+						}
 						showCopyResourcesTo(filenames, res, par);
 						refreshPathTree(res, false);
 						refreshResourceCache(res);

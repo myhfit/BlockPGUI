@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -43,7 +45,7 @@ import bp.ui.tree.BPTreeFuncs;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoPredicate;
 import bp.util.ObjUtil;
 
 public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogSelectResource
@@ -71,7 +73,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 	protected CHECKEXITFLAG m_checkexist;
 	protected String[] m_exts;
 
-	protected WeakRefGo<Predicate<BPResource>> m_filterref;
+	protected WeakRefGoPredicate<BPResource> m_filterref;
 	protected WeakReference<Predicate<BPResource>> m_targetfilterref;
 
 	protected BPResource m_preselres;
@@ -88,7 +90,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 
 	protected void init()
 	{
-		m_filterref = new WeakRefGo<Predicate<BPResource>>();
+		m_filterref = new WeakRefGoPredicate<BPResource>();
 		super.init();
 	}
 
@@ -304,47 +306,15 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 		return this;
 	}
 
-	public BPDialogSelectResource2 setScope(SELECTSCOPE scope)
+	public BPDialogSelectResource2 setScopes(SELECTSCOPE... scopes)
 	{
-		switch (scope)
-		{
-			case WORKSPACE:
-			{
-				m_actprjres.setEnabled(false);
-				m_actfileres.setEnabled(true);
-				m_actcfileres.setEnabled(false);
-				m_actspres.setEnabled(false);
-				switchPathTreeFunc(1);
-				break;
-			}
-			case PROJECT:
-			{
-				m_actprjres.setEnabled(true);
-				m_actfileres.setEnabled(false);
-				m_actcfileres.setEnabled(false);
-				m_actspres.setEnabled(false);
-				switchPathTreeFunc(2);
-				break;
-			}
-			case COMPUTER:
-			{
-				m_actprjres.setEnabled(false);
-				m_actfileres.setEnabled(false);
-				m_actcfileres.setEnabled(true);
-				m_actspres.setEnabled(false);
-				switchPathTreeFunc(3);
-				break;
-			}
-			case SPECIAL:
-			{
-				m_actprjres.setEnabled(false);
-				m_actfileres.setEnabled(false);
-				m_actcfileres.setEnabled(false);
-				m_actspres.setEnabled(true);
-				switchPathTreeFunc(4);
-				break;
-			}
-		}
+		List<SELECTSCOPE> scs = Arrays.asList(scopes);
+		m_actfileres.setEnabled(scs.contains(SELECTSCOPE.WORKSPACE));
+		m_actprjres.setEnabled(scs.contains(SELECTSCOPE.PROJECT));
+		m_actcfileres.setEnabled(scs.contains(SELECTSCOPE.COMPUTER));
+		m_actspres.setEnabled(scs.contains(SELECTSCOPE.SPECIAL));
+		if (scopes.length > 0)
+			switchPathTreeFunc(scopes[0].ordinal() + 1);
 		m_ptree.refreshContextPath();
 		return this;
 	}
@@ -354,7 +324,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 		BPResource res = (BPResource) obj;
 		if (m_selecttype == SELECTTYPE.DIR && res.isLeaf())
 			return false;
-		return LogicUtil.NVL(m_filterref.exec(cb -> cb.test(res)), true);
+		return LogicUtil.NVL(m_filterref.test(res), true);
 	}
 
 	public void clearSubComponents()
@@ -381,7 +351,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 		setVisible(true);
 	}
 
-	public void setFilterWithExts(String[] exts)
+	public BPDialogSelectResource setFilterWithExts(String[] exts)
 	{
 		setFilter(res ->
 		{
@@ -402,6 +372,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 				return true;
 			}
 		});
+		return this;
 	}
 
 	public void showOpen()

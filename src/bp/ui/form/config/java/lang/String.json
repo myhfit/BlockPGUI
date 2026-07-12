@@ -1,0 +1,7 @@
+{
+	"noscroll":false,
+	"items":
+	[
+		{"itemtype":"textarea","key":"_value","params":{"nolineborder":true}}
+	]
+}

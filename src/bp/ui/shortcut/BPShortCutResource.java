@@ -17,6 +17,8 @@ import bp.project.BPResourceProject;
 import bp.res.BPResource;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPFileActionsInPop;
+import bp.ui.frame.BPFrameHostIFC;
+import bp.ui.frame.BPMainFrameIFC;
 import bp.ui.util.CommonUIOperations;
 import bp.util.ResourceUtil;
 
@@ -75,9 +77,9 @@ public class BPShortCutResource extends BPShortCutBase
 		if (res == null)
 			return null;
 		List<Action> rc = new ArrayList<Action>();
-		Integer channelid = BPGUICore.execOnCurrentFrame(f -> f.getChannelID());
+		Integer channelid = BPGUICore.execOnCurrentFrame(BPFrameHostIFC::getChannelID);
 		if (channelid == null)
-			channelid = BPGUICore.execOnMainFrame(f -> f.getChannelID());
+			channelid = BPGUICore.execOnMainFrame(BPMainFrameIFC::getChannelID);
 		if (res.isProjectResource())
 		{
 			if (res instanceof BPResourceProject)

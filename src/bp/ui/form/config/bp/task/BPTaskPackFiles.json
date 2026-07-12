@@ -1,0 +1,12 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskPackFiles",
+	"items":
+	[
+		{"itemtype":"textfield_more","key":"source","label":"SOURCE","lbltr":"c,c_c","required":true,"params":{"canempty":true}},
+		{"itemtype":"textfield","key":"target","label":"TARGET","lbltr":"c,c_c","required":true,"params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"targetdir","label":"Target Dir","lbltr":"dc,bp.ui.form.BPFormPanelTask","params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"sourcebase","label":"Source Base","lbltr":"dc,bp.ui.form.BPFormPanelTask","params":{"canempty":true}},
+		{"itemtype":"checkbox","key":"packlist","label":"Save Source List","lbltr":"dc,bp.ui.form.BPFormPanelTask"}
+	]
+}

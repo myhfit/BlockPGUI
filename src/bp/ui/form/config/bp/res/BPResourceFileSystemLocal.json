@@ -1,0 +1,11 @@
+{
+	"items":
+	[
+		{"itemtype":"textfield","key":"name","label":"NAME","lbltr":"c,c_c","readonly":true,"required":true,"params":{"needstname":true}},
+		{"itemtype":"textfield","key":"fullname","label":"FULLNAME","lbltr":"c,c_c","readonly":true},
+		{"itemtype":"textfield","key":"attrib","label":"ATTRIB","lbltr":"c,c_c","readonly":true},
+		{"itemtype":"textfield","key":"creationtime","label":"CREATION_TIME","lbltr":"c,c_c","readonly":true,"params":{"formatters":["FORMAT_TIME"]}},
+		{"itemtype":"textfield","key":"lastmodified","label":"LAST_MODIFIED","lbltr":"c,c_c","readonly":true,"params":{"formatters":["FORMAT_TIME"]}},
+		{"itemtype":"textfield","key":"accesstime","label":"LAST_ACCESS","lbltr":"c,c_c","readonly":true,"params":{"formatters":["FORMAT_TIME"]}}
+	]
+}

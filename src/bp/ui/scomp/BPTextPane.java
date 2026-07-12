@@ -7,6 +7,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.function.Function;
 
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
@@ -22,7 +23,9 @@ import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
 
 import bp.ui.actions.BPAction;
-import bp.ui.dialog.BPDialogFindText;
+import bp.ui.dialog.BPDialogFind;
+import bp.ui.dialog.BPDialogFind.BPFindPs;
+import bp.ui.dialog.BPDialogFind.BPReplacePs;
 import bp.ui.util.UIUtil;
 import bp.util.TextUtil;
 
@@ -33,12 +36,14 @@ public class BPTextPane extends BPEditorPane
 	 */
 	private static final long serialVersionUID = 9104661390457285947L;
 
-	protected BPDialogFindText m_sdlg = null;
+	protected BPDialogFind m_sdlg = null;
+	protected Function<BPFindPs, Boolean> m_findcb;
 
 	public BPTextPane()
 	{
 		setMonoFont();
 		setEditorKit(createEditorKit());
+		m_findcb = this::onFindCall;
 
 		getInputMap().put(KeyStroke.getKeyStroke("control F"), "find");
 		getActionMap().put("find", BPAction.build("find").callback(this::onFind).getAction());
@@ -61,7 +66,7 @@ public class BPTextPane extends BPEditorPane
 
 	protected void onFind(ActionEvent e)
 	{
-		BPDialogFindText dlg = m_sdlg;
+		BPDialogFind dlg = m_sdlg;
 		if (dlg != null)
 		{
 			if (dlg.isVisible())
@@ -75,13 +80,22 @@ public class BPTextPane extends BPEditorPane
 		}
 		if (dlg == null)
 		{
-			dlg = new BPDialogFindText(this);
+			dlg = new BPDialogFind(this);
+			dlg.setFindCallBack(m_findcb);
 			String sel = getSelectedText();
 			if (sel != null && sel.length() > 0)
 				dlg.setFindText(sel);
 			m_sdlg = dlg;
 			dlg.setVisible(true);
 		}
+	}
+
+	protected boolean onFindCall(BPFindPs ps)
+	{
+		if (!ps.isReplace())
+			return find(ps, false);
+		else
+			return replace((BPReplacePs) ps);
 	}
 
 	protected EditorKit createEditorKit()
@@ -155,6 +169,32 @@ public class BPTextPane extends BPEditorPane
 		return si;
 	}
 
+
+	public boolean find(BPFindPs ps, boolean findall)
+	{
+		String target = ps.src;
+		boolean isforward = ps.isforward;
+		boolean wholeword = ps.iswholeword;
+		boolean casesensitive = ps.iscasesensitive;
+		int pos = isforward ? getSelectionEnd() : getSelectionStart();
+		if (pos < 0)
+			pos = getCaretPosition();
+		if (!isforward)
+			pos -= target.length();
+		if (pos < 0)
+			pos = 0;
+
+		String text = getViewText();
+		int si = findPos(target, text, pos, isforward, wholeword, casesensitive);
+		if (si > -1)
+		{
+			setSelectionStart(si);
+			setSelectionEnd(si + target.length());
+			return true;
+		}
+		return false;
+	}
+
 	protected int findPos(String target, String text, int st, boolean isforward, boolean wholeword, boolean casesensitive)
 	{
 		if (isforward)
@@ -171,7 +211,7 @@ public class BPTextPane extends BPEditorPane
 		}
 	}
 
-	public void replace(String src, String dest, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
+	public boolean replace(String src, String dest, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
 	{
 		int si = find(src, isforward, wholeword, casesensitive, onlysel);
 		if (si != -1)
@@ -180,19 +220,39 @@ public class BPTextPane extends BPEditorPane
 			replaceSelection(dest);
 			setSelectionStart(selstart);
 			setSelectionEnd(selstart + dest.length());
+			return true;
 		}
+		return false;
 	}
 
-	public void replaceAll(String src, String dest, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
+	public boolean replace(BPReplacePs ps)
+	{
+		String src = ps.src;
+		String dest = ps.replacestr;
+		boolean isforward = ps.isforward;
+		boolean wholeword = ps.iswholeword;
+		boolean casesensitive = ps.iscasesensitive;
+		boolean onlysel = ps.onlyselection;
+
+		if (ps.isreplaceall)
+			return replaceAll(src, dest, isforward, wholeword, casesensitive, onlysel);
+		else
+			return replace(src, dest, isforward, wholeword, casesensitive, onlysel);
+	}
+
+	public boolean replaceAll(String src, String dest, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
 	{
 		setSelectionStart(0);
 		setSelectionEnd(-1);
 		int si = find(src, true, wholeword, casesensitive, onlysel);
+		boolean rc = false;
 		while (si > -1)
 		{
+			rc = true;
 			replaceSelection(dest);
 			si = find(src, true, wholeword, casesensitive, onlysel);
 		}
+		return rc;
 	}
 
 	public void setSaved()

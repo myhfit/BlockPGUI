@@ -21,7 +21,7 @@ import bp.ui.actions.BPAction;
 import bp.ui.scomp.BPTree;
 import bp.ui.tree.BPTreeFuncs.BPTreeFuncsVoid;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoFunction;
 
 public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTree>
 {
@@ -30,14 +30,14 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 	 */
 	private static final long serialVersionUID = 8516452067413933407L;
 
-	protected WeakRefGo<Function<List<Action>, List<Action>>> m_fixerref;
+	protected WeakRefGoFunction<List<Action>, List<Action>> m_fixerref;
 
 	public BPTreeComponentBase()
 	{
 		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouseDown, null, null, null));
 		addKeyListener(new UIUtil.BPKeyListener(null, this::onKeyDown, null));
 		addTreeSelectionListener(this::onTreeSelected);
-		m_fixerref = new WeakRefGo<>();
+		m_fixerref = new WeakRefGoFunction<>();
 	}
 
 	public BPTree getComponent()
@@ -326,7 +326,7 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 	{
 		if (acts != null)
 		{
-			List<Action> newacts = m_fixerref.exec(f -> f.apply(acts));
+			List<Action> newacts = m_fixerref.apply(acts);
 			if (newacts != null)
 				return newacts;
 		}

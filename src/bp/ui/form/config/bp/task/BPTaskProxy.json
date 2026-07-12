@@ -1,0 +1,4 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskProxy"
+}

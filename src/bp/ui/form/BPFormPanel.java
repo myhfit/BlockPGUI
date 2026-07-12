@@ -54,12 +54,26 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 
 	public BPFormPanel()
 	{
-		boolean needscroll = needScroll();
 		m_lineheight = (UIConfigs.TEXTFIELD_HEIGHT());
 		m_form = new JPanel();
 		m_form.setLayout(new BoxLayout(m_form, BoxLayout.Y_AXIS));
 		m_form.setBorder(null);
 		setLayout(new BorderLayout());
+		initContainer();
+		m_checks = new ArrayList<Supplier<Boolean>>();
+
+		if (initOnStart())
+		{
+			initLocale();
+			initForm();
+			completeForm();
+		}
+	}
+	
+	protected void initContainer()
+	{
+		removeAll();
+		boolean needscroll = needScroll();
 		if (needscroll)
 		{
 			m_sp = new JScrollPane();
@@ -72,15 +86,28 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 			add(m_form, BorderLayout.CENTER);
 		}
 		m_labelwidth = (int) (100 * UIConfigs.UI_SCALE());
-		m_checks = new ArrayList<Supplier<Boolean>>();
+	}
+
+	public void laterInit()
+	{
 		initLocale();
 		initForm();
 		completeForm();
 	}
 
+	protected boolean initOnStart()
+	{
+		return true;
+	}
+
 	protected boolean needScroll()
 	{
 		return true;
+	}
+
+	public void setLabelWidth(int labelwidth)
+	{
+		m_labelwidth = labelwidth;
 	}
 
 	public void setGridWeakBorder(boolean flag)
@@ -155,17 +182,20 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 		doAddLineComponents(check, tpans);
 	}
 
-	protected void doAddLineComponents(Supplier<Boolean> check, Component... comps)
+	public void doAddLineComponents(Supplier<Boolean> check, Component... comps)
 	{
 		doAddLineComponents(check, true, m_lineheight, comps);
 	}
 
-	protected void doAddLineComponents(Supplier<Boolean> check, boolean needborder, int height, Component... comps)
+	public void doAddLineComponents(Supplier<Boolean> check, boolean needborder, int height, Component... comps)
 	{
 		JPanel linepan = new JPanel();
 		linepan.setLayout(new BoxLayout(linepan, BoxLayout.X_AXIS));
 		if (height > 0)
+		{
+			linepan.setPreferredSize(new Dimension(0, height));
 			linepan.setMaximumSize(new Dimension((int) (5000f * UIConfigs.UI_SCALE()), height));
+		}
 		if (needborder)
 			linepan.setBorder(new MatteBorder(0, 0, 1, 0, getGridBorder()));
 		else
@@ -341,5 +371,10 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 		String t = text.trim();
 		if (!t.isEmpty())
 			transfunc.accept(t);
+	}
+
+	public void clearForm()
+	{
+		m_form.removeAll();
 	}
 }

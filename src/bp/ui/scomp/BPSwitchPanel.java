@@ -18,7 +18,7 @@ import javax.swing.border.MatteBorder;
 
 import bp.config.UIConfigs;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoConsumer;
 import bp.util.ObjUtil;
 
 public class BPSwitchPanel extends JPanel
@@ -31,13 +31,13 @@ public class BPSwitchPanel extends JPanel
 	protected List<JComponent> m_subs;
 	protected List<Object> m_labels;
 	protected Color m_bg;
-	protected WeakRefGo<Consumer<?>> m_vsetterref;
+	protected WeakRefGoConsumer<?> m_vsetterref;
 
 	protected int m_si;
 
 	public BPSwitchPanel()
 	{
-		m_vsetterref = new WeakRefGo<Consumer<?>>();
+		m_vsetterref = new WeakRefGoConsumer<>();
 		m_subs = new ArrayList<JComponent>();
 		m_labels = new ArrayList<Object>();
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -82,13 +82,14 @@ public class BPSwitchPanel extends JPanel
 			comp.setBackground(i == si ? UIConfigs.COLOR_WEAKBORDER() : m_bg);
 		}
 		Object value = si == -1 ? null : m_labels.get(si);
-		m_vsetterref.run(seg -> ((Consumer)seg).accept(value));
+		((WeakRefGoConsumer)m_vsetterref).accept(value);
 		updateUI();
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setSwitchCallback(Consumer<?> cb)
 	{
-		m_vsetterref.setTarget(cb);
+		((WeakRefGoConsumer)m_vsetterref).setTarget(cb);
 	}
 
 	protected JComponent makeLabel(int index, Object label, BiConsumer<Integer, JComponent> initcb)

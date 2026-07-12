@@ -10,13 +10,20 @@ public interface BPDialogSelectResource
 
 	BPDialogSelectResource setSelectType(SELECTTYPE flag);
 
-	BPDialogSelectResource setScope(SELECTSCOPE scope);
+	BPDialogSelectResource setScopes(SELECTSCOPE... scopes);
+
+	default BPDialogSelectResource setScope(SELECTSCOPE scope)
+	{
+		return setScopes(scope);
+	}
 
 	BPDialogSelectResource setCheckExist(CHECKEXITFLAG flag);
 
 	BPDialogSelectResource setMultiSelect(boolean flag);
 
 	BPDialogSelectResource setFilter(Predicate<BPResource> filter);
+
+	BPDialogSelectResource setFilterWithExts(String[] exts);
 
 	BPDialogSelectResource setTargetFilter(Predicate<BPResource> filter);
 

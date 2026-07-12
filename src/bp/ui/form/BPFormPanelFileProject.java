@@ -10,7 +10,9 @@ import bp.locale.BPLocaleConstProjectDict;
 import bp.locale.BPLocaleHelpers;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
-import bp.ui.dialog.BPDialogSelectResourceDir;
+import bp.ui.dialog.BPDialogSelectResource.SELECTSCOPE;
+import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
+import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
@@ -71,13 +73,14 @@ public class BPFormPanelFileProject extends BPFormPanelResourceBase
 	protected String onPathMore(String oldpath)
 	{
 		String rc = null;
-		BPDialogSelectResourceDir dlg = new BPDialogSelectResourceDir();
-		dlg.setVisible(true);
+		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
+		dlg.setSelectType(SELECTTYPE.DIR);
+		dlg.setScopes(SELECTSCOPE.WORKSPACE, SELECTSCOPE.COMPUTER);
+		dlg.switchPathTreeFunc(1);
+		dlg.showOpen();
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
-		{
 			rc = BPCore.getFileContext().comparePath(((BPResourceDir) res).getFileFullName());
-		}
 		return rc;
 	}
 

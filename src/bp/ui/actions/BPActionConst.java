@@ -1,5 +1,8 @@
 package bp.ui.actions;
 
+import javax.swing.Action;
+import javax.swing.KeyStroke;
+
 import bp.locale.BPLocaleConst;
 import bp.locale.BPLocaleVerb;
 
@@ -34,6 +37,11 @@ public interface BPActionConst extends BPLocaleConst
 	default int mnukeyK()
 	{
 		return ordinal() | VERB_MNEKEY;
+	}
+
+	default KeyStroke accKey()
+	{
+		return (KeyStroke) BPActionHelpers.getAction(this, null).getValue(Action.ACCELERATOR_KEY);
 	}
 
 	public enum BPActionVerb implements BPLocaleVerb

@@ -35,6 +35,7 @@ import bp.ui.frame.BPFrameHostIFC;
 import bp.ui.frame.BPMainFrame;
 import bp.ui.frame.BPMainFrameIFC;
 import bp.ui.util.CommonUIOperations;
+import bp.util.ClassUtil;
 import bp.util.CommandLineArgs;
 import bp.util.ObjUtil;
 import bp.util.LogicUtil.WeakRefGo;
@@ -160,6 +161,11 @@ public class BPGUICore
 		TOOL_MAP.putAll(toolmap);
 	}
 
+	public final static BPMainFrameIFC getMainFrame()
+	{
+		return S_MF.get();
+	}
+
 	public final static <V> V execOnMainFrame(Function<BPMainFrameIFC, V> seg)
 	{
 		return S_MF.exec(seg);
@@ -167,13 +173,23 @@ public class BPGUICore
 
 	public final static boolean checkMainFrameVisible()
 	{
-		Boolean r = S_MF.exec(mf -> mf.isVisible());
+		Boolean r = S_MF.exec(BPMainFrameIFC::isVisible);
 		return r != null && r == true;
 	}
 
 	public final static void runOnMainFrame(Consumer<BPMainFrameIFC> seg)
 	{
 		S_MF.run(seg);
+	}
+
+	public final static <T> void runOnMainFrame(BiConsumer<BPMainFrameIFC, T> seg, T params)
+	{
+		S_MF.run(seg, params);
+	}
+	
+	public final static void runOnMainFrameDynamic(String method, Object... params)
+	{
+		S_MF.runDynamic(BPMainFrameIFC.class, method, params);
 	}
 
 	public final static <V> V execOnCurrentFrame(Function<BPFrameHostIFC, V> seg)
@@ -196,7 +212,14 @@ public class BPGUICore
 		if (f0 != null && f0 instanceof BPFrameHostIFC)
 			seg.accept((BPFrameHostIFC) f0);
 	}
-	
+
+	public final static void runOnCurrentFrameDynamic(String method, Object... params)
+	{
+		Frame f0 = getCurrentFrame();
+		if (f0 != null && f0 instanceof BPFrameHostIFC)
+			ClassUtil.tryCallSimpleMethod(BPFrameHostIFC.class, method, f0, params);
+	}
+
 	public final static void runOnCurrentFrameWithCreation(Consumer<BPFrameHostIFC> seg)
 	{
 		Frame f0 = getCurrentFrame();
@@ -238,7 +261,9 @@ public class BPGUICore
 	public final static void safeExit()
 	{
 		closeSubWindows();
-		runOnMainFrame(mf -> mf.dispose());
+		BPMainFrameIFC mf = S_MF.get();
+		if (mf != null)
+			mf.dispose();
 	}
 	
 	public final static void inPopup(Runnable r)

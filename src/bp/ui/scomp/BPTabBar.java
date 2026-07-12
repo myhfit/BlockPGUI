@@ -31,7 +31,7 @@ import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoBiConsumer;
 import bp.util.LogicUtil.WeakRefGoConsumer;
 
 public class BPTabBar extends JPanel
@@ -366,13 +366,14 @@ public class BPTabBar extends JPanel
 		protected boolean m_complbl;
 		protected JComponent m_comp;
 
-		protected WeakRefGo<BiConsumer<String, String>> m_mnuref = new WeakRefGo<BiConsumer<String, String>>();
+		protected WeakRefGoBiConsumer<String, String> m_mnuref;
 		protected Object[][] m_mnus;
 
 		protected BPToolSQButton lbltitle;
 
 		public TabComp(String id, Icon icon, String title, Component comp)
 		{
+			m_mnuref = new WeakRefGoBiConsumer<String, String>();
 			m_id = id;
 			m_complbl = (comp != null);
 			m_comp = (JComponent) comp;
@@ -415,7 +416,7 @@ public class BPTabBar extends JPanel
 
 		public void setMenu(Object[][] mnus, BiConsumer<String, String> callback)
 		{
-			m_mnuref = new WeakRefGo<BiConsumer<String, String>>(callback);
+			m_mnuref.setTarget(callback);
 			m_mnus = mnus;
 		}
 
@@ -463,11 +464,7 @@ public class BPTabBar extends JPanel
 
 		protected void onMenuAction(String key)
 		{
-			m_mnuref.exec(cb ->
-			{
-				cb.accept(m_id, key);
-				return null;
-			});
+			m_mnuref.accept(m_id, key);
 		}
 
 		public void setSelectedBorder(boolean flag)

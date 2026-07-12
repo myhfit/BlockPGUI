@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import bp.BPGUICore;
 import bp.event.BPEventUI;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoConsumer;
 
 public class BPSyncGUIControllerBase implements BPSyncGUIController
 {
@@ -12,11 +12,11 @@ public class BPSyncGUIControllerBase implements BPSyncGUIController
 	protected volatile boolean m_onsync;
 	protected volatile boolean m_blocksync;
 	protected int m_channelid;
-	protected WeakRefGo<Consumer<BPEventUISyncEditor>> m_cbref;
+	protected WeakRefGoConsumer<BPEventUISyncEditor> m_cbref;
 
 	public BPSyncGUIControllerBase(Consumer<BPEventUISyncEditor> e)
 	{
-		m_cbref = new WeakRefGo<Consumer<BPEventUISyncEditor>>(e);
+		m_cbref = new WeakRefGoConsumer<BPEventUISyncEditor>(e);
 	}
 
 	public void setCallback(Consumer<BPEventUISyncEditor> e)
@@ -48,7 +48,7 @@ public class BPSyncGUIControllerBase implements BPSyncGUIController
 
 	protected void onSync(BPEventUISyncEditor e)
 	{
-		m_cbref.run(c -> c.accept(e));
+		m_cbref.accept(e);
 	}
 
 	public boolean checkSync()

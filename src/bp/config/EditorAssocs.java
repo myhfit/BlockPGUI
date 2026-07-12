@@ -39,9 +39,14 @@ public class EditorAssocs extends BPConfigAdvBase
 		return rc;
 	}
 
+	public void setMappedData(Map<String, Object> data)
+	{
+
+	}
+
 	protected Map<String, Object> createMap()
 	{
-		return new HashMap<String,Object>();
+		return new HashMap<String, Object>();
 	}
 
 	public boolean canUserConfig()

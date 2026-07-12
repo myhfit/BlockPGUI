@@ -34,6 +34,8 @@ import bp.ui.scomp.diagram.BPDiagramController;
 import bp.ui.scomp.diagram.BPDiagramControllerNavigation;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoBiConsumer;
+import bp.util.LogicUtil.WeakRefGoBiFunction;
 
 public class BPDiagramComponent extends JComponent
 {
@@ -48,8 +50,8 @@ public class BPDiagramComponent extends JComponent
 
 	protected BPDiagramController m_controller;
 
-	protected WeakRefGo<BiFunction<BPDiagramElement, BPDiagramComponent, JPopupMenu>> m_contextcbref = new WeakRefGo<>();
-	protected WeakRefGo<BiConsumer<BPDiagramElement, BPDiagramComponent>> m_clickref = new WeakRefGo<>(null);
+	protected WeakRefGoBiFunction<BPDiagramElement, BPDiagramComponent, JPopupMenu> m_contextcbref;
+	protected WeakRefGoBiConsumer<BPDiagramElement, BPDiagramComponent> m_clickref;
 
 	protected double m_scale;
 	protected int m_rawfontsize = -1;
@@ -59,6 +61,8 @@ public class BPDiagramComponent extends JComponent
 
 	public BPDiagramComponent()
 	{
+		m_contextcbref = new WeakRefGoBiFunction<>();
+		m_clickref = new WeakRefGoBiConsumer<>(null);
 		Font f = new Font(UIConfigs.MONO_FONT_NAME(), Font.PLAIN, UIConfigs.EDITORFONT_SIZE());
 		setFont(f);
 		setBackground(UIConfigs.COLOR_TEXTBG());
@@ -118,7 +122,7 @@ public class BPDiagramComponent extends JComponent
 
 	public void setClickNodeCallback(BiConsumer<BPDiagramElement, BPDiagramComponent> cb)
 	{
-		m_clickref = new WeakRefGo<BiConsumer<BPDiagramElement, BPDiagramComponent>>(cb);
+		m_clickref.setTarget(cb);
 	}
 
 	protected void onKeyDown(KeyEvent e)
@@ -656,13 +660,13 @@ public class BPDiagramComponent extends JComponent
 		refresh();
 
 		if (ele != null)
-			m_clickref.run(cb -> cb.accept(ele, this));
+			m_clickref.accept(ele, this);
 	}
 
 	public void showContextMenu(BPDiagramElement ele, int x, int y)
 	{
 		BPDiagramElement selelef = ele;
-		JPopupMenu pop = m_contextcbref.exec(cb -> cb.apply(selelef, this));
+		JPopupMenu pop = m_contextcbref.apply(selelef, this);
 		if (pop != null)
 			pop.show(this, x, y);
 	}

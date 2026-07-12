@@ -13,11 +13,15 @@ import javax.swing.Icon;
 import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.BPConfig;
+import bp.config.BPConfigSimple;
+import bp.config.BPSetting;
 import bp.data.BPDataContainer;
+import bp.data.BPDataWrapper;
 import bp.data.BPTextContainer;
 import bp.data.BPTextContainerBase;
 import bp.event.BPEventUI;
 import bp.format.BPFormat;
+import bp.format.BPFormatDir;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.res.BPResourceFile;
@@ -36,7 +40,6 @@ import bp.ui.scomp.BPTabBar.Tab;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil;
 
 public class BPEditors extends BPTabbedContainerBase
 {
@@ -147,6 +150,12 @@ public class BPEditors extends BPTabbedContainerBase
 	public void open(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig config)
 	{
 		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
+		if (config != null)
+		{
+			String rid = config.get("_replaceid");
+			if (rid != null)
+				id = rid;
+		}
 		BPComponent<?> comp = m_compmap.get(id);
 		if (comp == null || (ffac != null && !ffac.checkSameTab()))
 		{
@@ -270,12 +279,12 @@ public class BPEditors extends BPTabbedContainerBase
 			if (comp != null && comp instanceof BPViewer)
 			{
 				String[] exts = null;
-				String rext = LogicUtil.CHAIN_NN(comp, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource(), r -> ((BPResource) r).getExt());
+				BPResource oldres = ((BPViewer<?>)comp).tryGetResource();
+				String rext = oldres == null ? null : oldres.getExt();
 				if (rext != null)
 					exts = new String[] { rext };
 				else if (comp instanceof BPEditor)
 					exts = ((BPEditor<?>) comp).getExts();
-				BPResource oldres = LogicUtil.CHAIN_NN(comp, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource());
 				Consumer<BPDialogSelectResource> cb = null;
 				if (oldres != null && oldres.isFileSystem())
 					cb = dlg -> dlg.switchPathTreeFunc(3).setPreSelectedResource((BPResourceFileSystem) oldres);
@@ -388,16 +397,81 @@ public class BPEditors extends BPTabbedContainerBase
 
 	protected void initTab(Tab tab)
 	{
-		tab.pan.setMenu(new Object[][] { new Object[] { BPActionConstCommon.CTX_MNUTABCLOSE.text(), "close" }, new Object[] { BPActionConstCommon.CTX_MNUTABCLOSEALL.text(), "closeall" }, new Object[] { BPActionConstCommon.CTX_MNUTABCLOSEOTHERS.text(), "closeother" }, new Object[] { "-", null, (Predicate<String>) this::canSplit },
-				new Object[] { BPActionConstCommon.CTX_MNUTABSPLITNEWWIN.text(), "split", (Predicate<String>) this::canSplit } }, m_mnucb);
+		tab.pan.setMenu(new Object[][] { new Object[] { BPActionConstCommon.CTX_MNUTABCLOSE.text(), "close" }, new Object[] { BPActionConstCommon.CTX_MNUTABCLOSEALL.text(), "closeall" },
+				new Object[] { BPActionConstCommon.CTX_MNUTABCLOSEOTHERS.text(), "closeother" }, new Object[] { "-", null, (Predicate<String>) this::canSplit },
+				new Object[] { BPActionConstCommon.CTX_MNUTABSPLITNEWWIN.text(), "split", (Predicate<String>) this::canSplit }, new Object[] { BPActionConstCommon.CTX_MNUTABREOPEN.text(), "reopen", (Predicate<String>) this::canReOpen } }, m_mnucb);
 	}
 
 	protected boolean canSplit(String id)
 	{
 		BPComponent<?> comp = m_compmap.get(id);
-		if (comp != null)
+		return comp != null;
+	}
+
+	protected boolean canReOpen(String id)
+	{
+		BPComponent<?> comp = m_compmap.get(id);
+		if (comp.isRoutableContainer())
 		{
-			return true;
+			BPRoutableContainer<?> r = (BPRoutableContainer<?>) comp;
+			comp = r.getCurrent();
+		}
+		if (comp instanceof BPViewer)
+		{
+			BPViewer<?> v = (BPViewer<?>) comp;
+			return v.getDataContainer() != null;
+		}
+		return false;
+	}
+	
+	protected void reOpen(String id)
+	{
+		if(openAs(id))
+		{
+			Map<String, BPComponent<?>> cm = getComponentMap();
+			cm.remove(id);
+			doRemoveTab(id);
+		}
+	}
+
+	protected boolean openAs(String id)
+	{
+		Map<String, BPComponent<?>> cm = getComponentMap();
+		BPComponent<?> comp = (BPComponent<?>) cm.get(id);
+		if (comp.isRoutableContainer())
+		{
+			BPRoutableContainer<?> r = (BPRoutableContainer<?>) comp;
+			comp = r.getCurrent();
+		}
+		if (comp instanceof BPViewer)
+		{
+			BPViewer<?> v = (BPViewer<?>) comp;
+			BPDataContainer con = v.getDataContainer();
+			BPResource res = con.getResource();
+			boolean isdir = false;
+			if (res.isFileSystem() && ((BPResourceFileSystem) res).isDirectory())
+				isdir = true;
+			BPFormat format = isdir ? new BPFormatDir() : BPFormatManager.getFormatByExt(res.getExt());
+			BPDataWrapper<BPFormat> formatref = new BPDataWrapper<BPFormat>(format);
+			BPDataWrapper<BPEditorFactory> facref = new BPDataWrapper<BPEditorFactory>(null);
+			BPDataWrapper<BPConfig> cfgref = new BPDataWrapper<BPConfig>(null);
+			if (CommonUIOperations.showSelectFormat(formatref, facref, cfgref))
+			{
+				BPConfig c = cfgref.get();
+				String newid = id + ":" + BPCore.genID(BPCore.getFileContext());
+				if (c == null)
+				{
+					BPConfigSimple c2 = new BPConfigSimple();
+					c2.put("_replaceid", newid);
+					c = c2;
+				}
+				else
+				{
+					((BPSetting) c).set("_replaceid", newid);
+				}
+				open(res, formatref.get(), facref.get(), null, c);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -452,6 +526,11 @@ public class BPEditors extends BPTabbedContainerBase
 			case "split":
 			{
 				splitEditor(id);
+				break;
+			}
+			case "reopen":
+			{
+				reOpen(id);
 				break;
 			}
 		}

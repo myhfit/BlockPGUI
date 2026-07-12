@@ -88,7 +88,7 @@ public class BPDialogBlock<T> extends BPDialogCommon
 			setResult(data == null ? "Completed" : data.toString(), false);
 			return;
 		}
-		SwingUtilities.invokeLater(() -> dispose());
+		SwingUtilities.invokeLater(this::dispose);
 	}
 
 	public T getResult()

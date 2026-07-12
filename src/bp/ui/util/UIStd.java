@@ -24,34 +24,28 @@ import javax.swing.border.MatteBorder;
 import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.UIConfigs;
-import bp.data.BPMData.BPMDataWMap;
+import bp.data.BPDataWrapper;
 import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
 import bp.task.BPTask;
+import bp.typeext.KV;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.dialog.BPDialogBlock;
 import bp.ui.dialog.BPDialogCommon;
-import bp.ui.dialog.BPDialogCommonCategoryView;
-import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogSimple;
-import bp.ui.form.BPForm;
-import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPCommonDataChainPanel;
 import bp.ui.scomp.BPFileField;
 import bp.ui.scomp.BPHTMLEditorKit;
 import bp.ui.scomp.BPKVTable;
 import bp.ui.scomp.BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable;
-import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIUtil.BPMouseListener;
-import bp.util.ClassUtil;
 import bp.util.LogicUtil.WeakRefGo;
-import bp.util.ObjUtil;
 
 public class UIStd
 {
@@ -107,14 +101,26 @@ public class UIStd
 
 	public final static void showStructuredCommonDatas(Object data, boolean modal)
 	{
+		showStructuredCommonDatas(data, modal, null, null);
+	}
+	
+	public final static void showStructuredCommonDatas(Object data, boolean modal, String title, Map<String, Object> options)
+	{
 		BPCommonDataChainPanel p = new BPCommonDataChainPanel();
+		data = CommonDataUIProcs.preMappingData(data);
 		p.setMode(CommonDataUIProcs.testDataMode(data));
+		if (options != null)
+			p.setOptions(options);
 		p.setData(data);
-		BPDialogSimple dlg = BPDialogSimple.createWithComponent(p, 0, null);
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(p, BPDialogSimple.COMMANDBAR_OKESCAPE, null);
 		dlg.setModal(modal);
 		p.initByData();
-		dlg.setTitle(BPGUICore.S_BP_TITLE);
-		dlg.setPreferredSize(UIUtil.getPercentDimension(0.8f, 0.8f));
+		dlg.setTitle(title == null ? BPGUICore.S_BP_TITLE : title);
+		Integer w = options == null ? null : (Integer) options.get("dlg.width");
+		if (w != null)
+			dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(w, (Integer) options.get("dlg.height"))));
+		else
+			dlg.setPreferredSize(UIUtil.getPercentDimension(0.6f, 0.8f));
 		dlg.pack();
 		dlg.setLocationRelativeTo(null);
 		dlg.setVisible(true);
@@ -125,42 +131,9 @@ public class UIStd
 		if (data == null)
 			info(null);
 		if (data instanceof Collection)
-		{
-			List<Object> lst = new ArrayList<Object>((Collection<?>) data);
-			boolean hasform = false;
-			if (lst.size() > 0)
-			{
-				Object obj0 = lst.get(0);
-				BPForm<?> form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), obj0.getClass(), Object.class);
-				hasform = form != null;
-			}
-			if (hasform)
-			{
-				Function<Object, Object> ctt = (cat) -> cat;
-				BPDialogCommonCategoryView<Object, Object> dlg = new BPDialogCommonCategoryView<Object, Object>();
-				dlg.setup(lst, null, ctt, false);
-				dlg.setCommandBarMode(BPDialogCommonCategoryView.COMMANDBAR_OKESCAPE);
-				dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SHOW, BPLocaleConstCC.DATA));
-				dlg.setVisible(true);
-			}
-			else
-			{
-				viewList(lst, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SHOW, BPLocaleConstCC.DATA), null);
-			}
-		}
+			showStructuredCommonDatas(data, true);
 		else if (data instanceof Map)
-		{
-			BPDialogForm dlg = new BPDialogForm();
-			dlg.setEditable(false);
-			dlg.setCommandBarMode(BPDialogForm.COMMANDBAR_OKESCAPE);
-			dlg.setTitle(BPGUICore.S_BP_TITLE);
-			BPMDataWMap w = (BPMDataWMap) ObjUtil.wrapUIData(data);
-			dlg.setup(w.getClass().getName(), w);
-			dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
-			dlg.pack();
-			dlg.setLocationRelativeTo(null);
-			dlg.setVisible(true);
-		}
+			showStructuredCommonDatas(data, true);
 		else
 		{
 			info(data.toString());
@@ -169,7 +142,7 @@ public class UIStd
 
 	public final static String input(String text, String prompt, String title)
 	{
-		final String[] rc = new String[1];
+		BPDataWrapper<String> rc = new BPDataWrapper<String>(null);
 		JPanel panc = new JPanel();
 		panc.setLayout(new BorderLayout());
 		panc.setBackground(UIConfigs.COLOR_TEXTBG());
@@ -188,10 +161,10 @@ public class UIStd
 		panc.add(tf, BorderLayout.CENTER);
 		int cb = (int) (UIConfigs.UI_SCALE() * 4f);
 		panc.setBorder(new CompoundBorder(new EmptyBorder(cb, cb, cb, cb), new MatteBorder(1, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER())));
-		Function<Integer, Boolean> dlgcallback = (t) ->
+		Function<Integer, Boolean> dlgcallback = t ->
 		{
 			if (t == BPDialogCommon.COMMAND_OK)
-				rc[0] = tf.getText();
+				rc.set(tf.getText());
 			return false;
 		};
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(panc, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, dlgcallback);
@@ -201,7 +174,7 @@ public class UIStd
 		dlg.setModal(true);
 		dlg.setVisible(true);
 		dlg.dispose();
-		return rc[0];
+		return rc.get();
 	}
 
 	public final static String inputPath(String text, String prompt, String title)
@@ -305,7 +278,7 @@ public class UIStd
 		JScrollPane scroll = new JScrollPane();
 		BPKVTable ntable = new BPKVTable();
 		BPKVTableFuncsEditable funcs = new BPKVTable.BPKVTableFuncs.BPKVTableFuncsEditable();
-		BPTableModel<BPKVTable.KV> model = new BPTableModel<BPKVTable.KV>(funcs);
+		BPTableModel<KV> model = new BPTableModel<KV>(funcs);
 		model.setDatas(kvs);
 		ntable.setCellEditorReadonly(readonly);
 		ntable.setModel(model);
@@ -369,10 +342,13 @@ public class UIStd
 		model.setDatas(datas);
 		if (renderer != null)
 			nlist.setCellRenderer(new BPList.BPListRenderer(renderer));
-		if (selectedindex > -1)
-			nlist.setSelectedIndex(selectedindex);
 		scroll.setViewportView(nlist);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
+		if (selectedindex > -1)
+		{
+			nlist.setSelectedIndex(selectedindex);
+			nlist.ensureIndexIsVisible(selectedindex);
+		}
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(scroll, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, null);
 		nlist.addMouseListener(new BPMouseListener((e) ->
 		{

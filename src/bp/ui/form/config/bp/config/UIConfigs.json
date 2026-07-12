@@ -1,0 +1,25 @@
+{
+	"controller":"config.BPFormControllerUIConfigs",
+	"tr":"dc,bp.config.UIConfigs",
+	"items":
+	[
+		{"itemtype":"separator","label":"UI Settings","lbltr":"ctx"},
+		{"itemtype":"textfield","key":"TAB_SIZE","label":"Tab Size","lbltr":"ctx","params":{"formattersout":["TO_INT"],"checkers":[{"ctype":"isint"}]}},
+		{"itemtype":"textfield","key":"DIVIDER_SIZE","label":"Divider Size","lbltr":"ctx","params":{"formattersout":["TO_INT"],"checkers":[{"ctype":"isint"}]}},
+		{"itemtype":"textfield_more","key":"LAF_CLASSNAME","label":"LAF Class Name","lbltr":"ctx"},
+		{"itemtype":"checkbox","key":"DOUBLE_BUFFER","label":"Double Buffer","lbltr":"ctx"},
+		{"itemtype":"checkbox","key":"SYSTEM_TRAY","label":"Show SysTray","lbltr":"ctx"},
+		{"itemtype":"checkbox","key":"MIN_TO_TRAY","label":"Minimize to Tray","lbltr":"ctx"},
+		{"itemtype":"checkbox","key":"SHOW_LAUNCHER","label":"Show Launcher","lbltr":"ctx"},
+		{"itemtype":"separator","label":"Font Settings","lbltr":"ctx"},
+		{"itemtype":"textfield_more","key":"MONO_FONT_NAME","label":"Mono Font Name","lbltr":"ctx","params":{"nowriteempty":true}},
+		{"itemtype":"textfield_more","key":"LABEL_FONT_NAME","label":"Label Font Name","lbltr":"ctx","params":{"nowriteempty":true}},
+		{"itemtype":"textfield_more","key":"LIST_FONT_NAME","label":"List Font Name","lbltr":"ctx","params":{"nowriteempty":true}},
+		{"itemtype":"textfield_more","key":"TREE_FONT_NAME","label":"Tree Font Name","lbltr":"ctx","params":{"nowriteempty":true}},
+		{"itemtype":"textfield_more","key":"TABLE_FONT_NAME","label":"Table Font Name","lbltr":"ctx","params":{"nowriteempty":true}},
+		{"itemtype":"textfield_more","key":"MENU_FONT_NAME","label":"Menu Font Name","lbltr":"ctx","params":{"nowriteempty":true}},
+		{"itemtype":"textfield","key":"MONO_FONT_SIZEDELTA","label":"Mono Font Delta","lbltr":"ctx","params":{"formattersout":["TO_INT"],"checkers":[{"ctype":"isint"}]}},
+		{"itemtype":"separator","label":"Show VM Info","lbltr":"ctx"},
+		{"itemtype":"checkbox","key":"SHOW_VMINFO","label":"Show VM Info","lbltr":"ctx"}
+	]
+}

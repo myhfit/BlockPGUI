@@ -7,6 +7,7 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
+import bp.BPCore.BPPlatform;
 import bp.data.BPXData;
 import bp.data.BPXYData;
 import bp.ui.editor.BPCodePanel;
@@ -99,4 +100,8 @@ public class BPDataUIAdapterGUICommon implements BPDataUIAdapter
 		return true;
 	}
 
+	public boolean supportPlatform(BPPlatform platform)
+	{
+		return platform == BPPlatform.GUI_SWING;
+	}
 }

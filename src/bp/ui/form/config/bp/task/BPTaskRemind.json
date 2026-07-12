@@ -1,0 +1,7 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"items":
+	[
+		{"itemtype":"textfield_area","key":"content","label":"Content","lbltr":"d,bp.locale.BPLocaleConstCoreDict","required":true}
+	]
+}

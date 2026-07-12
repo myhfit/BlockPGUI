@@ -83,7 +83,7 @@ public class BPToolGUIParallelEditor extends BPToolGUIBase<BPToolGUIParallelEdit
 			}
 			else
 			{
-				SwingUtilities.invokeLater(() -> p.refreshGrid());
+				SwingUtilities.invokeLater(p::refreshGrid);
 			}
 		}
 

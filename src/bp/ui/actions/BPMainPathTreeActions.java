@@ -2,7 +2,9 @@ package bp.ui.actions;
 
 import javax.swing.Action;
 
+import bp.res.BPResource;
 import bp.ui.frame.BPMainFrame;
+import bp.ui.util.UIUtil;
 
 public class BPMainPathTreeActions
 {
@@ -14,9 +16,8 @@ public class BPMainPathTreeActions
 
 	public BPMainPathTreeActions(BPMainFrame mf)
 	{
-		m_mf = mf;
-		refresh = BPActionHelpers.getAction(BPActionConstCommon.PTREE_REFRESH, e -> m_mf.refreshPathTree(null));
-		pathtree = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PATHTREE, e -> m_mf.switchPathTreeFunc(1));
-		prjstree = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PRJTREE, e -> m_mf.switchPathTreeFunc(2));
+		refresh = BPActionHelpers.getAction(BPActionConstCommon.PTREE_REFRESH, UIUtil.makeDynamicInstCB(mf, "refreshPathTree", (BPResource) null));
+		pathtree = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PATHTREE, UIUtil.makeDynamicInstCB(mf, "switchPathTreeFunc", 1));
+		prjstree = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PRJTREE, UIUtil.makeDynamicInstCB(mf, "switchPathTreeFunc", 2));
 	}
 }

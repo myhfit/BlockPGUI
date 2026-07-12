@@ -1,0 +1,13 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskUnpackFiles",
+	"items":
+	[
+		{"itemtype":"textfield","key":"source","label":"SOURCE","lbltr":"c,c_c","required":true,"params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"target","label":"TARGET","lbltr":"c,c_c","params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"targetbase","label":"Target Base","lbltr":"dc,bp.ui.form.BPFormPanelTask","params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"sourcedir","label":"Source Dir","lbltr":"dc,bp.ui.form.BPFormPanelTask","params":{"canempty":true}},
+		{"itemtype":"checkbox","key":"readpacklist","label":"Read Source List","lbltr":"dc,bp.ui.form.BPFormPanelTask"},
+		{"itemtype":"combobox","key":"owmode","label":"Overwrite Mode","lbltr":"dc,bp.ui.form.BPFormPanelTask","params":{"transvalue":true,"ctlrender":true}}
+	]
+}

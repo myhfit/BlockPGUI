@@ -1,0 +1,7 @@
+{
+	"parent":"bp.res.BPResourceFileSystemLocal",
+	"items":
+	[
+		{"itemtype":"textfield","key":"len","label":"SIZE","lbltr":"c,c_c","readonly":true,"params":{"formatters":["TO_STR"]}}
+	]
+}

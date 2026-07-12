@@ -38,6 +38,7 @@ import bp.ui.tree.BPPathTreePanel;
 import bp.ui.tree.BPPathTreePanel.BPEventUIPathTree;
 import bp.ui.tree.BPProjectsTreeFuncs;
 import bp.ui.tree.BPTreeComponent;
+import bp.ui.util.EventUtil;
 import bp.ui.util.UIUtil;
 
 public class BPDialogSelectResourceList extends BPDialogCommon
@@ -106,9 +107,10 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		{
 			switch (event.subkey)
 			{
-				case RES_ADD:
+				case BPEventUIPathTree.NODE_ACTION:
 				{
-					addResource(event.getSelectedResource());
+					if(RES_ADD.equals( event.getActionName()))
+						addResource(event.getSelectedResource());
 					break;
 				}
 			}
@@ -243,7 +245,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 			if (node != null)
 			{
 				BPResource res = (BPResource) node.getUserObject();
-				BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUADD, e -> BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(RES_ADD, res)));
+				BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUADD, new EventUtil.EventConsumerMakePathTreeAction(res, m_channelid, RES_ADD));
 				rc.add(actadd);
 			}
 			return rc;
@@ -263,7 +265,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 			if (node != null)
 			{
 				BPResource res = (BPResource) node.getUserObject();
-				BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUADD, e -> BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(RES_ADD, res)));
+				BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUADD, new EventUtil.EventConsumerMakePathTreeAction(res, m_channelid, RES_ADD));
 				rc.add(actadd);
 			}
 			return rc;

@@ -144,7 +144,7 @@ public class ShortCuts extends BPConfigAdvBase
 	{
 		super.setMappedData(data);
 		setPMap(data);
-		BPGUICore.runOnMainFrame(mf -> mf.refreshShortCuts());
+		BPGUICore.runOnMainFrameDynamic("refreshShortCuts");
 	}
 
 	public Map<String, Object> getMappedData()

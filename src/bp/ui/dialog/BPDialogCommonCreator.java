@@ -21,8 +21,8 @@ import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPList;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
-import bp.util.LogicUtil.WeakRefGo;
 import bp.util.LogicUtil.WeakRefGoConsumer;
+import bp.util.LogicUtil.WeakRefGoPredicate;
 
 public class BPDialogCommonCreator<T> extends BPDialogCommon
 {
@@ -35,7 +35,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 	protected BPForm<?> m_form;
 	protected T m_result;
 
-	protected WeakRefGo<Predicate<BPInstanceFactory<T>>> m_filter;
+	protected WeakRefGoPredicate<BPInstanceFactory<T>> m_filter;
 	protected Class<? extends BPInstanceFactory<T>> m_facintf;
 	protected WeakRefGoConsumer<BPForm<?>> m_initformcb;
 	protected BPLocaleHelperDict<?> m_lh;
@@ -46,6 +46,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 
 	protected void initUIComponents()
 	{
+		m_filter = new WeakRefGoPredicate<BPInstanceFactory<T>>();
 		m_lstfacs = new BPList<BPInstanceFactory<T>>();
 		m_lstfacs.setModel(new BPList.BPListModel<BPInstanceFactory<T>>());
 		m_lstfacs.setCellRenderer(new BPList.BPListRenderer(this::transFacName));
@@ -82,7 +83,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 
 	public void setFilter(Predicate<BPInstanceFactory<T>> filter)
 	{
-		m_filter = new WeakRefGo<Predicate<BPInstanceFactory<T>>>(filter);
+		m_filter.setTarget(filter);
 		initDatas();
 	}
 
@@ -112,16 +113,11 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 			return;
 		ServiceLoader<? extends BPInstanceFactory<T>> facs = ClassUtil.getExtensionServices(facintf);
 		List<BPInstanceFactory<T>> datas = new ArrayList<BPInstanceFactory<T>>();
-		WeakRefGo<Predicate<BPInstanceFactory<T>>> filter = m_filter;
+		WeakRefGoPredicate<BPInstanceFactory<T>> filter = m_filter;
 		for (BPInstanceFactory<T> fac : facs)
 		{
-			if (filter != null)
-			{
-				Boolean f = filter.exec(func -> func.test(fac));
-				if (f == null || f)
-					datas.add(fac);
-			}
-			else
+			Boolean f = filter.test(fac);
+			if (f == null || f)
 				datas.add(fac);
 		}
 		((BPList.BPListModel<BPInstanceFactory<T>>) m_lstfacs.getModel()).setDatas(datas);
@@ -136,7 +132,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 			if (m_form != null)
 				remove(m_form.getComponent());
 			BPInstanceFactory<T> fac = m_lstfacs.getSelectedValue();
-			BPForm<?> form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), fac.getInstanceClass(), fac.getInstanceRootClass());
+			BPForm<?> form = BPFormManager.getFormByClassTree(fac.getInstanceClass(), fac.getInstanceRootClass());
 			if (form != null)
 			{
 				WeakRefGoConsumer<BPForm<?>> initformcb = m_initformcb;
@@ -152,8 +148,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 
 	protected T create(Map<String, Object> data)
 	{
-		T rc = null;
-		rc = m_lstfacs.getSelectedValue().create(data);
+		T rc = m_lstfacs.getSelectedValue().create(data);
 		return rc;
 	}
 

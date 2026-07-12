@@ -1,0 +1,11 @@
+{
+	"controller":"schedule.BPFormControllerSchedule",
+	"items":
+	[
+		{"itemtype":"textfield","key":"name","label":"NAME","lbltr":"c,c_c","required":true,"params":{"needstname":true}},
+		{"itemtype":"checkbox","key":"enabled","label":"ENABLED","lbltr":"c,c_c","defaultvalue":true},
+		{"itemtype":"separator","key":"sp_target","label":"TARGET","lbltr":"c,c_c"},
+		{"itemtype":"combobox","key":"targetfac","label":"Target Type","lbltr":"lh,bp.ui.form.BPFormPanelSchedule","required":true},
+		{"itemtype":"textfield_area","key":"targetparams","label":"Target Params","lbltr":"lh,bp.ui.form.BPFormPanelSchedule"}
+	]
+}

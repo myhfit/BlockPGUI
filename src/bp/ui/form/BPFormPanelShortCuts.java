@@ -8,12 +8,12 @@ import javax.swing.Action;
 
 import bp.config.BPSetting;
 import bp.config.ShortCuts;
+import bp.typeext.KV;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.shortcut.BPShortCut;
 import bp.ui.shortcut.BPShortCutFactory;
 import bp.ui.shortcut.BPShortCutManager;

@@ -117,7 +117,7 @@ public class BPFormPanelHotkeys extends BPFormPanel
 		JScrollPane scroll = new JScrollPane(m_tabhks);
 		JPanel pnl = new JPanel();
 		BPToolBarSQ tb = new BPToolBarSQ(true);
-		tb.setActions(makeToolBarActions().toArray(new Action[0]));
+		tb.setActions(makeToolBarActions().toArray(new Action[0]), this);
 		tb.setBorderVertical(0);
 		m_tb = tb;
 
@@ -138,7 +138,7 @@ public class BPFormPanelHotkeys extends BPFormPanel
 	{
 		List<Action> rc = new ArrayList<Action>();
 		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
-		BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDel);
+		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
 		rc.add(BPAction.separator());
 		rc.add(actadd);
 		rc.add(actdel);

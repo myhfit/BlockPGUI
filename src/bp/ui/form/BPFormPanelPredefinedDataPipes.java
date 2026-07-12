@@ -9,11 +9,11 @@ import javax.swing.SwingUtilities;
 import bp.BPCore;
 import bp.res.BPResource;
 import bp.res.BPResourceFileSystem;
+import bp.typeext.KV;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
-import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.util.CommonUIOperations;
 
 public class BPFormPanelPredefinedDataPipes extends BPFormPanelMapOrdered

@@ -1,0 +1,7 @@
+{
+	"controller":"task.BPFormControllerTask",
+	"items":
+	[
+		{"itemtype":"textfield","key":"name","label":"NAME","lbltr":"c,c_c","required":true,"params":{"needstname":true,"checkers":[{"ctype":"controller"}]}}
+	]
+}

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import javax.swing.BoxLayout;
@@ -14,6 +15,7 @@ import javax.swing.border.MatteBorder;
 
 import bp.config.UIConfigs;
 import bp.ui.util.CommonDataUIProcs;
+import bp.util.ObjUtil;
 
 public class BPCommonDataChainPanel extends JPanel
 {
@@ -28,6 +30,8 @@ public class BPCommonDataChainPanel extends JPanel
 	protected BiConsumer<Object, BPCommonDataPanel> m_opencb;
 	protected JPanel m_cp;
 	protected JScrollPane m_scroll;
+	protected int m_levelmax;
+	protected boolean m_previewmode;
 
 	public BPCommonDataChainPanel()
 	{
@@ -73,6 +77,19 @@ public class BPCommonDataChainPanel extends JPanel
 		m_root.setData(data);
 	}
 
+	public void setOptions(Map<String, Object> options)
+	{
+		m_levelmax = ObjUtil.toInt(options.get("maxlevel"), 0);
+		m_previewmode = ObjUtil.toBool(options.get("previewmode"), false);
+		if (m_previewmode)
+		{
+			m_root.setMinimumSize(new Dimension(200, 400));
+			m_root.setPreferredSize(new Dimension(200, 400));
+			m_root.setMaximumSize(new Dimension(200, 40000));
+			m_root.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_STRONGBORDER()));
+		}
+	}
+
 	public void initByData()
 	{
 		m_root.initByData();
@@ -116,10 +133,14 @@ public class BPCommonDataChainPanel extends JPanel
 			}
 			delps.clear();
 
+			int level = m_subs.size() + 1;
+			if (m_levelmax > 0 && level >= m_levelmax)
+				return;
 			BPCommonDataPanel p = new BPCommonDataPanel();
-			p.setBorder(new MatteBorder(0, 1, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
+			p.setBorder(new MatteBorder(0, (level == 1 && !m_previewmode) ? 1 : 0, 0, 0, UIConfigs.COLOR_WEAKBORDER()));
 			preparePanel(p);
 			m_cp.add(p);
+			data = CommonDataUIProcs.preMappingData(data);
 			p.setData(data);
 			p.setMode(CommonDataUIProcs.testDataMode(data));
 			p.initByData();

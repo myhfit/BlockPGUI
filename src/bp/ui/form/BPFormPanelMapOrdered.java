@@ -7,11 +7,11 @@ import java.util.Map;
 
 import javax.swing.Action;
 
+import bp.typeext.KV;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.res.icon.BPIconResV;
-import bp.ui.scomp.BPKVTable.KV;
 
 public class BPFormPanelMapOrdered extends BPFormPanelMap
 {

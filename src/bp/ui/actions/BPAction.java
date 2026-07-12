@@ -35,12 +35,15 @@ public class BPAction extends AbstractAction
 		m_cb = callback;
 	}
 
+	public void setCommand(String cmd)
+	{
+		putValue(Action.ACTION_COMMAND_KEY, cmd);
+	}
+
 	public void actionPerformed(ActionEvent e)
 	{
 		if (m_cb != null)
-		{
 			m_cb.accept(e);
-		}
 	}
 
 	public final static BPActionBuilder build(String name)
@@ -52,6 +55,12 @@ public class BPAction extends AbstractAction
 	public final static BPAction separator()
 	{
 		return new BPActionBuilder(new BPAction("")).separator().getAction();
+	}
+	
+	public final static void batchSetCommand(Object... kvs)
+	{
+		for (int i = 0; i < kvs.length; i += 2)
+			((Action) kvs[i]).putValue(BPAction.ACTION_COMMAND_KEY, kvs[i + 1]);
 	}
 
 	public final static class BPActionBuilder

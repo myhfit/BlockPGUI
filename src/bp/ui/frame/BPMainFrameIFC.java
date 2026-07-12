@@ -37,12 +37,6 @@ public interface BPMainFrameIFC extends BPFrameHostIFC
 		return true;
 	}
 
-//	public void createEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params);
-//
-//	public void openEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params);
-//
-//	public void openResource(BPResource res, BPFormat format, BPEditorFactory fac, boolean isselected, String rconid);
-
 	public static class BPEventUIMainFrame extends BPEventUI
 	{
 		public final static String EVENTKEY_MAINFRAME = "E_UI_MAINFRAME";

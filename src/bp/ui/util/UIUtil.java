@@ -70,6 +70,7 @@ import bp.ui.scomp.BPEditorPane;
 import bp.ui.scomp.BPMenu;
 import bp.ui.scomp.BPMenuItem;
 import bp.ui.scomp.BPMenu.BPMenuDynamic;
+import bp.util.ClassUtil;
 import bp.util.LockUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
@@ -865,5 +866,29 @@ public class UIUtil
 			str = ObjUtil.joinArray(arr, "+", null, false);
 		}
 		return str;
+	}
+
+	public final static <T> Consumer<T> makeDynamicInstCB(Object inst, String m, Object... params)
+	{
+		return new DynamicInstConsumer<>(inst, m, params);
+	}
+
+	public final static class DynamicInstConsumer<T> implements Consumer<T>
+	{
+		private volatile Object inst;
+		private volatile String m;
+		private volatile Object[] params;
+
+		public DynamicInstConsumer(Object inst, String m, Object... params)
+		{
+			this.inst = inst;
+			this.m = m;
+			this.params = params;
+		}
+
+		public void accept(T t)
+		{
+			ClassUtil.tryCallSimpleMethod(inst.getClass(), m, inst, params);
+		}
 	}
 }

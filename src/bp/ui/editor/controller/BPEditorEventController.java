@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditor.BPEditorEvent;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoConsumer;
 
 public interface BPEditorEventController
 {
@@ -15,18 +15,18 @@ public interface BPEditorEventController
 	public static class BPEditorEventControllerBase implements BPEditorEventController
 	{
 		protected BPEditor<?> m_editor;
-		protected WeakRefGo<Consumer<BPEditorEvent>> m_handlerref;
+		protected WeakRefGoConsumer<BPEditorEvent> m_handlerref;
 
 		public BPEditorEventControllerBase(BPEditor<?> editor)
 		{
 			m_editor = editor;
-			m_handlerref = new WeakRefGo<>();
+			m_handlerref = new WeakRefGoConsumer<>();
 		}
 
 		public void dispatchEvent(String action, Object data, Object... params)
 		{
 			final BPEditorEvent e = new BPEditorEvent(action, m_editor, data, params);
-			m_handlerref.run(seg -> seg.accept(e));
+			m_handlerref.accept(e);
 		}
 
 		public void installHandler(Consumer<BPEditorEvent> handler)

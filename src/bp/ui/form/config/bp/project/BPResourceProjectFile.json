@@ -1,0 +1,9 @@
+{
+	"controller":"project.BPFormControllerProjectFile",
+	"items":
+	[
+		{"itemtype":"textfield","key":"name","label":"NAME","lbltr":"c,c_c","readonly_edit":true,"required":true,"params":{"needstname":true}},
+		{"itemtype":"textfield_more","key":"path","label":"PATH","lbltr":"c,c_c","readonly_edit":true,"required":true},
+		{"itemtype":"checkbox","key":"nocache","label":"NoCache","lbltr":"d,bp.locale.BPLocaleConstProjectDict"}
+	]
+}

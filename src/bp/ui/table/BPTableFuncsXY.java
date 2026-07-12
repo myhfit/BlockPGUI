@@ -24,11 +24,11 @@ import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
+import bp.typeext.KV;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.scomp.BPKVTable.KV;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.util.UIStd;
@@ -212,11 +212,10 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 							BPAction actpdp = BPAction.build(pdp[0]).callback(e ->
 							{
 								BPResource res = BPCore.getFileContext().getRes(dpsrc);
-								BPJSONContainerBase<BPDataPipes> con = new BPJSONContainerBase<BPDataPipes>();
-								con.bind(res);
-								BPDataPipes dp = con.readMData(false);
-								try
+								try (BPJSONContainerBase<BPDataPipes> con = new BPJSONContainerBase<BPDataPipes>())
 								{
+									con.bind(res);
+									BPDataPipes dp = con.readMData(false);
 									dp.run(o);
 								}
 								catch (Exception e2)
@@ -276,7 +275,7 @@ public class BPTableFuncsXY extends BPTableFuncsBase<BPXData>
 
 	protected void delete(BPTable<BPXData> table, List<BPXData> datas, int[] rows)
 	{
-		if(rows.length==0)
+		if (rows.length == 0)
 			return;
 		BPTableModel<BPXData> model = table.getBPTableModel();
 		model.delete(rows);

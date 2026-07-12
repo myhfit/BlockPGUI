@@ -11,16 +11,14 @@ public class BPTreeDataEditorActions implements BPActionHolder
 	public Action acteditkv;
 	public Action acteditxy;
 	public Action actgrabkeys;
-	protected BPTreeDataEditor<?> m_editor;
 
 	public BPTreeDataEditorActions(BPTreeDataEditor<?> editor)
 	{
-		m_editor = editor;
-		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, e -> m_editor.delete());
-		actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, m_editor::showClone);
-		acteditkv = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_KV, m_editor::showEditKV);
-		acteditxy = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_XY, m_editor::showEditXY);
-		actgrabkeys = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_GRABKEYS, m_editor::grabKeys);
+		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, e -> editor.delete());
+		actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, editor::showClone);
+		acteditkv = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_KV, editor::showEditKV);
+		acteditxy = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_XY, editor::showEditXY);
+		actgrabkeys = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_GRABKEYS, editor::grabKeys);
 	}
 
 	public Action[] getActions()

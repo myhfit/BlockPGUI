@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoBiConsumer;
 
 public class BPRouteBar extends JPanel
 {
@@ -23,12 +23,12 @@ public class BPRouteBar extends JPanel
 	protected List<BPLabel> m_items = new ArrayList<BPLabel>();
 	protected List<BPLabel> m_sps = new ArrayList<BPLabel>();
 
-	protected WeakRefGo<BiConsumer<String, Boolean>> m_switchcbref;
+	protected WeakRefGoBiConsumer<String, Boolean> m_switchcbref;
 
 	public BPRouteBar()
 	{
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-		m_switchcbref = new WeakRefGo<BiConsumer<String, Boolean>>();
+		m_switchcbref = new WeakRefGoBiConsumer<String, Boolean>();
 	}
 
 	public void setSwitchCallback(BiConsumer<String, Boolean> switchcb)
@@ -73,8 +73,6 @@ public class BPRouteBar extends JPanel
 		BPLabel l = (BPLabel) e.getSource();
 		int i = m_items.indexOf(l);
 		if (i > -1)
-		{
-			m_switchcbref.run(t -> t.accept(m_ids.get(i), false));
-		}
+			m_switchcbref.accept(m_ids.get(i), false);
 	}
 }

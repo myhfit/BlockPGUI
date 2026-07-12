@@ -144,6 +144,12 @@ public class BPPopupComboList extends JPopupMenu
 				m_controllerref.run(c -> c.blockpopup = false);
 			}
 		}
+		else
+		{
+			Consumer completefunc = m_controllerref.exec(c -> c.completefunc);
+			if (completefunc != null)
+				completefunc.accept(tar);
+		}
 	}
 
 	protected String transData(Object v)
@@ -253,6 +259,7 @@ public class BPPopupComboList extends JPopupMenu
 		public Function<String, List<?>> listfunc;
 		public Function<Object, String> transfunc;
 		public Consumer<?> submitfunc;
+		public Consumer<?> completefunc;
 		public boolean blockpopup;
 
 		public BPPopupComboController()

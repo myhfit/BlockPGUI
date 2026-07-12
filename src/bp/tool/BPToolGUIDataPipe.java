@@ -28,6 +28,7 @@ import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
+import bp.typeext.Nameable;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
@@ -91,9 +92,9 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			Action actconfig = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCONFIG, this::onConfigConsumer);
 			Action actup = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp);
 			Action actdown = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown);
-			Action actdelitem = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDelItem);
+			Action actdelitem = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDelItem);
 
-			toolbar.setActions(new Action[] { actaddtf, actaddep, BPAction.separator(), actdelitem, BPAction.separator(), actup, actdown, BPAction.separator(), actconfig, actrun });
+			toolbar.setActions(new Action[] { actaddtf, actaddep, BPAction.separator(), actdelitem, BPAction.separator(), actup, actdown, BPAction.separator(), actconfig, actrun }, sp);
 
 			m_lstpipes.setCellRenderer(new BPList.BPListRenderer(c -> ((BPDataConsumer<?>) c).getInfo()));
 			m_scrollsrc.setViewportView(m_txtsrc);
@@ -261,7 +262,6 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			m_lstpipes.updateUI();
 		}
 
-		@SuppressWarnings({ "unchecked", "rawtypes" })
 		protected void onRunPipe(ActionEvent e)
 		{
 			Object source = getSourceObject();
@@ -304,7 +304,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 				}
 				try
 				{
-					p0.runSegment(() -> ((BPDataConsumer) p0).accept(source));
+					p0.runSegmentWithData(source);
 				}
 				catch (Exception e2)
 				{
@@ -316,7 +316,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 		protected void onAddTransformer(ActionEvent e)
 		{
 			List<BPTransformerFactory> facs = BPTransformerManager.getTransformerFacs(null);
-			BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), obj -> ((BPTransformerFactory) obj).getName());
+			BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), Nameable.nameTranslator(BPTransformer.class, "FAC_"));
 			if (fac != null)
 			{
 				List<String> fts = new ArrayList<String>(fac.getFunctionTypes());
@@ -342,7 +342,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			List<BPDataEndpointFactory> facs = new ArrayList<BPDataEndpointFactory>();
 			for (BPDataEndpointFactory fac : loader)
 				facs.add(fac);
-			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), obj -> ((BPDataEndpointFactory) obj).getName());
+			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), Nameable.nameTranslator(BPTransformer.class, "FAC_"));
 			if (fac != null)
 			{
 				List<String> fts = fac.getSupportedFormats();

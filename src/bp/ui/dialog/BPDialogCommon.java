@@ -9,7 +9,9 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.LayoutManager;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.function.Consumer;
 
 import javax.swing.Action;
 import javax.swing.Box;
@@ -168,6 +170,11 @@ public abstract class BPDialogCommon extends BPDialog
 			m_actionresult = command;
 			close();
 		}
+	}
+	
+	public Consumer<ActionEvent> makeCallCommonActionCB(int command)
+	{
+		return (e) -> callCommonAction(command);
 	}
 
 	public void addHiddenEscape()

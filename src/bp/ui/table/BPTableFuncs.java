@@ -14,6 +14,11 @@ public interface BPTableFuncs<T>
 
 	String getColumnLabel(int col);
 
+	default int getColumnWidth(int col)
+	{
+		return 0;
+	}
+
 	Class<?>[] getColumnClasses();
 
 	Class<?> getColumnClass(int col);

@@ -31,6 +31,7 @@ public class BPSplitPane extends JSplitPane implements ComponentListener
 	protected int m_lastdsize = 0;
 	protected int m_reservedsize = 0;
 	protected WeakReference<ResizeFunction> m_resizefunc = null;
+	protected Double m_dratio;
 
 	public BPSplitPane(int newOrientation)
 	{
@@ -82,6 +83,27 @@ public class BPSplitPane extends JSplitPane implements ComponentListener
 	{
 		m_reservedsize = v;
 	}
+	
+	public void setDividerRatio(double d)
+	{
+		setDividerLocation(d);
+		m_dratio = d;
+	}
+
+	public void toggleRatioLevel3(float r1, float r2, float d1, float d2, float d3)
+	{
+		int h = getDividerLocation();
+		int mh = getHeight();
+		float r = (float) h / (float) mh;
+		float nr;
+		if (r <= r1)
+			nr = d1;
+		else if (r < r2)
+			nr = d2;
+		else
+			nr = d3;
+		setDividerRatio(nr);
+	}
 
 	public int getToggleState()
 	{
@@ -131,6 +153,11 @@ public class BPSplitPane extends JSplitPane implements ComponentListener
 		}
 	}
 
+	public boolean isFold()
+	{
+		return m_mode == 0;
+	}
+
 	public static interface ResizeFunction
 	{
 		int resize(BPSplitPane parent, int resizemode, Component left, Component right);
@@ -159,12 +186,15 @@ public class BPSplitPane extends JSplitPane implements ComponentListener
 				}
 			}
 		}
-		if (m_mode == 2)
+		if (m_dratio != null)
+			setDividerLocation(m_dratio);
+		else
 		{
-			setDividerLocation(getHeight() - getDividerSize() - m_reservedsize);
-			validate();
-			invalidate();
+			if (m_mode == 2)
+				setDividerLocation(getHeight() - getDividerSize() - m_reservedsize);
 		}
+		validate();
+		invalidate();
 	}
 
 	public void componentMoved(ComponentEvent e)

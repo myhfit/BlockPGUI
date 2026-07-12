@@ -1,0 +1,4 @@
+{
+	"parent":"bp.res.BPResourceVirtual",
+	"items":[{"modtype":"update","key":"name","readonly":false,"readonly_edit":true]}
+}

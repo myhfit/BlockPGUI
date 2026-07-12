@@ -17,4 +17,11 @@ public interface BPForm<C extends Component> extends BPComponent<C>
 	}
 
 	void showData(Map<String, ?> data, boolean editable);
+
+	default void initByKey(String leafclassname, String rootclassname)
+	{
+
+	}
+	
+	void laterInit();
 }

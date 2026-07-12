@@ -4,6 +4,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
 import bp.data.BPDiagram.BPDiagramElement;
+import bp.ui.scomp.BPDiagramComponent;
 
 public class BPDiagramControllerNavigation extends BPDiagramControllerBase
 {
@@ -37,7 +38,7 @@ public class BPDiagramControllerNavigation extends BPDiagramControllerBase
 				BPDiagramElement ele = comp.getElementFromPos(x, y);
 				if (ele != null)
 				{
-					if(!ele.isSelected())
+					if (!ele.isSelected())
 						comp.selectElement(ele, isctrl, btn);
 					comp.showContextMenu(ele, x, y);
 				}
@@ -62,6 +63,6 @@ public class BPDiagramControllerNavigation extends BPDiagramControllerBase
 
 	public void clearState()
 	{
-		m_compref.run(comp -> comp.stopDrag());
+		m_compref.run(BPDiagramComponent::stopDrag);
 	}
 }

@@ -2,8 +2,10 @@ package bp.ui.actions;
 
 import javax.swing.Action;
 
+import bp.res.BPResource;
 import bp.ui.frame.BPMainFrame;
 import bp.ui.util.CommonUIOperations;
+import bp.ui.util.UIUtil;
 
 public class BPMainFrameActions
 {
@@ -29,6 +31,8 @@ public class BPMainFrameActions
 	public Action viewtoggleleftpan;
 	public Action viewtogglebottompan;
 	public Action viewtogglerightpan;
+	public Action vieweditortoggleleftpan;
+	public Action vieweditortogglebottompan;
 	public Action viewfullscreen;
 
 	public Action scswitchnexttab;
@@ -50,34 +54,36 @@ public class BPMainFrameActions
 
 	public BPMainFrameActions(BPMainFrame mf)
 	{
-		m_mf = mf;
-		filenewfile = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEWFILE, e -> m_mf.showNewFile(null));
-		filenewproject = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEWPROJECT, e -> m_mf.showNewProject());
-		fileneweditor = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEWEDITOR, e -> m_mf.showNewEditor());
-		fileopen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEOPEN, e -> m_mf.showOpenFile(true));
-		fileopenas = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEOPENAS, e -> m_mf.showOpenFile(false));
-		fileopenfolder = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEOPENFOLDER, e -> m_mf.showOpenWorkspace());
-		filesave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, e -> m_mf.save());
-		filesaveas = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVEAS, e -> m_mf.saveAs());
-		filecfgs = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECFGS, e -> m_mf.showConfigs());
-		filereloadcontext = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILERELOADCONTEXT, e -> m_mf.reloadContext());
-		fileprop = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEPROP, e -> m_mf.showProperty(m_mf.getSelectedResource()));
-		fileexit = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEEXIT, e -> m_mf.exit());
+		filenewfile = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEWFILE, UIUtil.makeDynamicInstCB(mf, "showNewFile", (BPResource) null));
+		filenewproject = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEWPROJECT, UIUtil.makeDynamicInstCB(mf, "showNewProject"));
+		fileneweditor = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILENEWEDITOR, UIUtil.makeDynamicInstCB(mf, "showNewEditor"));
+		fileopen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEOPEN, UIUtil.makeDynamicInstCB(mf, "showOpenFile", true));
+		fileopenas = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEOPENAS, UIUtil.makeDynamicInstCB(mf, "showOpenFile", false));
+		fileopenfolder = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEOPENFOLDER, UIUtil.makeDynamicInstCB(mf, "showOpenWorkspace"));
+		filesave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, UIUtil.makeDynamicInstCB(mf, "save"));
+		filesaveas = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVEAS, UIUtil.makeDynamicInstCB(mf, "saveAs"));
+		filecfgs = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECFGS, UIUtil.makeDynamicInstCB(mf, "showConfigs"));
+		filereloadcontext = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILERELOADCONTEXT, UIUtil.makeDynamicInstCB(mf, "reloadContext"));
+		fileprop = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEPROP, UIUtil.makeDynamicInstCB(mf, "showSelectedResourceProperty"));
+		fileexit = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILEEXIT, UIUtil.makeDynamicInstCB(mf, "exit"));
 
-		viewtoggleleftpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN, e -> m_mf.toggleLeftPanel());
-		viewtogglebottompan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN, e -> m_mf.toggleBottomPanel());
-		viewtogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, e -> m_mf.toggleRightPanel());
-		viewfullscreen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWFULLSCREEN, e -> m_mf.fullScreen());
+		viewtoggleleftpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN, UIUtil.makeDynamicInstCB(mf, "toggleLeftPanel"));
+		viewtogglebottompan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN, UIUtil.makeDynamicInstCB(mf, "toggleBottomPanel"));
+		viewtogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, UIUtil.makeDynamicInstCB(mf, "toggleRightPanel"));
+		viewfullscreen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWFULLSCREEN, UIUtil.makeDynamicInstCB(mf, "fullScreen"));
 
-		scswitchnexttab = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCSWITCHNEXTTAB, e -> m_mf.switchTab(1));
-		scswitchlasttab = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCSWITCHLASTTAB, e -> m_mf.switchTab(-1));
-		scclosecurrenttab = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCCLOSECURRENTTAB, e -> m_mf.closeCurrentTab());
+		vieweditortoggleleftpan = BPActionHelpers.getActionWithAlias(BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN, BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN_INNER, UIUtil.makeDynamicInstCB(mf, "toggleEditorLeftPanel"));
+		vieweditortogglebottompan = BPActionHelpers.getActionWithAlias(BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN, BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN_INNER, UIUtil.makeDynamicInstCB(mf, "toggleEditorBottomPanel"));
 
-		navresource = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVRESOURCE, e -> m_mf.showLocateResource());
-		navprjitem = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVPRJITEM, e -> m_mf.showLocateProjectItem());
-		naveditor = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVEDITOR, e -> m_mf.showSwitchEditor());
-		navoverview = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVOVERVIEW, e -> m_mf.showOverview());
-		navcmd = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVCMD, e -> m_mf.showCommandPane());
+		scswitchnexttab = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCSWITCHNEXTTAB, UIUtil.makeDynamicInstCB(mf, "switchTab", 1));
+		scswitchlasttab = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCSWITCHLASTTAB, UIUtil.makeDynamicInstCB(mf, "switchTab", -1));
+		scclosecurrenttab = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCCLOSECURRENTTAB, UIUtil.makeDynamicInstCB(mf, "closeCurrentTab"));
+
+		navresource = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVRESOURCE, UIUtil.makeDynamicInstCB(mf, "showLocateResource"));
+		navprjitem = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVPRJITEM, UIUtil.makeDynamicInstCB(mf, "showLocateProjectItem"));
+		naveditor = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVEDITOR, UIUtil.makeDynamicInstCB(mf, "showSwitchEditor"));
+		navoverview = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVOVERVIEW, UIUtil.makeDynamicInstCB(mf, "showOverview"));
+		navcmd = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAVCMD, UIUtil.makeDynamicInstCB(mf, "showCommandPane"));
 
 		helpsysinfo = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUHELPSYSINFO, e -> CommonUIOperations.showSystemInfo());
 		helpabout = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUHELPABOUT, e -> CommonUIOperations.showAbout());

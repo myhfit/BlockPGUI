@@ -69,7 +69,7 @@ public class BPTabBottom extends BPTabbedContainerBase
 
 	protected void onToggle(ActionEvent e)
 	{
-		BPGUICore.runOnMainFrame(mf -> mf.toggleBottomPanel());
+		BPGUICore.runOnMainFrameDynamic("toggleBottomPanel");
 	}
 
 	public void setInfoComp(Component comp)

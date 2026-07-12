@@ -157,11 +157,14 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		m_table.createDefaultColumnsFromModel();
 		tcm.getColumn(3).setCellRenderer(new BPTable.BPTableRendererFileSize());
 		tcm.getColumn(4).setCellRenderer(new BPTable.BPTableRendererDateTime());
+		tcm.setColumnHide("Path", !m_listsub);
 		tcm.saveCache();
 		if (!m_listsub)
 		{
 			tcm.removeColumn(tcm.getColumn(0));
 		}
+		m_table.setAutoResizeMode(BPTable.AUTO_RESIZE_NEXT_COLUMN);
+		tcm.applyDefaultColumnWidth(m_table.getBPTableModel().getTableFuncs());
 	}
 
 	protected void initBPEvents()
@@ -192,16 +195,16 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 	{
 		m_listsub = !m_listsub;
 		BPTableModel<?> m = m_table.getBPTableModel();
+		BPTableColumnModel cm = m_table.getBPColumnModel();
+		cm.setColumnHide("Path", !m_listsub);
 		List<String> cols = new ArrayList<String>();
 		for (int i = 0; i < m.getColumnCount(); i++)
 		{
 			String colname = m.getColumnRawName(i);
-			if (m_listsub || (!"Path".equals(colname)))
-			{
-				cols.add(colname);
-			}
+			cols.add(colname);
 		}
 		m_table.initColumnsFromModel(cols);
+		cm.applyDefaultColumnWidth(m.getTableFuncs());
 		refresh();
 	}
 

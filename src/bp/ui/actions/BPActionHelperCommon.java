@@ -74,6 +74,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_NEWPRJ, "Create Project", null, null, null, null);
 		putAction(actmap, TXT_SHOW, "Show", null, null, null, null);
 		putAction(actmap, TXT_LOADING, "Loading", null, null, null, null);
+		putAction(actmap, TXT_GOTOLINE, "Goto line", null, null, null, null);
 		
 		putAction(actmap, TXT_ACT_SELMORE, "Select...", null, null, null, "S");
 		
@@ -99,6 +100,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, MF_MNUVIEW, "View", null, null, null, "V");
 		putAction(actmap, MF_MNUTOOL, "Tool", null, null, null, "T");
 		putAction(actmap, MF_MNUMAINUI, "Main Frame", null, null, null, "M");
+		putAction(actmap, MF_MNUCUREDITOR, "Current Editor", null, null, null, "E");
 		putAction(actmap, MF_MNULOCALE, "Locale", null, null, null, "L");
 		putAction(actmap, MF_MNUNAV, "Navigate", null, null, null, "N");
 		putAction(actmap, MF_MNUSHORTCUTS, "Shortcut", null, null, null, "S");
@@ -120,7 +122,9 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, MF_MNUFILECLOSE, "Close", null, null, null, "X");
 
 		putAction(actmap, MF_MNUVIEWTOGGLELEFTPAN, "Toggle Left Panel", null, null, "alt Q", null);
+		putAction(actmap, MF_MNUVIEWTOGGLELEFTPAN_INNER, null, null, null, "alt shift Q", null);
 		putAction(actmap, MF_MNUVIEWTOGGLEBOTTOMPAN, "Toggle Bottom Panel", null, null, "alt W", null);
+		putAction(actmap, MF_MNUVIEWTOGGLEBOTTOMPAN_INNER, null, null, null, "alt shift W", null);
 		putAction(actmap, MF_MNUVIEWTOGGLERIGHTPAN, "Toggle Right Panel", null, null, "alt R", null);
 		putAction(actmap, MF_MNUVIEWFULLSCREEN, "FullScreen", null, null, "F11", null);
 
@@ -196,6 +200,8 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNCLOSETAB_ACC, null, null, null, "ctrl W", null);
 		putAction(actmap, ACT_BTNGOTO, "goto", "Goto", BPIconResV::TORIGHT, null, null);
 		putAction(actmap, ACT_BTNGOTO_ACC, null, null, null, "F6", null);
+		putAction(actmap, ACT_BTNSPLIT, "split", "Split", BPIconResV::DISCONNECT, null, null);
+		putAction(actmap, ACT_BTNAPPEND, "append", "Append", BPIconResV::OPEN, null, null);
 		putAction(actmap, ACT_BTNESCAPE, "Escape", "Escape", BPIconResV::TORIGHT, null, null);
 		putAction(actmap, ACT_BTNUNESCAPE, "Unescape", "Unescape", BPIconResV::TOLEFT, null, null);
 		putAction(actmap, ACT_BTNSET, "Set", "Set", BPIconResV::START, null, null);
@@ -203,6 +209,12 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNCHAINFILTER, "chain filter", "Chain filter", BPIconResV::CLONE, null, null);
 		putAction(actmap, ACT_BTNTOGGLESYNC_STATUS, "syncstatus", "Toggle Sync Status", BPIconResV::REFRESH, "alt shift S", null);
 		putAction(actmap, ACT_BTNTOGGLESYNC_ACTION, "syncaction", "Toggle Sync Action", BPIconResV::REFRESH, "alt shift A", null);
+		
+		// comp operations
+		putAction(actmap, CMPOP_FIND, "Find", "Find", null, "ctrl F", null);
+		putAction(actmap, CMPOP_REPLACE, "Replace", "Replace", null, "ctrl H", null);
+		putAction(actmap, CMPOP_FILTER, "Filter", "Filter", null, "ctrl shift F", null);
+		putAction(actmap, CMPOP_GOTO, "Goto...", "Goto", null, "ctrl G", null);
 
 		// rmenu
 		putAction(actmap, CTX_MNUCOPY, "Copy", null, null, null, "C");
@@ -212,6 +224,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, CTX_MNUPASTE, "Paste", null, null, null, "P");
 		putAction(actmap, CTX_MNUPASTE_ACC, null, null, null, "ctrl V", null);
 		putAction(actmap, CTX_MNUCLEAR, "Clear", null, null, null, null);
+		putAction(actmap, CTX_MNUGOTO, "Goto...", null, null, null, "G");
 
 		putAction(actmap, CTX_MNUADD, "Add", null, null, null, "A");
 		putAction(actmap, CTX_MNUNEW, "New", null, null, null, "N");
@@ -241,7 +254,9 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 
 		putAction(actmap, CTX_MNUENABLE, "Enable", null, null, null, null);
 		putAction(actmap, CTX_MNUDISABLE, "Disable", null, null, null, null);
-		putAction(actmap, CTX_MNUCLONERAW, "Clone Raw Data", null, null, null, null);
+		putAction(actmap, CTX_MNUFINDREPLACE, "Find/Replace", null, null, null, "F");
+		putAction(actmap, CTX_MNUCLONERAW, "Clone Raw Data", null, null, null, "C");
+		putAction(actmap, CTX_MNUTOGGLELINENUM, "Toggle Line Number", null, null, null, null);
 		putAction(actmap, CTX_MNUCLONESEEN, "Clone Seen Data", null, null, null, null);
 		putAction(actmap, CTX_MNUTABLECFILTER, "Common Filter", null, null, null, null);
 		
@@ -249,6 +264,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, CTX_MNUTABCLOSEALL, "Close All", null, null, null, null);
 		putAction(actmap, CTX_MNUTABCLOSEOTHERS, "Close Others", null, null, null, null);
 		putAction(actmap, CTX_MNUTABSPLITNEWWIN, "Split(New Window)", null, null, null, null);
+		putAction(actmap, CTX_MNUTABREOPEN, "ReOpen...", null, null, null, null);
 
 		// PTree
 		putAction(actmap, PTREE_REFRESH, "Refresh", "Refresh", BPIconResV::REFRESH, null, null);

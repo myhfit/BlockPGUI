@@ -689,12 +689,14 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 		{
 			BPEditor<?> editor = m_editor;
 			String[] exts = null;
-			String rext = LogicUtil.CHAIN_NN(editor, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource(), r -> ((BPResource) r).getExt());
+			if (editor == null || (!(editor instanceof BPViewer)))
+				return;
+			BPResource oldres = ((BPViewer<?>) editor).tryGetResource();
+			String rext = oldres != null ? oldres.getExt() : null;
 			if (rext != null)
 				exts = new String[] { rext };
 			else
 				exts = editor.getExts();
-			BPResource oldres = LogicUtil.CHAIN_NN(editor, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource());
 			Consumer<BPDialogSelectResource> cb = null;
 			if (oldres != null && oldres.isFileSystem())
 				cb = dlg -> dlg.switchPathTreeFunc(3).setPreSelectedResource((BPResourceFileSystem) oldres);
@@ -856,7 +858,8 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 				if (editor instanceof BPViewer)
 				{
 					BPViewer<?> v = (BPViewer<?>) editor;
-					String resname = LogicUtil.CHAIN_NN(v, v2 -> ((BPViewer<?>) v2).getDataContainer(), dc -> ((BPDataContainer) dc).getResource(), res -> ((BPResource) res).getName());
+					BPResource res = v.tryGetResource();
+					String resname = res != null ? res.getName() : null;
 					if (resname == null)
 						rc = LogicUtil.NVL(editor.getEditorName(), "untitled");
 					else

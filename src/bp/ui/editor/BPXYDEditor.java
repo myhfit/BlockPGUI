@@ -23,7 +23,6 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableColumnModel;
-import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import bp.compare.BPDataComparator;
@@ -123,6 +122,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_table.setMonoFont();
 		m_table.setCommonRenderAlign();
 		m_table.getSelectionModel().addListSelectionListener(this::onSelectionChanged);
+		m_table.installRowHeader(m_scroll);
 
 		setLayout(new BorderLayout());
 		toppnl.setLayout(new BorderLayout());
@@ -364,16 +364,10 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_funcs = new BPTableFuncsXY(data);
 		m_funcs.setStructureEditable(true);
 		m_model = new BPTableModel<BPXData>(m_funcs);
-		m_model.setShowLineNum(true);
 		m_model.setDatas(data.getDatas());
 		m_table.setModel(m_model);
 		m_table.initRowSorter();
-
-		TableColumnModel tcm = m_table.getColumnModel();
-		for (int i = 0; i < tcm.getColumnCount(); i++)
-		{
-			tcm.getColumn(i).setPreferredWidth(i == 0 ? 60 : 180);
-		}
+		m_table.setColumnWidthBatch(UIUtil.scale(180), UIUtil.scale(60));
 
 		postInitTable();
 	}

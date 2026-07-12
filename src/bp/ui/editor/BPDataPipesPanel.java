@@ -115,7 +115,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_actaddep = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_ADDEP, this::onCreateEndpoint);
 		m_actaddlink = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADDLINK, this::onCreateLink);
 		m_actconfig = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCONFIG, this::onConfigConsumer);
-		m_actdel = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDelItem);
+		m_actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDelItem);
 		m_actlayout = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNLAYOUT, this::doLayout);
 
 		m_scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -125,7 +125,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_sp.setBorder(new EmptyBorder(0, 0, 0, 0));
 		m_sp.setWeakDividerBorder();
 
-		m_toolbar.setActions(new Action[] { BPAction.separator(), m_actaddtf, m_actaddep, m_actaddlink, m_actdel, BPAction.separator(), m_actconfig, m_actrun, m_actlayout });
+		m_toolbar.setActions(new Action[] { BPAction.separator(), m_actaddtf, m_actaddep, m_actaddlink, m_actdel, BPAction.separator(), m_actconfig, m_actrun, m_actlayout }, this);
 		m_toolbar.setBorderVertical(0);
 
 		setLayout(new BorderLayout());

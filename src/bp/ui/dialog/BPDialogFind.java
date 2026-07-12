@@ -26,7 +26,7 @@ import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPComboBox;
 import bp.ui.scomp.BPLabel;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoFunction;
 
 public class BPDialogFind extends BPDialogCommon
 {
@@ -42,7 +42,7 @@ public class BPDialogFind extends BPDialogCommon
 	protected BPCheckBox m_chkcase;
 	protected BPCheckBox m_chkbackward;
 	protected BPLabel m_lbldest;
-	protected WeakRefGo<Function<? super BPFindPs, Boolean>> m_findcb;
+	protected WeakRefGoFunction<? super BPFindPs, Boolean> m_findcb;
 
 	protected BPAction m_actreplace;
 	protected BPAction m_actreplaceall;
@@ -50,13 +50,13 @@ public class BPDialogFind extends BPDialogCommon
 	public BPDialogFind(Window par)
 	{
 		super(par);
-		m_findcb = new WeakRefGo<Function<? super BPFindPs, Boolean>>();
+		m_findcb = new WeakRefGoFunction<>();
 	}
 
 	public BPDialogFind(Component comp)
 	{
 		this(SwingUtilities.getWindowAncestor(comp));
-		m_findcb = new WeakRefGo<Function<? super BPFindPs, Boolean>>();
+		m_findcb = new WeakRefGoFunction<>();
 	}
 
 	protected void initUIComponents()
@@ -139,9 +139,10 @@ public class BPDialogFind extends BPDialogCommon
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setFindCallBack(Function<? super BPFindPs, Boolean> cb)
 	{
-		m_findcb.setTarget(cb);
+		((WeakRefGoFunction)m_findcb).setTarget(cb);
 	}
 	
 	public void setReplaceable(boolean flag)
@@ -157,7 +158,7 @@ public class BPDialogFind extends BPDialogCommon
 		String src = m_txtsrc.getText();
 		if (src.length() == 0)
 			return;
-		m_findcb.exec(cb -> cb.apply(getFindPs()));
+		m_findcb.apply(getFindPs());
 	}
 
 	protected BPFindPs getFindPs()
@@ -195,7 +196,7 @@ public class BPDialogFind extends BPDialogCommon
 			return;
 		BPReplacePs r = getReplacePs();
 		r.isreplaceall = false;
-		m_findcb.exec(cb -> cb.apply(r));
+		m_findcb.apply(r);
 	}
 
 	protected void onReplaceAll(ActionEvent e)
@@ -205,7 +206,7 @@ public class BPDialogFind extends BPDialogCommon
 			return;
 		BPReplacePs r = getReplacePs();
 		r.isreplaceall = true;
-		m_findcb.exec(cb -> cb.apply(r));
+		m_findcb.apply(r);
 	}
 
 	protected void setPrefers()

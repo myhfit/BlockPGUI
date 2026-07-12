@@ -41,7 +41,7 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 
 	public void mousePressed(MouseEvent e)
 	{
-		m_compref.run(dcomp -> dcomp.requestFocusInWindow());
+		m_compref.run(BPDiagramComponent::requestFocusInWindow);
 	}
 
 	public void initCursor()
@@ -105,7 +105,7 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 		{
 			// dragpts[2] = x;
 			// dragpts[3] = y;
-			m_compref.run(comp -> comp.stopDrag());
+			m_compref.run(BPDiagramComponent::stopDrag);
 		}
 		m_dragpts = null;
 		m_downeleref.setTarget(null);

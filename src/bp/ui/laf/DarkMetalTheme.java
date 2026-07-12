@@ -22,7 +22,7 @@ public class DarkMetalTheme extends DefaultMetalTheme
 	private final static ColorUIResource s3 = new ColorUIResource(h3, h3, h3);
 
 	public final static ColorUIResource w = new ColorUIResource(0.125f, 0.125f, 0.125f);
-	public final static ColorUIResource b = new ColorUIResource(0.95f, 0.95f, 0.95f);
+	public final static ColorUIResource b = new ColorUIResource(0.9f, 0.9f, 0.9f);
 
 	public void addCustomEntriesToTable(UIDefaults table)
 	{

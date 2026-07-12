@@ -123,64 +123,6 @@ public class BPPathTreeSpecialFuncs implements BPPathTreeFuncs
 	public List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)
 	{
 		List<Action> rc = new ArrayList<Action>();
-		// if (node != null)
-		// {
-		// BPResource res = (BPResource) node.getUserObject();
-		// if (res.isFileSystem())
-		// {
-		// BPResourceFileSystem resfs = (BPResourceFileSystem) res;
-		// if (resfs.isDirectory())
-		// {
-		// rc.add(m_actptree.getNewFileAction(tree, res, m_channelid));
-		// rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
-		// rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
-		// rc.add(BPAction.separator());
-		// rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
-		// rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
-		// rc.add(BPAction.separator());
-		// rc.add(m_actptree.getRefreshResAction(tree, res, m_channelid));
-		// rc.add(BPAction.separator());
-		// rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
-		// }
-		// else if (resfs.isFile())
-		// {
-		// rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
-		// rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
-		// rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
-		// rc.add(BPAction.separator());
-		// rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
-		// rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
-		// rc.add(BPAction.separator());
-		// rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
-		// }
-		// }
-		// }
 		return rc;
 	}
-
-	// public void onSelect(BPTree tree, BPTreeNode node)
-	// {
-	// if (node != null)
-	// {
-	// BPResource res = (BPResource) node.getUserObject();
-	// if (res != null)
-	// {
-	// BPGUICore.EVENTS_UI.trigger(m_channelid, new
-	// BPEventUIPathTree(BPEventUIPathTree.NODE_SELECT, res));
-	// }
-	// }
-	// }
-	//
-	// public void onOpen(BPTree tree, BPTreeNode node)
-	// {
-	// if (node != null)
-	// {
-	// BPResource res = (BPResource) node.getUserObject();
-	// if (res != null)
-	// {
-	// BPGUICore.EVENTS_UI.trigger(m_channelid, new
-	// BPEventUIPathTree(BPEventUIPathTree.NODE_OPEN, res));
-	// }
-	// }
-	// }
 }

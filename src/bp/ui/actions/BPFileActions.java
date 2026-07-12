@@ -1,9 +1,11 @@
 package bp.ui.actions;
 
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javax.swing.Action;
@@ -16,6 +18,7 @@ import bp.ui.event.BPEventUIResourceOperation;
 import bp.ui.util.EventUtil;
 import bp.ui.util.SystemUIUtil;
 import bp.ui.util.UIUtil;
+import bp.util.CompareUtil;
 
 public class BPFileActions
 {
@@ -61,12 +64,11 @@ public class BPFileActions
 		BPAction rc = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXT, null);
 		List<Action> actchd = new ArrayList<Action>();
 		{
-			BPAction actopensys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTSYS,
-					e -> BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_OPENEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource()))));
-			BPAction acteditsys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTEDIT,
-					e -> BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_EDITEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource()))));
-			BPAction actprintsys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTPRINT,
-					e -> BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, ACTION_PRINTEXTERNAL_SYSTEM, null }, UIUtil.getRouteContext(e.getSource()))));
+			Consumer<ActionEvent> cb = e -> BPGUICore.EVENTS_UI.trigger(channelid, new BPEventUIResourceOperation(BPEventUIResourceOperation.RES_ACTION, new Object[] { ress, e.getActionCommand(), null }, UIUtil.getRouteContext(e.getSource())));
+			BPAction actopensys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTSYS, cb);
+			BPAction acteditsys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTEDIT, cb);
+			BPAction actprintsys = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUOPENEXTPRINT, cb);
+			BPAction.batchSetCommand(actopensys, ACTION_OPENEXTERNAL_SYSTEM, acteditsys, ACTION_EDITEXTERNAL_SYSTEM, actprintsys, ACTION_PRINTEXTERNAL_SYSTEM);
 			actchd.add(actopensys);
 			actchd.add(acteditsys);
 			actchd.add(actprintsys);
@@ -105,13 +107,10 @@ public class BPFileActions
 					}
 				}
 			}
-			tools.sort((a, b) -> a.getName().compareTo(b.getName()));
+			tools.sort(CompareUtil.COMPARATOR_NAMEABLE());
 			List<Action> r2 = new ArrayList<Action>();
 			for (BPToolGUI tool : tools)
-			{
-				BPAction act = BPAction.build(tool.getName()).callback((e) -> tool.showTool(new Object[] { ress })).getAction();
-				r2.add(act);
-			}
+				r2.add(BPAction.build(tool.getName()).callback((e) -> tool.showTool(new Object[] { ress })).getAction());
 			return r2.toArray(new Action[r2.size()]);
 		};
 		rc.putValue(BPAction.SUB_ACTIONS_FUNC, submenucb);

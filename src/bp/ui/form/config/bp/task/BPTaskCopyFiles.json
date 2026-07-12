@@ -1,0 +1,10 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskCopyFiles",
+	"items":
+	[
+		{"itemtype":"textfield_more","key":"source","label":"SOURCE","lbltr":"c,c_c","required":true,"params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"target","label":"TARGET","lbltr":"c,c_c","required":true,"params":{"canempty":true}},
+		{"itemtype":"checkbox","key":"createdir","label":"Create Dir","lbltr":"dc,bp.ui.form.BPFormPanelTask"}
+	]
+}

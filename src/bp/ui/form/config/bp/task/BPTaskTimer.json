@@ -1,0 +1,8 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"items":
+	[
+		{"itemtype":"textfield","key":"duration","label":"Duration","lbltr":"d,bp.locale.BPLocaleConstCoreDict","required":true,"params":{"checkers":[{"ctype":"isint"}],"formatters":["TO_STR"],"formatterslbl":[{"name":"FMT","options":"%s(ms)"}]}},
+		{"itemtype":"textfield","key":"interval","label":"Interval","lbltr":"d,bp.locale.BPLocaleConstCoreDict","params":{"checkers":[{"ctype":"islong"}],"formatters":["TO_STR"],"formatterslbl":[{"name":"FMT","options":"%s(ms)"}]}}
+	]
+}

@@ -115,6 +115,7 @@ import bp.ui.util.EditorUtil;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.ui.view.BPProjectsOverviewPanel;
+import bp.util.CompareUtil;
 import bp.util.FileUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
@@ -192,6 +193,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		JMenu mnuview = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEW, null));
 		JMenu mnutool = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUTOOL, null));
 		JMenu mnumainui = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUMAINUI, null));
+		JMenu mnucureditor = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUCUREDITOR, null));
 		JMenu mnulocale = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNULOCALE, null));
 		JMenu mnunav = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUNAV, null));
 		m_mnushortcuts = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSHORTCUTS, null));
@@ -253,10 +255,13 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		UIUtil.rebuildMenu(m_mnuedit, null, true);
 
 		mnuview.add(mnumainui);
+		mnuview.add(mnucureditor);
 		mnuview.add(m_actmain.viewfullscreen);
 		mnumainui.add(m_actmain.viewtoggleleftpan);
 		mnumainui.add(m_actmain.viewtogglebottompan);
 		mnumainui.add(m_actmain.viewtogglerightpan);
+		mnucureditor.add(m_actmain.vieweditortoggleleftpan);
+		mnucureditor.add(m_actmain.vieweditortogglebottompan);
 		mnuview.addSeparator();
 		mnuview.add(mnulocale);
 		initLocaleMenu(mnulocale);
@@ -467,15 +472,12 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 
 		Map<String, List<BPTool>> toolmap = new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
 		List<String> keys = new ArrayList<String>(toolmap.keySet());
-		keys.sort((a, b) ->
-		{
-			return a.compareToIgnoreCase(b);
-		});
+		keys.sort(CompareUtil.COMPARATOR_TXT_NOCASE());
 		for (String key : keys)
 		{
 			JMenu mnu = new BPMenu(key);
 			List<BPTool> tools = toolmap.get(key);
-			tools.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+			tools.sort(CompareUtil.COMPARATOR_NAMEABLE());
 			for (BPTool tool : tools)
 			{
 				Action act = BPAction.build(tool.getName()).callback((e) -> tool.run()).getAction();
@@ -1323,6 +1325,11 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		}
 	}
 
+	public void showSelectedResourceProperty()
+	{
+		CommonUIOperations.showProperty(getSelectedResource(), m_ptree.getTreeComponent());
+	}
+
 	public void showProperty(BPResource res)
 	{
 		CommonUIOperations.showProperty(res, m_ptree.getTreeComponent());
@@ -1537,7 +1544,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	public void showExtensionManager()
 	{
 		BPExtensionLoader[] exts = BPExtensionManager.getLoadedExtensionLoaders();
-		Arrays.sort(exts, (a, b) -> a.getName().compareTo(b.getName()));
+		Arrays.sort(exts, CompareUtil.COMPARATOR_NAMEABLE());
 		UIStd.viewList(Arrays.asList(exts), UIUtil.wrapBPTitle(BPActionConstCommon.TXT_EXTS), (loader) -> ((BPExtensionLoader) loader).getInfo());
 	}
 

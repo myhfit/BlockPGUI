@@ -1,0 +1,10 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskUserInput",
+	"items":
+	[
+		{"itemtype":"combobox","key":"vtype","label":"Value Type","lbltr":"lh,bp.ui.form.BPFormPanelTaskUserInput","required":true},
+		{"itemtype":"combobox","key":"vcast","label":"Cast","lbltr":"lh,bp.ui.form.BPFormPanelTaskUserInput"},
+		{"itemtype":"textfield","key":"vdefault","label":"Default value","lbltr":"lh,bp.ui.form.BPFormPanelTaskUserInput","params":{"canempty":true}}
+	]
+}

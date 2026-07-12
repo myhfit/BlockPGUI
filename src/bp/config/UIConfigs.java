@@ -136,7 +136,7 @@ public class UIConfigs extends BPConfigAdvBase
 			S_STARTSCREEN_W = (int) ((float) d.getWidth() * 0.9f);
 			S_STARTSCREEN_H = (int) ((float) d.getHeight() * 0.9f);
 		}
-
+		
 		mif.mifnull("MENU_FONT_NAME", null, (v) ->
 		{
 			JMenuItem mnutest = new JMenuItem();

@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.border.MatteBorder;
 
+import bp.BPCore.BPPlatform;
 import bp.client.BPClient;
 import bp.config.UIConfigs;
 import bp.ui.data.BPDataUIManager;
@@ -108,7 +109,7 @@ public class BPClientComponent extends JPanel
 		}
 		else
 		{
-			JComponent resultcomp = BPDataUIManager.getUIForData(obj);
+			JComponent resultcomp = BPDataUIManager.getUIForData(obj, BPPlatform.GUI_SWING);
 			setResultUI(resultcomp);
 		}
 	}

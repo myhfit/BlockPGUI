@@ -2,6 +2,7 @@ package bp.ui.scomp;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -9,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -23,19 +26,23 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.DefaultCellEditor;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SortOrder;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
@@ -127,8 +134,7 @@ public class BPTable<T> extends JTable
 		addMouseListener(new UIUtil.BPMouseListener(null, this::onMouse, this::onMouse, null, null));
 		addKeyListener(new UIUtil.BPKeyListenerForPopup(this::onContextMenuKey));
 		initTableHeaderContextMenu();
-		setupFindDlg();
-		setupInnerFilter();
+		setupInnerOPs();
 	}
 
 	public void initTableHeaderContextMenu()
@@ -396,12 +402,16 @@ public class BPTable<T> extends JTable
 	protected List<Action> makeTableHeaderActions(JTableHeader header)
 	{
 		List<Action> rc = new ArrayList<Action>();
-		Action actfind = BPAction.build(BPActionConstCommon.FDLG_FIND.text() + "/" + BPActionConstCommon.FDLG_REPLACE.text()).callback(this::onFind).getAction();
+		Action actfind = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUFINDREPLACE, this::onFind);
 		Action actfilter = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUTABLECFILTER, this::onFilter);
+		Action actgoto = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUGOTO, this::onGoto);
 		Action actcloneraw = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONERAW, this::onCloneEditor);
+		Action acttogglelinenum = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUTOGGLELINENUM, this::onToggleLineNum);
 //		Action actcloneseen = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONESEEN, this::onCloneSeenEditor);
 		rc.add(actfind);
 		rc.add(actfilter);
+		rc.add(actgoto);
+		rc.add(acttogglelinenum);
 		rc.add(actcloneraw);
 //		rc.add(actcloneseen);
 		return rc;
@@ -498,17 +508,18 @@ public class BPTable<T> extends JTable
 			}
 		}
 	}
-
-	public void setupFindDlg()
+	
+	protected void setupInnerOPs()
 	{
-		getInputMap().put(KeyStroke.getKeyStroke("control F"), "find");
-		getActionMap().put("find", BPAction.build("find").callback(this::onFind).getAction());
-	}
-
-	public void setupInnerFilter()
-	{
-		getInputMap().put(KeyStroke.getKeyStroke("control shift F"), "filter");
-		getActionMap().put("filter", BPAction.build("filter").callback(this::onFilter).getAction());
+		InputMap im=getInputMap();
+		im.put(BPActionConstCommon.CMPOP_FIND.accKey(), "find");
+		im.put(BPActionConstCommon.CMPOP_GOTO.accKey(), "goto");
+		im.put(BPActionConstCommon.CMPOP_FILTER.accKey(), "filter");
+		
+		ActionMap am=getActionMap();
+		am.put("find", BPAction.build("find").callback(this::onFind).getAction());
+		am.put("goto", BPAction.build("goto").callback(this::onGoto).getAction());
+		am.put("filter", BPAction.build("filter").callback(this::onFilter).getAction());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -535,6 +546,50 @@ public class BPTable<T> extends JTable
 			{
 				filter.setFilterText(fstr);
 				sorter.sort();
+			}
+		}
+	}
+
+	public void onToggleLineNum(ActionEvent e)
+	{
+		BPTableModel<T> m = getBPTableModel();
+		if (m != null)
+		{
+			boolean f = !m.isShowLineNum();
+			m.setShowLineNum(f);
+			Map<String, Integer> cws = getColumnsWidth();
+			m.fireTableStructureChanged();
+			setColumnsWidth(cws);
+		}
+	}
+
+	protected Map<String, Integer> getColumnsWidth()
+	{
+		Map<String, Integer> rc = new HashMap<String, Integer>();
+		TableColumnModel tcm = getColumnModel();
+		for (int i = 0; i < tcm.getColumnCount(); i++)
+		{
+			TableColumn tc = tcm.getColumn(i);
+			if (tc instanceof BPTableColumn)
+				rc.put(((BPTableColumn) tc).getColumnName(), tc.getPreferredWidth());
+		}
+		return rc;
+	}
+
+	public void setColumnsWidth(Map<String, Integer> cws)
+	{
+		TableColumnModel tcm = getColumnModel();
+		for (int i = 0; i < tcm.getColumnCount(); i++)
+		{
+			TableColumn tc = tcm.getColumn(i);
+			if (tc instanceof BPTableColumn)
+			{
+				BPTableColumn btc = (BPTableColumn) tc;
+				Integer w = cws.get(btc.getColumnName());
+				if (w != null)
+					tc.setPreferredWidth(w);
+				else if (btc.isLineNumber())
+					tc.setMinWidth(UIUtil.scale(60));
 			}
 		}
 	}
@@ -582,6 +637,14 @@ public class BPTable<T> extends JTable
 			}
 		}
 		return rc;
+	}
+
+	public void onGoto(ActionEvent e)
+	{
+		String linestr = UIStd.input("", BPActionConstCommon.TXT_GOTOLINE.text() + ":", null);
+		Integer line = ObjUtil.toInt(linestr, null);
+		if (line != null && line > -1)
+			scrollTo(line - 1, 0);
 	}
 
 	public void onFind(ActionEvent e)
@@ -819,6 +882,19 @@ public class BPTable<T> extends JTable
 			techc++;
 		}
 		return false;
+	}
+	
+	public void setColumnWidthBatch(int w, int linenumw)
+	{
+		boolean isshowlinenum = getBPTableModel().isShowLineNum();
+		TableColumnModel tcm = getColumnModel();
+		for (int i = 0; i < tcm.getColumnCount(); i++)
+		{
+			if (isshowlinenum)
+				tcm.getColumn(i).setPreferredWidth(i == 0 ? linenumw : w);
+			else
+				tcm.getColumn(i).setPreferredWidth(w);
+		}
 	}
 
 	public static class BPTableRendererFileSize extends DefaultTableCellRenderer
@@ -1324,28 +1400,37 @@ public class BPTable<T> extends JTable
 		{
 			BPTableColumnModel cm = (BPTableColumnModel) getColumnModel();
 			while (cm.getColumnCount() > 0)
-			{
 				cm.removeColumn(cm.getColumn(0));
-			}
 
+			int c=0;
 			for (String colname : cols)
 			{
-				TableColumn tc = cm.getCachedColumn(colname);
-				if (tc != null)
-					addColumn(tc);
-				else
+				TableColumn tc = null;
+				if (!cm.isColumnHide(colname))
 				{
-					for (int i = 0; i < m.getColumnCount(); i++)
+					tc = cm.getCachedColumn(colname);
+					if (tc == null)
 					{
-						if (colname.equals(m.getColumnRawName(i)))
+						for (int i = 0; i < m.getColumnCount(); i++)
 						{
-							BPTableColumn col = new BPTableColumn(i);
-							col.setColumnName(colname);
-							addColumn(col);
-							break;
+							if (colname.equals(m.getColumnRawName(i)))
+							{
+								BPTableColumn col = new BPTableColumn(i);
+								col.setColumnName(colname);
+								if (c == 0 && m.isShowLineNum())
+									col.setIsLineNumber(true);
+								tc = col;
+								break;
+							}
 						}
 					}
 				}
+				if (tc != null)
+				{
+					tc.setModelIndex(c);
+					addColumn(tc);
+				}
+				c++;
 			}
 		}
 	}
@@ -1358,10 +1443,23 @@ public class BPTable<T> extends JTable
 		private static final long serialVersionUID = -3595738572468140855L;
 
 		protected String m_colname;
+		protected boolean m_islinenum;
+		protected int m_coldefaultwidth;
+		protected boolean m_pwsetted;
 
 		public BPTableColumn(int i)
 		{
 			super(i);
+		}
+
+		public void setIsLineNumber(boolean flag)
+		{
+			m_islinenum = flag;
+		}
+
+		public boolean isLineNumber()
+		{
+			return m_islinenum;
 		}
 
 		public void setColumnName(String colname)
@@ -1373,6 +1471,20 @@ public class BPTable<T> extends JTable
 		{
 			return m_colname;
 		}
+		
+		public void setModelIndex(int index)
+		{
+			super.setModelIndex(index);
+		}
+
+		public void setPreferredWidthOnce(int w)
+		{
+			if (!m_pwsetted)
+			{
+				m_pwsetted = true;
+				setPreferredWidth(w);
+			}
+		}
 	}
 
 	public static class BPTableColumnModel extends DefaultTableColumnModel
@@ -1383,11 +1495,33 @@ public class BPTable<T> extends JTable
 		private static final long serialVersionUID = 382606793781393866L;
 
 		protected Map<String, BPTableColumn> m_colcache;
+		protected Map<String, Boolean> m_hidecols;
+
+		public BPTableColumnModel()
+		{
+			m_hidecols = new HashMap<String, Boolean>();
+			m_colcache = new HashMap<String, BPTableColumn>();
+		}
+
+		public void setColumnHide(String col, Boolean v)
+		{
+			if (v == null)
+				m_hidecols.remove(col);
+			else
+				m_hidecols.put(col, v);
+		}
+
+		public boolean isColumnHide(String col)
+		{
+			Boolean v = m_hidecols.get(col);
+			return v == null ? false : v;
+		}
 
 		public void saveCache()
 		{
 			m_colcache = new HashMap<String, BPTableColumn>();
-			for (int i = 0; i < getColumnCount(); i++)
+			int c = getColumnCount();
+			for (int i = 0; i < c; i++)
 			{
 				BPTableColumn tc = (BPTableColumn) getColumn(i);
 				m_colcache.put(tc.getColumnName(), tc);
@@ -1396,8 +1530,6 @@ public class BPTable<T> extends JTable
 
 		public TableColumn getCachedColumn(String colname)
 		{
-			if (m_colcache == null)
-				return null;
 			return m_colcache.get(colname);
 		}
 
@@ -1409,6 +1541,31 @@ public class BPTable<T> extends JTable
 		public ColumnBuilder getColumnBuilder(TableColumn col)
 		{
 			return new ColumnBuilder(col, this);
+		}
+
+		public void applyDefaultColumnWidth(BPTableFuncs<?> f)
+		{
+			int c = getColumnCount();
+			int d=0;
+			for (int i = 0; i < c; i++)
+			{
+				TableColumn tc = getColumn(i);
+				if (tc instanceof BPTableColumn)
+				{
+					BPTableColumn btc = (BPTableColumn) tc;
+					if (btc.isLineNumber())
+					{
+						d++;
+						continue;
+					}
+					int ci = btc.getModelIndex();
+					int w = f.getColumnWidth(ci - d);
+					if (w <= 0)
+						btc.setPreferredWidthOnce(10000);
+					else
+						btc.setMinWidth(UIUtil.scale(w));
+				}
+			}
 		}
 
 		public static class ColumnBuilder
@@ -1465,6 +1622,126 @@ public class BPTable<T> extends JTable
 				m_col.setCellEditor(celleditor);
 				return this;
 			}
+		}
+	}
+
+	public void installRowHeader(JScrollPane scroll)
+	{
+		scroll.setRowHeaderView(genRowHeader());
+		scroll.getRowHeader().setPreferredSize(new Dimension(UIUtil.scale(48), 0));
+	}
+
+	public JTable genRowHeader()
+	{
+		JTable rc = new JTable();
+		rc.setModel(new BPRowHeaderTableModel(this));
+		{
+			TableColumn tc = rc.getColumnModel().getColumn(0);
+			tc.setCellRenderer(new BPRowHeaderRenderer(this));
+		}
+		return rc;
+	}
+
+	public class BPRowHeaderTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelListener
+	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5720837858214339992L;
+		protected WeakRefGo<JTable> m_tableref = new WeakRefGo<>();
+
+		public BPRowHeaderTableModel(JTable table)
+		{
+			m_tableref = new WeakRefGo<JTable>(table);
+			table.getModel().addTableModelListener(this);
+			table.addPropertyChangeListener(this);
+		}
+
+		public void propertyChange(PropertyChangeEvent e)
+		{
+			String p = e.getPropertyName();
+			if ("model".equals(p))
+			{
+				TableModel m = (TableModel) e.getOldValue();
+				if (m != null)
+					m.removeTableModelListener(this);
+				m = (TableModel) e.getNewValue();
+				if (m != null)
+					m.addTableModelListener(this);
+				fireTableDataChanged();
+			}
+		}
+
+		public int getRowCount()
+		{
+			Integer rc = m_tableref.exec(t -> t.getRowCount());
+			return rc == null ? 0 : rc;
+		}
+
+		public int getColumnCount()
+		{
+			return 1;
+		}
+
+		public Object getValueAt(int row, int col)
+		{
+			return row + 1;
+		}
+
+		public void tableChanged(TableModelEvent e)
+		{
+			fireTableDataChanged();
+		}
+	}
+
+	public class BPRowHeaderRenderer extends JLabel implements TableCellRenderer
+	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -586824365041953363L;
+
+		protected int m_vsize = 4;
+
+		public BPRowHeaderRenderer(JTable table)
+		{
+			JTableHeader header = table.getTableHeader();
+			setOpaque(true);
+			setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+			setHorizontalAlignment(CENTER);
+			setFont(header.getFont());
+			setBackground(header.getBackground());
+			setForeground(header.getForeground());
+		}
+
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
+		{
+			if (value == null)
+			{
+				setText("");
+			}
+			else
+			{
+				int v = (Integer) value;
+				String vstr = Integer.toString(v);
+				setText(vstr);
+				int x = vstr.length();
+				if (x > m_vsize)
+				{
+					m_vsize = x;
+					UIUtil.laterUI(() ->
+					{
+						Component c = table.getParent();
+						if (c != null)
+						{
+							c = c.getParent();
+							if (c != null && c instanceof JScrollPane)
+								((JScrollPane) c).getRowHeader().setPreferredSize(new Dimension(UIUtil.scale(12 * x), 0));
+						}
+					});
+				}
+			}
+			return this;
 		}
 	}
 }

@@ -11,6 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import bp.ui.BPComponent;
 import bp.ui.editor.BPEditor;
@@ -21,7 +23,7 @@ import bp.ui.tree.BPTreeFuncs.BPTreeActionEventHandler;
 import bp.ui.tree.BPTreeFuncs.BPTreeActionType;
 import bp.ui.tree.BPTreeFuncsAbstract;
 import bp.ui.util.CommonDataUIProcs;
-import bp.util.LogicUtil.WeakRefGo;
+import bp.util.LogicUtil.WeakRefGoBiConsumer;
 
 public class BPCommonDataPanel extends JPanel
 {
@@ -30,25 +32,30 @@ public class BPCommonDataPanel extends JPanel
 	 */
 	private static final long serialVersionUID = -1544754402372325176L;
 
-	protected int m_mode;
+	protected volatile int m_mode;
+	protected volatile int m_lastmode;
 
 	protected Object m_data;
-	protected WeakRefGo<BiConsumer<?, BPCommonDataPanel>> m_act0;
-	protected WeakRefGo<BiConsumer<?, BPCommonDataPanel>> m_act1;
+	protected WeakRefGoBiConsumer<?, BPCommonDataPanel> m_act0;
+	protected WeakRefGoBiConsumer<?, BPCommonDataPanel> m_act1;
 
 	protected JComponent m_comp;
+	protected JComponent m_cc;
 
 	protected BPTreeActionEventHandler m_treecb;
+	protected ListSelectionListener m_listcb;
 	protected Consumer<BPEditorEvent> m_editorcb;
 
 	protected Action[] m_acts;
 
 	public BPCommonDataPanel()
 	{
+		m_lastmode = -1;
 		m_treecb = this::onTreeEvent;
+		m_listcb = this::onListSelectionChanged;
 		m_editorcb = this::onEditorEvent;
-		m_act0 = new WeakRefGo<BiConsumer<?, BPCommonDataPanel>>();
-		m_act1 = new WeakRefGo<BiConsumer<?, BPCommonDataPanel>>();
+		m_act0 = new WeakRefGoBiConsumer<>();
+		m_act1 = new WeakRefGoBiConsumer<>();
 		setBorder(null);
 		setLayout(new BorderLayout());
 	}
@@ -63,10 +70,11 @@ public class BPCommonDataPanel extends JPanel
 		return m_mode;
 	}
 
-	public void setActions(BiConsumer<?,BPCommonDataPanel> selaction, BiConsumer<?,BPCommonDataPanel> enteraction)
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void setActions(BiConsumer<?, BPCommonDataPanel> selaction, BiConsumer<?, BPCommonDataPanel> enteraction)
 	{
-		m_act0.setTarget(selaction);
-		m_act1.setTarget(enteraction);
+		((WeakRefGoBiConsumer) m_act0).setTarget(selaction);
+		((WeakRefGoBiConsumer) m_act1).setTarget(enteraction);
 	}
 
 	public void setData(Object data)
@@ -78,47 +86,72 @@ public class BPCommonDataPanel extends JPanel
 	{
 		return m_data;
 	}
-
+	
 	public void initByData()
 	{
-		setupDataPanel(m_data);
+		initByData(false);
+	}
+
+	public void initByData(boolean noforcecreate)
+	{
+		setupDataPanel(m_data, noforcecreate);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void setupDataPanel(Object data)
+	protected void setupDataPanel(Object data, boolean noforcecreate)
 	{
 		final Object data0 = data;
 		clearActions();
-		removeAll();
-		CommonDataUIProcs.useCreatePanel(m_mode, (p0, p1) ->
+		if (!noforcecreate || m_lastmode != m_mode)
 		{
-			JComponent comp;
-			Object r = ((Function<Object, JComponent>) p0).apply(data0);
-			if (r instanceof BPComponent)
+			CommonDataUIProcs.useCreatePanel(m_mode, (p0, p1) ->
 			{
-				comp = (JComponent) ((BPComponent<?>) r).getComponent();
-			}
-			else
+				if (m_comp != null)
+				{
+					remove(m_cc);
+					m_comp = null;
+					m_cc = null;
+				}
+				JComponent comp;
+				Object r = ((Function<Object, JComponent>) p0).apply(data0);
+				if (r instanceof BPComponent)
+				{
+					comp = (JComponent) ((BPComponent<?>) r).getComponent();
+				}
+				else
+				{
+					comp = (JComponent) r;
+				}
+				if (comp instanceof BPEditor)
+				{
+					add(comp, BorderLayout.CENTER);
+					m_cc = comp;
+				}
+				else
+				{
+					JScrollPane scroll = new JScrollPane();
+					scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+					scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+					scroll.setViewportView(comp);
+					scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
+					add(scroll, BorderLayout.CENTER);
+					m_cc = scroll;
+				}
+				if (p1 != null)
+					((BiConsumer) p1).accept(r, data0);
+				tryAddListener(comp);
+				m_comp = comp;
+				m_lastmode = m_mode;
+			});
+		}
+		else
+		{
+			CommonDataUIProcs.useInitPanel(m_mode, p1 ->
 			{
-				comp = (JComponent) r;
-			}
-			if (comp instanceof BPEditor)
-			{
-				add(comp, BorderLayout.CENTER);
-			}
-			else
-			{
-				JScrollPane scroll = new JScrollPane();
-				scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-				scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-				scroll.setViewportView(comp);
-				scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
-				add(scroll, BorderLayout.CENTER);
-			}
-			if (p1 != null)
-				((BiConsumer) p1).accept(r, data0);
-			tryAddListener(comp);
-		});
+				if (p1 != null)
+					((BiConsumer) p1).accept(m_comp, data0);
+			});
+		}
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -134,7 +167,7 @@ public class BPCommonDataPanel extends JPanel
 			{
 				final BPCommonDataPanel pthis = this;
 				Object fobj = obj;
-				(actiontype == BPTreeActionType.SELECT ? m_act0 : m_act1).run(seg -> ((BiConsumer) seg).accept(fobj, pthis));
+				((WeakRefGoBiConsumer) (actiontype == BPTreeActionType.SELECT ? m_act0 : m_act1)).accept(fobj, pthis);
 				break;
 			}
 			default:
@@ -142,6 +175,18 @@ public class BPCommonDataPanel extends JPanel
 
 			}
 		}
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected void onListSelectionChanged(ListSelectionEvent e)
+	{
+		if (e.getValueIsAdjusting())
+			return;
+
+		final BPCommonDataPanel pthis = this;
+		BPList<Object> list = (BPList<Object>) m_comp;
+		Object fobj = list.getSelectedValue();
+		((WeakRefGoBiConsumer) m_act0).accept(fobj, pthis);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -154,12 +199,13 @@ public class BPCommonDataPanel extends JPanel
 			{
 				final BPCommonDataPanel pthis = this;
 				Object fobj = e.data;
-				(BPEditorEvent.ACT_SELECT.equals(e.action) ? m_act0 : m_act1).run(seg -> ((BiConsumer) seg).accept(fobj, pthis));
+				((WeakRefGoBiConsumer) (BPEditorEvent.ACT_SELECT.equals(e.action) ? m_act0 : m_act1)).accept(fobj, pthis);
 				break;
 			}
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void tryAddListener(JComponent comp)
 	{
 		if (m_mode == CommonDataUIProcs.MODE_OBJTREE)
@@ -169,8 +215,8 @@ public class BPCommonDataPanel extends JPanel
 		}
 		else if (m_mode == CommonDataUIProcs.MODE_OBJLIST)
 		{
-			BPTreeComponentBase tree = (BPTreeComponentBase) comp;
-			((BPTreeFuncsAbstract) tree.getTreeFuncs()).installTreeActionHandler(m_treecb);
+			BPList<Object> list=(BPList<Object>) comp;
+			list.addListSelectionListener(m_listcb);
 		}
 		else if (comp instanceof BPEditor)
 		{
@@ -211,5 +257,12 @@ public class BPCommonDataPanel extends JPanel
 		JComponent comp = m_comp;
 		if (comp != null && comp instanceof BPComponent)
 			((BPComponent<?>) comp).clearResource();
+		m_comp = null;
+		m_cc = null;
+	}
+
+	public void requestEditorFocus()
+	{
+		m_comp.requestFocusInWindow();
 	}
 }

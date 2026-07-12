@@ -2,8 +2,10 @@ package bp.ui.util;
 
 import java.awt.FlowLayout;
 import java.awt.Image;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,16 +13,22 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import bp.BPCore;
+import bp.data.BPMData;
 import bp.data.BPXYData;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
+import bp.typeext.KV;
+import bp.typeext.KV.KVs;
+import bp.typeext.Pair.Leader;
 import bp.ui.editor.BPCodePanel;
 import bp.ui.editor.BPEditor;
 import bp.ui.editor.BPEditorFactory;
@@ -28,7 +36,12 @@ import bp.ui.editor.BPEditorManager;
 import bp.ui.editor.BPTextEditor;
 import bp.ui.editor.BPTextPanel;
 import bp.ui.editor.BPXYDEditor;
+import bp.ui.form.BPForm;
+import bp.ui.form.BPFormManager;
+import bp.ui.scomp.BPKVTable;
 import bp.ui.scomp.BPLabel;
+import bp.ui.scomp.BPList;
+import bp.ui.scomp.BPList.BPListModel;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
 import bp.ui.tree.BPTreeComponentBase;
@@ -44,6 +57,8 @@ public final class CommonDataUIProcs
 	public final static int MODE_OBJTREE = 1;
 	public final static int MODE_OBJLIST = 2;
 	public final static int MODE_XY = 3;
+	public final static int MODE_KV = 4;
+	public final static int MODE_FORM = 5;
 
 	public final static int MODE_DATA_EMPTY = 16;
 	public final static int MODE_DATA_TEXT = 17;
@@ -67,10 +82,23 @@ public final class CommonDataUIProcs
 		initDefaults();
 	}
 
+	public final static Object preMappingData(Object data)
+	{
+		if (data == null)
+			return data;
+		if (data instanceof Leader)
+			data = ((Leader<?>) data).getRight();
+		if (data instanceof Supplier)
+			return ((Supplier<?>) data).get();
+		return data;
+	}
+
 	public final static int testDataMode(Object obj)
 	{
 		if (obj == null)
 			return MODE_DATA_EMPTY;
+		if (obj instanceof KVs)
+			return MODE_KV;
 		if (obj instanceof Map)
 			return MODE_OBJTREE;
 		if (obj instanceof Collection)
@@ -94,6 +122,9 @@ public final class CommonDataUIProcs
 				if (proc.test(cls, obj))
 					return extmodes.get(proc);
 			}
+
+			if (obj instanceof BPMData && BPFormManager.hasFormByClassTree(cls, null))
+				return MODE_FORM;
 		}
 
 		return MODE_UNKNOWN;
@@ -103,6 +134,12 @@ public final class CommonDataUIProcs
 	{
 		Object[] rt = LockUtil.rwLock(S_LOCK, false, () -> new Object[] { S_CPROCS.get(mode), S_IPROCS.get(mode) });
 		seg.accept((Function<?, ?>) rt[0], (BiConsumer<?, ?>) rt[1]);
+	}
+
+	public final static void useInitPanel(int mode, Consumer<BiConsumer<?, ?>> seg)
+	{
+		BiConsumer<?, ?> p = LockUtil.rwLock(S_LOCK, false, () -> S_IPROCS.get(mode));
+		seg.accept(p);
 	}
 
 	public final static BPTextPanel createTextPanel(Object data)
@@ -132,7 +169,29 @@ public final class CommonDataUIProcs
 		rc.setCellRenderer(new BPTreeCellRendererObject());
 		return rc;
 	}
-	
+
+	public final static BPList<Object> createListPanel(Object data)
+	{
+		BPList<Object> rc = new BPList<Object>();
+		rc.setMonoFont();
+		return rc;
+	}
+
+	public final static BPForm<?> createFormPanel(Object data)
+	{
+		return BPFormManager.getFormByClassTree(data.getClass(), null);
+	}
+
+	public final static BPKVTable createKVPanel(Object data)
+	{
+		BPKVTable rc = new BPKVTable();
+		rc.initRowSorter();
+		rc.getColumnModel().getColumn(0).setPreferredWidth(100);
+		rc.getColumnModel().getColumn(1).setPreferredWidth(300);
+		rc.setMonoFont();
+		return rc;
+	}
+
 	public final static BPEditor<?> createResourcePanel(BPResource res)
 	{
 		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
@@ -173,6 +232,25 @@ public final class CommonDataUIProcs
 		comp.setModel(new BPTreeModel(tf));
 	}
 
+	public final static void initListPanel(BPList<Object> comp, Object data)
+	{
+		BPListModel<Object> m=new BPListModel<>();
+		List<Object> lst=new ArrayList<Object>((Collection<?>)data);
+		m.setDatas(lst);
+		comp.setModel(m);
+	}
+
+	public final static void initFormPanel(BPForm<?> comp, Object data)
+	{
+		comp.showData(((BPMData) data).getMappedData(), true);
+	}
+
+	public final static void initKVPanel(BPKVTable table, List<KV> data)
+	{
+		table.getBPTableModel().setDatas(data);
+		table.refreshData();
+	}
+
 	protected final static void initDefaults()
 	{
 		{
@@ -183,8 +261,11 @@ public final class CommonDataUIProcs
 
 		registerProc(MODE_DATA_EMPTY, CommonDataUIProcs::createEmptyPanel, null);
 		registerProc(MODE_OBJTREE, CommonDataUIProcs::createTreePanel, (BiConsumer<BPTreeComponentBase, Object>) CommonDataUIProcs::initObjTreePanel);
-		registerProc(MODE_OBJLIST, CommonDataUIProcs::createTreePanel, (BiConsumer<BPTreeComponentBase, Object>) CommonDataUIProcs::initObjTreePanel);
+		registerProc(MODE_OBJLIST, CommonDataUIProcs::createListPanel, (BiConsumer<BPList<Object>, Object>) CommonDataUIProcs::initListPanel);
+		registerProc(MODE_FORM, CommonDataUIProcs::createFormPanel, (BiConsumer<BPForm<?>, Object>) CommonDataUIProcs::initFormPanel);
+//		registerProc(MODE_OBJLIST, CommonDataUIProcs::createTreePanel, (BiConsumer<BPTreeComponentBase, Object>) CommonDataUIProcs::initObjTreePanel);
 		registerProc(MODE_XY, CommonDataUIProcs::createTablePanel, (BiConsumer<BPXYDEditor<?>, BPXYData>) CommonDataUIProcs::initTablePanel);
+		registerProc(MODE_KV, CommonDataUIProcs::createKVPanel, (BiConsumer<BPKVTable, List<KV>>) CommonDataUIProcs::initKVPanel);
 		registerProc(MODE_RESOURCE, (Function<BPResource, ?>) CommonDataUIProcs::createResourcePanel, null);
 	}
 

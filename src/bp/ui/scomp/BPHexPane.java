@@ -34,7 +34,6 @@ import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil;
 import bp.util.TextUtil;
 
 public class BPHexPane extends JPanel
@@ -270,7 +269,7 @@ public class BPHexPane extends JPanel
 			}
 			ensurePosition(ss);
 			updateView();
-			LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+			dispatchPosChanged();
 		}
 		else
 		{
@@ -312,8 +311,15 @@ public class BPHexPane extends JPanel
 			}
 			ensurePosition(m_selpos);
 			updateView();
-			LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+			dispatchPosChanged();
 		}
+	}
+
+	protected void dispatchPosChanged()
+	{
+		BiConsumer<Long, Long> poscb = m_poscb;
+		if (poscb != null)
+			poscb.accept(m_rselstart, m_rselend);
 	}
 
 	public void updateLen(long len)
@@ -402,7 +408,7 @@ public class BPHexPane extends JPanel
 				m_rselend = fixPos(m_rselend);
 			}
 		}
-		LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+		dispatchPosChanged();
 	}
 
 	protected long fixPos(long pos)
@@ -448,7 +454,7 @@ public class BPHexPane extends JPanel
 			m_rselend = m_rselstart;
 			m_rselstart = t;
 		}
-		LogicUtil.IFVU(m_poscb, cb -> cb.accept(m_rselstart, m_rselend));
+		dispatchPosChanged();
 	}
 
 	private String getSelectedHex()

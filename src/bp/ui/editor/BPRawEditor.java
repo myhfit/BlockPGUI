@@ -58,7 +58,6 @@ import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
-import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 import bp.util.Std;
 
@@ -568,7 +567,9 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 		if (m_needsave != needsave)
 		{
 			m_needsave = needsave;
-			LogicUtil.IFVU(m_statechangedcb, cb -> cb.accept(m_id, m_needsave));
+			BiConsumer<String, Boolean> scb = m_statechangedcb;
+			if (scb != null)
+				scb.accept(m_id, m_needsave);
 		}
 	}
 

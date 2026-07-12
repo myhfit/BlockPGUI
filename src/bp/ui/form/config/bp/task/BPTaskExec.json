@@ -1,0 +1,12 @@
+{
+	"parent":"bp.task.BPTaskBase",
+	"controller":"task.BPFormControllerTaskExec",
+	"items":
+	[
+		{"itemtype":"textfield_more","key":"target","label":"TARGET","lbltr":"c,c_c","required":true,"params":{"canempty":true}},
+		{"itemtype":"textfield","key":"params","label":"PARAMETERS","lbltr":"c,c_c","params":{"canempty":true}},
+		{"itemtype":"textfield_more","key":"workdir","label":"Working Directory","lbltr":"d,bp.locale.BPLocaleConstCoreDict","params":{"canempty":true}},
+		{"itemtype":"checkbox","key":"wait","label":"Wait Target","lbltr":"dc,bp.ui.form.BPFormPanelTask"},
+		{"itemtype":"checkbox","key":"syskill","label":"System Kill","lbltr":"dc,bp.ui.form.BPFormPanelTask"}
+	]
+}

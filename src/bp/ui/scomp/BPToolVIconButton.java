@@ -6,6 +6,8 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
@@ -21,7 +23,7 @@ import bp.ui.res.icon.BPVIcon;
 import bp.ui.util.UIUtil;
 import bp.ui.util.UIUtil.ActionRunnable;
 
-public class BPToolVIconButton extends JComponent implements MouseListener
+public class BPToolVIconButton extends JComponent implements MouseListener,FocusListener
 {
 	/**
 	 * 
@@ -48,6 +50,8 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 		{
 			action.actionPerformed(e);
 		});
+		setFocusable(true);
+		addFocusListener(this);
 		m_actcmd = (String) action.getValue(Action.ACTION_COMMAND_KEY);
 		{
 			Boolean v = (Boolean) action.getValue(Action.SELECTED_KEY);
@@ -98,6 +102,8 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 	public void mousePressed(MouseEvent e)
 	{
 		m_act.accept(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null, EventQueue.getMostRecentEventTime(), 0));
+		requestFocus();
+		repaint();
 	}
 
 	public void mouseReleased(MouseEvent e)
@@ -110,6 +116,16 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 
 	public void mouseExited(MouseEvent e)
 	{
+	}
+
+	public void focusGained(FocusEvent e)
+	{
+		repaint();
+	}
+
+	public void focusLost(FocusEvent e)
+	{
+		repaint();
 	}
 
 	public void setSelected(boolean issel)
@@ -141,8 +157,14 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 			int y0 = (h - w) / 2;
 			m_icon.draw(g, 0, y0, w - 1, w - 1, m_issel);
 			if (!isEnabled())
-			{
 				m_icon.drawDisable(g, 0, y0, w - 1, w - 1);
+			else
+			{
+				if (isFocusOwner())
+				{
+					g2d.setColor(UIConfigs.COLOR_TEXTQUARTER());
+					g.drawRect(1, y0 + 1, w - 3, h - 3);
+				}
 			}
 			g2d.setTransform(f);
 		}
@@ -155,8 +177,14 @@ public class BPToolVIconButton extends JComponent implements MouseListener
 			int y0 = (w < h ? ((h - w) / 2) : 0);
 			m_icon.draw(g, x0, y0, s, s, m_issel);
 			if (!isEnabled())
-			{
 				m_icon.drawDisable(g, x0, y0, s, s);
+			else
+			{
+				if (isFocusOwner())
+				{
+					g2d.setColor(UIConfigs.COLOR_TEXTQUARTER());
+					g.drawRect(x0 + 1, y0 + 1, s - 2, s - 2);
+				}
 			}
 		}
 	}

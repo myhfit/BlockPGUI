@@ -46,7 +46,6 @@ import bp.ui.scomp.BPToolVIconButton;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil;
 
 public class BPFrameComponent extends BPFrame implements WindowListener, BPFrameHostIFC
 {
@@ -95,7 +94,9 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 
 		m_actsave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, e -> save());
 		BPAction actclose = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECLOSE, e -> dispose());
+		BPAction acttoggleleftpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN, e -> toggleEditorLeftPanel());
 		BPAction acttogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, e -> toggleRightPanel());
+		BPAction acttogglebottompan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN, e -> toggleEditorBottomPanel());
 		BPAction actfullscreen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWFULLSCREEN, e -> fullScreen());
 
 		FlowLayout fl = new FlowLayout(FlowLayout.RIGHT);
@@ -110,7 +111,10 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		mnufile.addSeparator();
 		mnufile.add(actclose);
 
+		mnuview.add(acttoggleleftpan);
 		mnuview.add(acttogglerightpan);
+		mnuview.add(acttogglebottompan);
+		mnuview.addSeparator();
 		mnuview.add(actfullscreen);
 
 		m_mnubar.add(mnufile);
@@ -271,12 +275,14 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 	{
 		BPComponent<?> comp = m_comp;
 		String[] exts = null;
-		String rext = LogicUtil.CHAIN_NN(comp, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource(), r -> ((BPResource) r).getExt());
+		if (!(comp instanceof BPViewer))
+			return;
+		BPResource oldres = ((BPViewer<?>) comp).tryGetResource();
+		String rext = oldres != null ? oldres.getExt() : null;
 		if (rext != null)
 			exts = new String[] { rext };
 		else if (comp instanceof BPEditor)
 			exts = ((BPEditor<?>) comp).getExts();
-		BPResource oldres = LogicUtil.CHAIN_NN(comp, c -> ((BPViewer<?>) c).getDataContainer(), con -> ((BPDataContainer) con).getResource());
 		Consumer<BPDialogSelectResource> cb = null;
 		if (oldres != null && oldres.isFileSystem())
 			cb = dlg -> dlg.switchPathTreeFunc(3).setPreSelectedResource((BPResourceFileSystem) oldres);

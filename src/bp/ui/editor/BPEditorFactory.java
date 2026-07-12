@@ -37,6 +37,7 @@ import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
 import bp.res.BPResourceHolder;
 import bp.res.BPResourceIO;
+import bp.typeext.Nameable;
 import bp.ui.console.BPConsolePanel;
 import bp.ui.scomp.BPConsolePane;
 import bp.ui.util.CommonUIOperations;
@@ -47,7 +48,7 @@ import bp.util.JSONUtil;
 import bp.util.LogicUtil;
 import bp.util.TextUtil;
 
-public interface BPEditorFactory
+public interface BPEditorFactory extends Nameable
 {
 	String[] getFormats();
 
@@ -108,10 +109,15 @@ public interface BPEditorFactory
 				if (res instanceof BPResourceHolder)
 				{
 					BPXYData data = ((BPResourceHolder) res).getData();
-					BPXYHolder holder = new BPXYHolder();
-					holder.setData(data);
-					holder.setTitle("tempxy");
-					con = holder;
+					try (BPXYHolder holder = new BPXYHolder())
+					{
+						holder.setData(data);
+						holder.setTitle("tempxy");
+						con = holder;
+					}
+					finally
+					{
+					}
 				}
 				((BPXYDEditor<BPXYContainer>) editor).bind(con);
 			}
@@ -159,10 +165,16 @@ public interface BPEditorFactory
 					}
 					BPXYDataList xydata = new BPXYDataList(true);
 					xydata.fromMapList(datas);
-					BPXYHolder xyholder = new BPXYHolder();
-					xyholder.setData(xydata);
-					xyholder.setTitle(res.getName());
-					con = xyholder;
+					try (BPXYHolder xyholder = new BPXYHolder())
+					{
+						xyholder.setData(xydata);
+						xyholder.setTitle(res.getName());
+						con = xyholder;
+					}
+					finally
+					{
+
+					}
 				}
 				((BPXYDEditor<BPXYContainer>) editor).bind(con);
 			}

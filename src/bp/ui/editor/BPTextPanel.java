@@ -141,11 +141,10 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			{
 				String txt = getTextPanel().getSelectedText();
 				BPResource res = BPCore.getFileContext().getRes(dpsrc);
-				BPJSONContainerBase<BPDataPipes> con = new BPJSONContainerBase<BPDataPipes>();
-				con.bind(res);
-				BPDataPipes dp = con.readMData(false);
-				try
+				try (BPJSONContainerBase<BPDataPipes> con = new BPJSONContainerBase<BPDataPipes>())
 				{
+					con.bind(res);
+					BPDataPipes dp = con.readMData(false);
 					dp.run(txt);
 				}
 				catch (Exception e2)

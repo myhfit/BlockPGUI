@@ -31,7 +31,6 @@ import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPProgressBar;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
@@ -40,7 +39,6 @@ import bp.ui.table.BPTableFuncsTask;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
-import bp.util.ClassUtil;
 import bp.util.NumberUtil;
 import bp.util.Std;
 
@@ -175,6 +173,8 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 			pbar.setFont(table.getFont());
 			pbar.setSelectedBackgroundColor(m_pgselcolor);
 			pbar.setSelectedBackground(isSelected);
+			if (!(value instanceof Number))
+				Std.info((String) value);
 			float v = ((Number) value).floatValue();
 			int v2 = (int) Math.floor(v * 1000f);
 			String pstr = m_model.getRow(row).getProgressText();
@@ -302,14 +302,7 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 			{
 				BPDialogForm dlg = new BPDialogForm();
 				dlg.setEditable(!isrun);
-
-				Class<?> c = ClassUtil.tryLoopSuperClass((cls) ->
-				{
-					if (BPFormManager.containsKey(cls.getName()))
-						return cls;
-					return null;
-				}, task.getClass(), BPTask.class);
-				dlg.setup(c == null ? task.getClass().getName() : c.getName(), task);
+				dlg.setup(task.getClass(),null, task);
 				dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TASK) + ":" + task.getName());
 				dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(700, 600)));
 				dlg.pack();

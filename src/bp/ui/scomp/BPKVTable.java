@@ -1,16 +1,12 @@
 package bp.ui.scomp;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import javax.swing.UIDefaults;
 
 import bp.locale.BPLocaleConstCC;
+import bp.typeext.KV;
 import bp.ui.table.BPTableFuncsBase;
 
-public class BPKVTable extends BPTable<BPKVTable.KV>
+public class BPKVTable extends BPTable<KV>
 {
 	/**
 	 * 
@@ -29,26 +25,7 @@ public class BPKVTable extends BPTable<BPKVTable.KV>
 		defaultRenderersByColumnClass.put(Object.class, (UIDefaults.LazyValue) t -> new BPTableRendererCommonObj());
 	}
 
-	public static class KV
-	{
-		public String key;
-		public Object value;
-
-		public final static List<KV> getKVs(Map<String, Object> data)
-		{
-			List<KV> rc = new ArrayList<KV>();
-			for (Entry<String, Object> entry : data.entrySet())
-			{
-				KV kv = new KV();
-				kv.key = entry.getKey();
-				kv.value = entry.getValue();
-				rc.add(kv);
-			}
-			return rc;
-		}
-	}
-
-	public static class BPKVTableFuncs extends BPTableFuncsBase<BPKVTable.KV>
+	public static class BPKVTableFuncs extends BPTableFuncsBase<KV>
 	{
 		public BPKVTableFuncs()
 		{
@@ -92,7 +69,7 @@ public class BPKVTable extends BPTable<BPKVTable.KV>
 				m_colen[c] = flag;
 			}
 
-			public boolean isEditable(BPKVTable.KV o, int row, int col)
+			public boolean isEditable(KV o, int row, int col)
 			{
 				return m_colen[col];
 			}
