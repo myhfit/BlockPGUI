@@ -8,7 +8,9 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import javax.swing.Action;
@@ -96,7 +98,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 
 			toolbar.setActions(new Action[] { actaddtf, actaddep, BPAction.separator(), actdelitem, BPAction.separator(), actup, actdown, BPAction.separator(), actconfig, actrun }, sp);
 
-			m_lstpipes.setCellRenderer(new BPList.BPListRenderer(c -> ((BPDataConsumer<?>) c).getInfo()));
+			m_lstpipes.setCellRenderer(new BPList.BPListRendererT<BPDataConsumer<?>>(BPDataConsumer::getInfo));
 			m_scrollsrc.setViewportView(m_txtsrc);
 			m_scrollpipes.setViewportView(m_lstpipes);
 			m_txtsrc.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -257,53 +259,50 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 
 		protected void onDelItem(ActionEvent e)
 		{
-			List<BPDataConsumer<?>> sels = m_lstpipes.getSelectedValuesList();
-			m_pipes.removeAll(sels);
+			m_pipes.removeAll(m_lstpipes.getSelectedValuesList());
 			m_lstpipes.updateUI();
 		}
 
 		protected void onRunPipe(ActionEvent e)
 		{
 			Object source = getSourceObject();
+			Map<String, Object> context = new HashMap<String, Object>();
 			List<BPDataConsumer<?>> pipes = new ArrayList<BPDataConsumer<?>>(m_pipes);
 			int l = pipes.size();
 			if (l > 0)
 			{
 				BPDataConsumer<?> p0 = pipes.get(0);
-				if (l > 0)
+				BPDataConsumer<?> cp = p0;
+				boolean passable = true;
+				boolean hasend = false;
+				for (int i = 1; i < l; i++)
 				{
-					BPDataConsumer<?> cp = p0;
-					boolean passable = true;
-					boolean hasend = false;
-					for (int i = 1; i < l; i++)
+					BPDataConsumer<?> p = pipes.get(i);
+					if (cp.isTransformer())
+						((BPTransformer<?>) cp).setOutput(p);
+					else if (i < l - 1)
 					{
-						BPDataConsumer<?> p = pipes.get(i);
-						if (cp.isTransformer())
-						{
-							((BPTransformer<?>) cp).setOutput(p);
-						}
-						else if (i < l - 1)
-						{
-							passable = false;
-							break;
-						}
-						cp = p;
+						passable = false;
+						break;
 					}
-					if (pipes.get(l - 1).isEndpoint())
-						hasend = true;
-					if (!passable)
-					{
-						UIStd.info_small("Pipe impassable");
-						return;
-					}
-					if (!hasend)
-					{
-						UIStd.info_small("No endpoint");
-						return;
-					}
+					cp = p;
+				}
+				if (pipes.get(l - 1).isEndpoint())
+					hasend = true;
+				if (!passable)
+				{
+					UIStd.info_small("Pipe impassable");
+					return;
+				}
+				if (!hasend)
+				{
+					UIStd.info_small("No endpoint");
+					return;
 				}
 				try
 				{
+					for (int i = 0; i < pipes.size(); i++)
+						pipes.get(i).setContext(context);
 					p0.runSegmentWithData(source);
 				}
 				catch (Exception e2)
@@ -316,7 +315,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 		protected void onAddTransformer(ActionEvent e)
 		{
 			List<BPTransformerFactory> facs = BPTransformerManager.getTransformerFacs(null);
-			BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), Nameable.nameTranslator(BPTransformer.class, "FAC_"));
+			BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), Nameable.nameTranslator(BPDataConsumer.class, "FAC_"));
 			if (fac != null)
 			{
 				List<String> fts = new ArrayList<String>(fac.getFunctionTypes());
@@ -342,7 +341,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			List<BPDataEndpointFactory> facs = new ArrayList<BPDataEndpointFactory>();
 			for (BPDataEndpointFactory fac : loader)
 				facs.add(fac);
-			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), Nameable.nameTranslator(BPTransformer.class, "FAC_"));
+			BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), Nameable.nameTranslator(BPDataConsumer.class, "FAC_"));
 			if (fac != null)
 			{
 				List<String> fts = fac.getSupportedFormats();
@@ -372,7 +371,6 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 		protected void moveItem(int delta)
 		{
 			int l = m_pipes.size();
-
 			int si = m_lstpipes.getSelectedIndex();
 			if (si < 0)
 				return;
@@ -396,7 +394,7 @@ public class BPToolGUIDataPipe extends BPToolGUIBase<BPToolGUIDataPipe.BPToolGUI
 			{
 				BPSetting newsetting = BPDialogSetting.showSetting(setting);
 				if (newsetting != null)
-					c.setSetting(setting);
+					c.setSetting(newsetting);
 			}
 		}
 	}

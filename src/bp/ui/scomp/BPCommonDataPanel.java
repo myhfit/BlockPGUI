@@ -155,7 +155,7 @@ public class BPCommonDataPanel extends JPanel
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void onTreeEvent(BPTreeActionType actiontype, BPTree tree, BPTreeNode node)
+	protected void onTreeEvent(BPTreeActionType actiontype, BPTree tree, BPTreeNode node, String extact)
 	{
 		Object obj = node.getUserObject();
 		if (node.getUserObject() == m_data || node.isVirtual())

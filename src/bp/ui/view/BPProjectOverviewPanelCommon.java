@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.lang.ref.WeakReference;
-import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.BoxLayout;
@@ -15,15 +14,14 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
-import bp.BPGUICore;
 import bp.config.UIConfigs;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
-import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPToolVIconButton;
+import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIUtil;
 
 public class BPProjectOverviewPanelCommon extends JPanel implements BPProjectOverviewComp<BPResourceProject>
@@ -69,18 +67,15 @@ public class BPProjectOverviewPanelCommon extends JPanel implements BPProjectOve
 			BPResourceProject prj = prjref.get();
 			if (prj != null)
 			{
-				List<BPResource> ress = prj.getProjectFunctionItems();
-				for (BPResource res : ress)
+				BPResource[] ress = prj.getProjectFunctionItems();
+				for (int i = 0; i < ress.length; i++)
 				{
+					BPResource res = ress[i];
 					Action[] acts = getResourceActions(res);
 					Component[] btns = new Component[acts.length];
-					for (int i = 0; i < acts.length; i++)
-					{
-						BPToolVIconButton btn = new BPToolVIconButton(acts[i]);
-						btns[i] = btn;
-					}
-					JPanel pnl = makeFLine(res.getName(), btns);
-					m_panmain.add(pnl);
+					for (int j = 0; j < acts.length; j++)
+						btns[j] = new BPToolVIconButton(acts[j]);
+					m_panmain.add(makeFLine(res.getName(), btns));
 				}
 			}
 		}
@@ -88,14 +83,12 @@ public class BPProjectOverviewPanelCommon extends JPanel implements BPProjectOve
 
 	protected Action[] getResourceActions(BPResource res)
 	{
-		BPAction actopen = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNOPEN, e -> openResource(res));
-		Action[] rc = new Action[] { actopen };
-		return rc;
+		return new Action[] { BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNOPEN, e -> openResource(res)) };
 	}
 
 	protected void openResource(BPResource res)
 	{
-		BPGUICore.runOnCurrentFrame(mf -> mf.openResource(res, null, null, false, UIUtil.getRoutableContainerID(this)));
+		UIUtil.laterUI(() -> CommonUIOperations.openResource(res, null, null));
 	}
 
 	protected JPanel makeFLine(String label, Component... comps)
@@ -110,13 +103,16 @@ public class BPProjectOverviewPanelCommon extends JPanel implements BPProjectOve
 		JPanel pnlr = new JPanel();
 		FlowLayout fl = new FlowLayout(FlowLayout.LEFT, 1, 1);
 		pnlr.setLayout(fl);
-		for (Component comp : comps)
-		{
-			pnlr.add(comp);
-		}
+		for (int i = 0; i < comps.length; i++)
+			pnlr.add(comps[i]);
 		rc.add(pnlr, BorderLayout.CENTER);
 		rc.setMaximumSize(new Dimension(4000, UIConfigs.TEXTFIELD_HEIGHT()));
 		rc.setBorder(new CompoundBorder(new EmptyBorder(0, 2, 0, 0), new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER())));
 		return rc;
+	}
+
+	public BPResourceProject getProject()
+	{
+		return m_prjref.get();
 	}
 }

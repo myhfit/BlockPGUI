@@ -5,4 +5,6 @@ import bp.project.BPResourceProject;
 public interface BPProjectOverviewComp<T extends BPResourceProject>
 {
 	void setup(T prj);
+
+	T getProject();
 }

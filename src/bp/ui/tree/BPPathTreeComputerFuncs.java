@@ -29,6 +29,7 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 	protected BPPathTreeNodeActions m_actptree;
 	protected int m_channelid;
 	protected boolean m_skiproot;
+	protected boolean m_selonly;
 
 	public BPPathTreeComputerFuncs()
 	{
@@ -159,14 +160,18 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 				if (resfs.isDirectory())
 				{
 					rc.add(m_actptree.getNewFileAction(tree, res, m_channelid));
+					rc.add(m_actptree.getOpenFileAction(tree, res, m_channelid));
 					rc.add(m_actptree.getOpenFileAsAction(tree, res, m_channelid));
 					rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-					rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
-					rc.add(BPAction.separator());
-					rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
-					rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					if (!m_selonly)
+					{
+						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
+						rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					}
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getRefreshResAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
@@ -179,10 +184,13 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 					rc.add(m_actptree.getOpenFileExternalAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-					rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
-					rc.add(BPAction.separator());
-					rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
-					rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					if (!m_selonly)
+					{
+						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
+						rc.add(BPAction.separator());
+						rc.add(m_actptree.getDeleteResAction(tree, res, m_channelid));
+						rc.add(m_actptree.getRenameResAction(tree, res, m_channelid));
+					}
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
 				}
@@ -215,18 +223,63 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public void onCopy(BPTree tree, BPTreeNode node)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+				m_actptree.getCopyAction((BPTreeComponent<BPTree>) tree, res, m_channelid).actionPerformed(null);
+		}
+	}
+
+	public void onAction(BPTree tree, BPTreeNode node, String extact)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+			{
+				BPAction act = getActionForExt(tree, res, extact);
+				if (act != null)
+					act.actionPerformed(null);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected BPAction getActionForExt(BPTree tree, BPResource res, String extact)
+	{
+		if (extact == null)
+			return null;
+		switch (extact)
+		{
+			case BPTreeActionType.EXT_ACT_PROPERTY:
+				return m_actptree.getPropertyAction((BPTreeComponent<BPTree>) tree, res, m_channelid);
+			case BPTreeActionType.EXT_ACT_RENAME:
+				return m_actptree.getRenameResAction((BPTreeComponent<BPTree>) tree, res, m_channelid);
+		}
+		return null;
+	}
+
+	public boolean isOverwriteCopy()
+	{
+		return true;
+	}
+
 	public boolean canLocatePath()
 	{
 		return true;
 	}
 
-	public void locatePath(BPTreeComponentBase tree, String path)
+	public boolean locatePath(BPTreeComponentBase tree, String path)
 	{
 		List<File> fs = new ArrayList<File>();
 		File fp = new File(path);
-		FileSystemView fsv = FileSystemView.getFileSystemView();
 		if (!fp.exists())
-			return;
+			return false;
+		FileSystemView fsv = FileSystemView.getFileSystemView();
 		{
 			File f;
 			do
@@ -294,26 +347,13 @@ public class BPPathTreeComputerFuncs implements BPPathTreeFuncs
 			TreePath tp2 = new TreePath(tps.toArray());
 			tree.setSelectionPath(tp2);
 			tree.scrollPathToVisible(tp2);
+			return true;
 		}
+		return false;
 	}
 
-	public final static BPPathTreeComputerFuncs OnlySelect()
+	public void setSelectOnly(boolean flag)
 	{
-		return new BPPathTreeComputerFuncs()
-		{
-			public List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)
-			{
-				List<Action> rc = new ArrayList<Action>();
-				if (node != null)
-				{
-					BPResource res = (BPResource) node.getUserObject();
-					if (!res.isLeaf())
-					{
-						rc.add(m_actptree.getNewFileOnlyDirAction(tree, res, m_channelid));
-					}
-				}
-				return rc;
-			}
-		};
+		m_selonly = flag;
 	}
 }

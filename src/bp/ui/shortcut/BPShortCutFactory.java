@@ -21,8 +21,7 @@ public interface BPShortCutFactory
 
 	default BPShortCut makeShortCut(String name, Map<String, Object> params)
 	{
-		String key = (String) params.get("key");
-		BPShortCut rc = createShortCut(key);
+		BPShortCut rc = createShortCut((String) params.get("key"));
 		if (rc != null)
 			rc.setup(name, params);
 		return rc;
@@ -31,10 +30,7 @@ public interface BPShortCutFactory
 	default BPSetting getSetting(String key)
 	{
 		BPShortCut sc = createShortCut(key);
-		BPSetting rc = null;
-		if (sc != null)
-			rc = sc.getSetting();
-		return rc;
+		return sc != null ? sc.getSetting() : null;
 	}
 
 	default boolean canExpand(String key)

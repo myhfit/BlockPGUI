@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
+import bp.BPGUICore;
+
 public class BPDialogSimple extends BPDialogCommon
 {
 	/**
@@ -32,6 +34,11 @@ public class BPDialogSimple extends BPDialogCommon
 
 	protected void initDatas()
 	{
+	}
+	
+	public BPDialogSimple()
+	{
+		super(BPGUICore.getCurrentWindow());
 	}
 
 	public final static int showComponent(Component c, int cmdbarmode, Function<Integer, Boolean> cmdcallback, String title, Component parent)

@@ -20,6 +20,8 @@ public class BPGUILauncher
 
 	public final static void main(String[] args)
 	{
+		if (System.getProperty("java.home") == null)
+			System.setProperty("java.home", ".");
 		File f = new File(".bpenvcfgs");
 		Map<String, String> envs = null;
 		String laststr = null;
@@ -115,10 +117,8 @@ public class BPGUILauncher
 		{
 			BPExtClassLoader cloader = ClassUtil.getExtensionClassLoader();
 			String[] jars = extjarstr.split(",");
-			for (String jar : jars)
-			{
-				cloader.addExtURL("exts/" + jar);
-			}
+			for (int i = 0; i < jars.length; i++)
+				cloader.addExtURL("exts/" + jars[i]);
 		}
 		String[] args = null;
 		if (workspace != null && workspace.length() > 0)

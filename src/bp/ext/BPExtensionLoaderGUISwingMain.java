@@ -5,8 +5,9 @@ import java.util.function.Consumer;
 
 import bp.BPCore;
 import bp.context.BPFileContext;
-import bp.core.BPCommandHandlerGUICore;
+import bp.command.BPCommandHandlerGUICore;
 import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCCGUI;
 import bp.locale.BPLocaleHelperDict;
 import bp.locale.BPLocaleHelperDirect;
 import bp.locale.BPLocaleHelpers;
@@ -39,6 +40,7 @@ public class BPExtensionLoaderGUISwingMain implements BPExtensionLoaderGUISwing
 	{
 		BPCore.addCommandHandler(new BPCommandHandlerGUICore());
 		BPLocaleHelpers.registerHelper(BPLocaleHelperDirect.createHelper(BPLocaleConstCC.class, null, BPLocaleConstCC.PACK_COMPUTER_COMMON, null));
+		BPLocaleHelpers.registerHelper(BPLocaleHelperDirect.createHelper(BPLocaleConstCCGUI.class, null, BPLocaleConstCCGUI.PACK_COMPUTER_COMMONGUI, null));
 		BPLocaleHelpers.registerHelper(new BPLocaleHelperDict.BPLocaleHelperDictClass("java.lang.Object"));
 		BPLocaleHelpers.registerHelper(new BPLocaleHelperDict.BPLocaleHelperDictClass("bp.unit.BPUnits"));
 		BPLocaleHelpers.registerHelper(new BPActionHelperCommon());

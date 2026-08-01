@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -40,6 +39,7 @@ import bp.ui.tree.BPProjectsTreeFuncs;
 import bp.ui.tree.BPTreeComponent;
 import bp.ui.util.EventUtil;
 import bp.ui.util.UIUtil;
+import bp.util.LogicUtil.WeakRefGoPredicate;
 
 public class BPDialogSelectResourceList extends BPDialogCommon
 {
@@ -53,15 +53,11 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 	protected BPList<BPResource> m_lstres;
 	protected int m_channelid;
 	protected BPPathTreeNodeCommonHandler m_ptreehandler;
-	protected WeakReference<Predicate<BPResource>> m_customfilter;
+	protected WeakRefGoPredicate<BPResource> m_customfilter;
 	protected List<BPResource> m_datas;
 	protected List<BPResource> m_result;
 
 	protected final static String RES_ADD = "listres_add";
-
-	public BPDialogSelectResourceList()
-	{
-	}
 
 	public boolean doCallCommonAction(int command)
 	{
@@ -97,7 +93,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 
 	public void setFilter(Predicate<BPResource> filter)
 	{
-		m_customfilter = new WeakReference<Predicate<BPResource>>(filter);
+		m_customfilter.setTarget(filter);
 		m_ptree.refreshContextPath();
 	}
 
@@ -120,9 +116,10 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 
 	protected void initUIComponents()
 	{
+		m_customfilter = new WeakRefGoPredicate<BPResource>(null);
 		JPanel mainp = new JPanel();
 		m_lstres = new BPList<BPResource>();
-		m_lstres.setCellRenderer(new BPList.BPListRenderer(this::onRenderResource));
+		m_lstres.setCellRenderer(new BPList.BPListRendererT<>(BPResourceFileSystem::getFileFullName));
 		m_lstres.setMonoFont();
 		m_ptree = new BPPathTreePanel();
 		m_ptree.setEventChannelID(m_channelid);
@@ -166,11 +163,6 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 		setModal(true);
 	}
 
-	protected String onRenderResource(Object res)
-	{
-		return ((BPResourceFileSystem) res).getFileFullName();
-	}
-
 	public void setTreeFuncs(BPPathTreeFuncs funcs)
 	{
 		m_ptree.setPathTreeFuncs(funcs);
@@ -195,15 +187,7 @@ public class BPDialogSelectResourceList extends BPDialogCommon
 
 	protected boolean filterTreeItem(Object obj)
 	{
-		BPResource res = (BPResource) obj;
-		WeakReference<Predicate<BPResource>> filterref = m_customfilter;
-		if (filterref != null)
-		{
-			Predicate<BPResource> filter = filterref.get();
-			if (filter != null)
-				return filter.test(res);
-		}
-		return true;
+		return m_customfilter.test((BPResource) obj, true);
 	}
 
 	protected void onDelete(ActionEvent e)

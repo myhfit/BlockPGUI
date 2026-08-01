@@ -21,6 +21,7 @@ public class BPInputHotkey extends BPTextField implements KeyListener
 
 	public void keyPressed(KeyEvent e)
 	{
+		e.consume();
 		char c = (char) KeyEvent.getExtendedKeyCodeForChar(e.getKeyCode());
 		String m = KeyEvent.getKeyModifiersText(e.getModifiers());
 		setText((m != null && m.length() > 0 ? (m + "+") : "") + ((c == 0 || c == Character.MAX_VALUE) ? "" : c));

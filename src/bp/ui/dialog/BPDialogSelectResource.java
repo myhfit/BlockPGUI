@@ -36,6 +36,11 @@ public interface BPDialogSelectResource
 		FILE, DIR, ALL
 	}
 
+	public static enum SELECTMODE
+	{
+		OPEN, SAVE
+	}
+
 	public static enum SELECTSCOPE
 	{
 		WORKSPACE, PROJECT, COMPUTER, SPECIAL

@@ -8,6 +8,8 @@ import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.AffineTransform;
@@ -23,7 +25,7 @@ import bp.ui.res.icon.BPVIcon;
 import bp.ui.util.UIUtil;
 import bp.ui.util.UIUtil.ActionRunnable;
 
-public class BPToolVIconButton extends JComponent implements MouseListener,FocusListener
+public class BPToolVIconButton extends JComponent implements MouseListener, KeyListener, FocusListener
 {
 	/**
 	 * 
@@ -46,29 +48,18 @@ public class BPToolVIconButton extends JComponent implements MouseListener,Focus
 
 	public BPToolVIconButton(Action action, JComponent accparent)
 	{
-		this((BPVIcon) action.getValue("VICON"), (e) ->
-		{
-			action.actionPerformed(e);
-		});
+		this((BPVIcon) action.getValue("VICON"), action::actionPerformed);
 		setFocusable(true);
 		addFocusListener(this);
 		m_actcmd = (String) action.getValue(Action.ACTION_COMMAND_KEY);
-		{
-			Boolean v = (Boolean) action.getValue(Action.SELECTED_KEY);
-			setSelected((v == null) ? false : v);
-		}
+		setSelected(Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY)));
 		String tooltip = (String) action.getValue(Action.SHORT_DESCRIPTION);
 		setEnabled(action.isEnabled());
 		action.addPropertyChangeListener(this::onPropChanged);
 		m_act = new ActionRunnable(action);
 		KeyStroke ks = (KeyStroke) action.getValue(Action.ACCELERATOR_KEY);
 		if (ks != null)
-		{
-			if (accparent != null)
-				accparent.registerKeyboardAction(action, (KeyStroke) action.getValue(Action.ACCELERATOR_KEY), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-			else
-				registerKeyboardAction(action, (KeyStroke) action.getValue(Action.ACCELERATOR_KEY), JComponent.WHEN_IN_FOCUSED_WINDOW);
-		}
+			(accparent != null ? accparent : this).registerKeyboardAction(action, (KeyStroke) action.getValue(Action.ACCELERATOR_KEY), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		if (tooltip != null)
 		{
 			if (ks != null && !tooltip.endsWith(")"))
@@ -84,6 +75,7 @@ public class BPToolVIconButton extends JComponent implements MouseListener,Focus
 		m_icon = icon;
 		m_act = act;
 		addMouseListener(this);
+		addKeyListener(this);
 		setButtonSize(UIConfigs.BUTTON_SIZE());
 	}
 
@@ -101,8 +93,8 @@ public class BPToolVIconButton extends JComponent implements MouseListener,Focus
 
 	public void mousePressed(MouseEvent e)
 	{
-		m_act.accept(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null, EventQueue.getMostRecentEventTime(), 0));
 		requestFocus();
+		m_act.accept(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, m_actcmd, EventQueue.getMostRecentEventTime(), 0));
 		repaint();
 	}
 
@@ -115,6 +107,20 @@ public class BPToolVIconButton extends JComponent implements MouseListener,Focus
 	}
 
 	public void mouseExited(MouseEvent e)
+	{
+	}
+
+	public void keyTyped(KeyEvent e)
+	{
+	}
+
+	public void keyPressed(KeyEvent e)
+	{
+		if (e.getKeyCode() == KeyEvent.VK_SPACE && e.getModifiers() == 0)
+			m_act.accept(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, m_actcmd, EventQueue.getMostRecentEventTime(), 0));
+	}
+
+	public void keyReleased(KeyEvent e)
 	{
 	}
 

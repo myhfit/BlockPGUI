@@ -75,6 +75,7 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, TXT_SHOW, "Show", null, null, null, null);
 		putAction(actmap, TXT_LOADING, "Loading", null, null, null, null);
 		putAction(actmap, TXT_GOTOLINE, "Goto line", null, null, null, null);
+		putAction(actmap, TXT_CONFIRM_DEL_TASK, "Delete Task", null, null, null, null);
 		
 		putAction(actmap, TXT_ACT_SELMORE, "Select...", null, null, null, "S");
 		
@@ -153,22 +154,27 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNRUN, "run", "Run", BPIconResV::START, null, null);
 		putAction(actmap, ACT_BTNRUN_ACC, null, null, null, "F5", null);
 		putAction(actmap, ACT_BTNADD, "add", "Add", BPIconResV::ADD, null, null);
+		putAction(actmap, ACT_BTNADD_CREATE_ACC, null, null, null, "ctrl N", null);
 		putAction(actmap, ACT_BTNADD_ADDTF, "addtf", "Add Transformer", null, null, null);
 		putAction(actmap, ACT_BTNADD_ADDEP, "addep", "Add Endpoint", null, null, null);
 		putAction(actmap, ACT_BTNADD_CREATEEDITOR, "create", "Create Editor", null, null, null);
 		putAction(actmap, ACT_BTNADD_NEWLINE, "newline", "New Line", null, null, null);
-		putAction(actmap, ACT_BTNADD_INSERT, "insert", "Insert", null, null, null);
+		putAction(actmap, ACT_BTNINSERT, "insert", "Insert", BPIconResV::ADD, null, null);
+		putAction(actmap, ACT_BTNINSERT_ACC, null, null, null, "ctrl I", null);
 		putAction(actmap, ACT_BTNADD_PUSH, "push", "Push", null, null, null);
 		putAction(actmap, ACT_BTNADDLINK, "add link", "Add Link", BPIconResV::RELATION, null, null);
 		putAction(actmap, ACT_BTNCONFIG, "config", "Config", BPIconResV::EDIT, null, null);
 		putAction(actmap, ACT_BTNSETTINGS, "settings", "Settings", BPIconResV::EDIT, null, null);
 		putAction(actmap, ACT_BTNUP, "moveup", "Move Up", BPIconResV::TOUP, null, null);
+		putAction(actmap, ACT_BTNUP_ACC, null, null, null, "alt UP", null);
 		putAction(actmap, ACT_BTNUP_BACK, "back", "Back", null, null, null);
 		putAction(actmap, ACT_BTNDOWN, "movedown", "Move Down", BPIconResV::TODOWN, null, null);
+		putAction(actmap, ACT_BTNDOWN_ACC, null, null, null, "alt DOWN", null);
 		putAction(actmap, ACT_BTNLAYOUT, "layout", "Layout", BPIconResV::LAYOUT, null, null);
 		putAction(actmap, ACT_BTNOPEN, "open", "Open", BPIconResV::OPEN, null, null);
 		putAction(actmap, ACT_BTNOPEN_ACC, null, null, null, "ctrl O", null);
 		putAction(actmap, ACT_BTNEDIT, "edit", "Edit", BPIconResV::EDIT, null, null);
+		putAction(actmap, ACT_BTNEDIT_ACC, null, null, null, "alt ENTER", null);
 		putAction(actmap, ACT_BTNEDIT_KV, "editkv", "Edit KV", null, null, null);
 		putAction(actmap, ACT_BTNEDIT_XY, "editxy", "Edit XY", null, null, null);
 		putAction(actmap, ACT_BTNEDIT_GRABKEYS, "grabkeys", "Grab Keys", null, null, null);
@@ -187,10 +193,14 @@ public class BPActionHelperCommon extends BPActionHelperBase<BPActionConstCommon
 		putAction(actmap, ACT_BTNDEL_POP, "pop", "Pop", null, null, null);
 		putAction(actmap, ACT_BTNCLONE, "clone", "Clone", BPIconResV::CLONE, null, null);
 		putAction(actmap, ACT_BTNCLOSE, "Close", "Close", null, null, null);
+		putAction(actmap, ACT_BTNSEL, "select", "Select", BPIconResV::MORE, null, null);
+		putAction(actmap, ACT_BTNCLEAR, "clear", "Clear", null, null, null);
+		
 
 		putAction(actmap, ACT_BTNSTART, "start", "Start", BPIconResV::START, null, null);
 		putAction(actmap, ACT_BTNSTART_ACC, null, null, null, "F5", null);
 		putAction(actmap, ACT_BTNSTOP, "stop", "Stop", BPIconResV::STOP, null, null);
+		putAction(actmap, ACT_BTNSTOP_ACC, null, null, null, "F6", null);
 
 		putAction(actmap, ACT_BTNENABLE, "enable", "Enable", BPIconResV::START, null, null);
 		putAction(actmap, ACT_BTNDISABLE, "disable", "Disable", BPIconResV::STOP, null, null);

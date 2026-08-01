@@ -16,13 +16,19 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import bp.BPCore;
 import bp.config.BPSetting;
+import bp.config.UIConfigs;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleHelpers;
 import bp.task.BPTask;
+import bp.task.BPTaskFactory;
 import bp.task.BPTaskManager;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
@@ -31,10 +37,11 @@ import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.dialog.BPDialogSetting;
+import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPProgressBar;
 import bp.ui.scomp.BPTable;
+import bp.ui.scomp.BPTable.BPTableColumnModel;
 import bp.ui.scomp.BPTable.BPTableModel;
-import bp.ui.scomp.BPToolVIconButton;
 import bp.ui.table.BPTableFuncsTask;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
@@ -56,6 +63,7 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 	protected Consumer<BPEventCoreUI> m_changedhandler;
 
 	protected Color m_pgselcolor;
+	protected BPTableCellRendererTask m_taskrenderer;
 
 	public BPTasksUI()
 	{
@@ -84,7 +92,8 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 
 	protected void initUI()
 	{
-		m_tabtasks = new BPTable<BPTask<?>>(new BPTableFuncsTask());
+		BPTableFuncsTask tf = new BPTableFuncsTask();
+		m_tabtasks = new BPTable<BPTask<?>>(tf);
 		m_toolbar = new BPToolBarSQ(true);
 		m_model = m_tabtasks.getBPTableModel();
 		JScrollPane sp = new JScrollPane();
@@ -92,57 +101,78 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 		sp.setBorder(new EmptyBorder(0, 0, 0, 0));
 		m_tabtasks.setTableFont();
 		m_pgselcolor = UIManager.getColor("Table.selectionBackground");
-	
-		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
-		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
-		BPAction actstart = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSTART, BPActionConstCommon.ACT_BTNSTART_ACC, this::onStart);
-		BPAction actstop = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTOP, this::onStop);
-		BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit);
-		BPAction actmoveup = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp);
-		BPAction actmovedown = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown);
+		m_taskrenderer = new BPTableCellRendererTask();
 
-		List<Action> acts=new ArrayList<>();
+		{
+			BPAction actadd = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_CREATE_ACC, this::onAdd);
+			BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
+			BPAction actstart = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSTART, BPActionConstCommon.ACT_BTNSTART_ACC, this::onStart);
+			BPAction actstop = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNSTOP, BPActionConstCommon.ACT_BTNSTOP_ACC, this::onStop);
+			BPAction actedit = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_ACC, this::onEdit);
+			BPAction actmoveup = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNUP, BPActionConstCommon.ACT_BTNUP_ACC, this::onMoveUp);
+			BPAction actmovedown = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDOWN, BPActionConstCommon.ACT_BTNDOWN_ACC, this::onMoveDown);
 
-		m_tabtasks.setModel(m_model);
-		m_tabtasks.setDefaultRenderer(Float.class, new BPTable.BPTableRendererReplace(this::getCellComponent));
-		if (canModify())
-		{
-			acts.add(BPAction.separator());
-			acts.add(actadd);
-			acts.add(actdel);
-			acts.add(actedit);
-			acts.add(BPAction.separator());
-			acts.add(actstart);
+			List<Action> acts = new ArrayList<>();
+
+			m_tabtasks.setModel(m_model);
+			m_tabtasks.setDefaultRenderer(String.class, m_taskrenderer);
+			m_tabtasks.setDefaultRenderer(Float.class, m_taskrenderer);
+			m_tabtasks.setDefaultRenderer(BPTask.class, m_taskrenderer);
+			{
+				BPTableColumnModel tcm = m_tabtasks.getBPColumnModel();
+				tcm.getColumnBuilder(1).setPreferredWidth(80).setMaxWidth(80).setMinWidth(80);
+			}
+			if (canModify())
+			{
+				acts.add(BPAction.separator());
+				acts.add(actadd);
+				acts.add(actdel);
+				acts.add(actedit);
+				acts.add(BPAction.separator());
+				acts.add(actstart);
+			}
+			acts.add(actstop);
+			if (canModify())
+			{
+				acts.add(BPAction.separator());
+				acts.add(actmoveup);
+				acts.add(actmovedown);
+			}
+			m_toolbar.setBorderVertical(0);
+			m_toolbar.setMaxScrollSize();
+			m_toolbar.setActions(acts.toArray(new Action[acts.size()]), this);
 		}
-		acts.add(actstop);
-		if (canModify())
+
 		{
-			acts.add(BPAction.separator());
-			acts.add(actmoveup);
-			acts.add(actmovedown);
+			BPAction ctxstart = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTART, this::onStart);
+			BPAction ctxstop = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTOP, this::onStop);
+			BPAction ctxdel = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUDEL, this::onDel);
+			BPAction ctxedit = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUEDIT, this::onEdit);
+			BPAction.batchSetNameFromTooltip(ctxstart, ctxstop);
+			List<Action> acts = new ArrayList<>();
+			if (canModify())
+			{
+				acts.add(ctxstart);
+			}
+			acts.add(ctxstop);
+			if (canModify())
+			{
+				acts.add(BPAction.separator());
+				acts.add(ctxdel);
+				acts.add(BPAction.separator());
+				acts.add(ctxedit);
+			}
+			tf.setCustomActions(acts);
 		}
-		m_toolbar.setBorderVertical(0);
-		m_toolbar.setMaxScrollSize();
-		m_toolbar.setActions(acts.toArray(new Action[acts.size()]), this);
 
 		setLayout(new BorderLayout());
 		add(sp, BorderLayout.CENTER);
 		add(m_toolbar, BorderLayout.WEST);
 	}
 
-	protected void setupButtons(int btnsize, BPToolVIconButton... btns)
-	{
-		for (BPToolVIconButton btn : btns)
-		{
-			btn.setButtonSize(btnsize);
-		}
-	}
-
 	protected void initDatas()
 	{
-		List<BPTask<?>> datas = new ArrayList<BPTask<?>>();
-		datas.addAll(listTasks());
-		m_model.setDatas(datas);
+		m_model.setDatas(new ArrayList<BPTask<?>>(listTasks()));
 		m_model.fireTableDataChanged();
 	}
 
@@ -158,62 +188,20 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 
 	protected void onAdd(ActionEvent e)
 	{
-		CommonUIOperations.showNewTask();
-	}
-
-	protected Component getCellComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
-	{
-		Component rc = null;
-		if (value != null && col == 2)
-		{
-			if (!(value instanceof Number))
-				Std.info((String) value);
-			BPProgressBar pbar = new BPProgressBar();
-			pbar.setMaximum(1000);
-			pbar.setFont(table.getFont());
-			pbar.setSelectedBackgroundColor(m_pgselcolor);
-			pbar.setSelectedBackground(isSelected);
-			if (!(value instanceof Number))
-				Std.info((String) value);
-			float v = ((Number) value).floatValue();
-			int v2 = (int) Math.floor(v * 1000f);
-			String pstr = m_model.getRow(row).getProgressText();
-			if (pstr == null)
-			{
-				String vstr = NumberUtil.formatPercent(v);
-				pbar.setString(vstr);
-			}
-			else
-			{
-				pbar.setString(pstr);
-			}
-			pbar.setValue(v2);
-			pbar.setStringPainted(true);
-			rc = pbar;
-		}
-		return rc;
+		BPTask<?> task = CommonUIOperations.showCreate(BPTaskFactory.class);
+		if (task != null)
+			BPCore.addTask(task);
 	}
 
 	protected void onDel(ActionEvent e)
 	{
 		List<BPTask<?>> tasks = m_tabtasks.getSelectedDatas();
-		stopTasks(tasks);
-		removeTasks(tasks);
-	}
-
-	protected void stopTasks(List<BPTask<?>> tasks)
-	{
-		for (BPTask<?> task : tasks)
+		if (tasks != null && tasks.size() > 0 && UIStd.confirm(this.getTopLevelAncestor(), null, BPActionConstCommon.TXT_CONFIRM_DEL_TASK.text() + "?"))
 		{
-			task.stop();
-		}
-	}
-
-	protected void removeTasks(List<BPTask<?>> tasks)
-	{
-		for (BPTask<?> task : tasks)
-		{
-			BPCore.removeTask(task);
+			for (BPTask<?> task : tasks)
+				task.stop();
+			for (BPTask<?> task : tasks)
+				BPCore.removeTask(task);
 		}
 	}
 
@@ -302,7 +290,7 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 			{
 				BPDialogForm dlg = new BPDialogForm();
 				dlg.setEditable(!isrun);
-				dlg.setup(task.getClass(),null, task);
+				dlg.setup(task.getClass(), null, task);
 				dlg.setTitle(UIUtil.wrapBPTitle(BPActionConstCommon.TXT_TASK) + ":" + task.getName());
 				dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(700, 600)));
 				dlg.pack();
@@ -340,17 +328,106 @@ public class BPTasksUI extends JPanel implements BPComponent<JPanel>
 	private void onTaskStatusChanged(BPEventCoreUI event)
 	{
 		BPTask<?> task = (BPTask<?>) event.datas[0];
-		List<BPTask<?>> tasks = m_model.getDatas();
-		int i = tasks.indexOf(task);
+		int i = m_model.getDatas().indexOf(task);
 		if (i > -1)
 		{
-			m_model.fireTableCellUpdated(m_model.getDatas().indexOf(task), 1);
-			m_model.fireTableCellUpdated(m_model.getDatas().indexOf(task), 2);
+			m_model.fireTableCellUpdated(i, 1);
+			m_model.fireTableCellUpdated(i, 2);
 		}
 	}
 
 	private void onTaskChanged(BPEventCoreUI event)
 	{
 		initDatas();
+	}
+
+	public static class BPTableCellRendererTask extends DefaultTableCellRenderer
+	{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 242433924056354449L;
+
+		protected Color m_pgselcolor;
+		protected Color m_pgcolor;
+		protected Color m_hfcolor;
+
+		protected JPanel m_pnl;
+		protected BPLabel m_lbl1;
+		protected BPLabel m_lbl2;
+		
+		public BPTableCellRendererTask()
+		{
+			m_pgselcolor=UIManager.getColor("Table.selectionBackground");
+			m_pgcolor=UIManager.getColor("Table.background");
+			m_pnl = new JPanel();
+			m_lbl1 = new BPLabel();
+			m_lbl2 = new BPLabel();
+			m_lbl1.setPreferredSize(new Dimension(120,0));
+			m_lbl1.setBorder(new CompoundBorder(new EmptyBorder(0, 2, 0, 2), new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER())));
+			m_lbl1.setForeground(UIConfigs.COLOR_TEXTHALF());
+			m_lbl1.setLabelFont();
+			m_lbl2.setLabelFont();
+			m_pnl.setLayout(new BorderLayout());
+			m_pnl.add(m_lbl1, BorderLayout.WEST);
+			m_pnl.add(m_lbl2, BorderLayout.CENTER);
+		}
+
+		@SuppressWarnings("unchecked")
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean issel, boolean isfocus, int row, int col)
+		{
+			if (value != null)
+			{
+				if (col == 0)
+				{
+					BPTask<?> task = (BPTask<?>) value;
+					m_lbl1.setText(BPLocaleHelpers.translateByClass(BPTask.class, task.getTaskName()));
+					m_lbl2.setText(task.getName());
+					m_pnl.setBackground(issel ? m_pgselcolor : m_pgcolor);
+					if (issel)
+					{
+						if (m_hfcolor == null)
+							m_hfcolor = UIUtil.mix(UIConfigs.COLOR_TEXTHALF(), table.getSelectionForeground(), 255);
+						m_lbl1.setForeground(m_hfcolor);
+						m_lbl2.setForeground(table.getSelectionForeground());
+					}
+					else
+					{
+						m_lbl1.setForeground(UIConfigs.COLOR_TEXTHALF());
+						m_lbl2.setForeground(table.getForeground());
+					}
+					return m_pnl;
+				}
+				else if (col == 1)
+				{
+					super.getTableCellRendererComponent(table, value, issel, isfocus, row, col);
+					setHorizontalAlignment(CENTER);
+					return this;
+				}
+				else if (col == 2)
+				{
+					if (!(value instanceof Number))
+						Std.info((String) value);
+					BPProgressBar pbar = new BPProgressBar();
+					pbar.setMaximum(1000);
+					pbar.setFont(table.getFont());
+					pbar.setSelectedBackgroundColor(m_pgselcolor);
+					pbar.setSelectedBackground(issel);
+					if (!(value instanceof Number))
+						Std.info((String) value);
+					float v = ((Number) value).floatValue();
+					int v2 = (int) Math.floor(v * 1000f);
+					BPTableModel<BPTask<?>> model = ((BPTable<BPTask<?>>) table).getBPTableModel();
+					String pstr = model.getRow(row).getProgressText();
+					if (pstr == null)
+						pstr = NumberUtil.formatPercent(v);
+					pbar.setString(pstr);
+					pbar.setValue(v2);
+					pbar.setStringPainted(true);
+					return pbar;
+				}
+			}
+			return super.getTableCellRendererComponent(table, value, issel, isfocus, row, col);
+		}
 	}
 }

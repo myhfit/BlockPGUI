@@ -3,7 +3,6 @@ package bp.ui.editor;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.swing.Action;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -36,13 +34,13 @@ import bp.res.BPResource;
 import bp.transform.BPTransformer;
 import bp.transform.BPTransformerFactory;
 import bp.transform.BPTransformerManager;
+import bp.typeext.Nameable;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogSetting;
-import bp.ui.editor.controller.BPEditorController;
 import bp.ui.scomp.BPDiagramComponent;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
@@ -53,16 +51,13 @@ import bp.util.ClassUtil;
 import bp.util.DiagramUtil;
 import bp.util.ObjUtil;
 
-public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPMContainer<BPDataPipes>>
+public class BPDataPipesPanel extends BPAbstractEditorPanel implements BPViewer<BPMContainer<BPDataPipes>>
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -6062356793841361L;
 
-	protected boolean m_needsave;
-	protected String m_id;
-	protected int m_channelid;
 	protected BPMContainer<BPDataPipes> m_con;
 	protected JScrollPane m_scroll;
 	protected JScrollPane m_scroll1;
@@ -87,12 +82,8 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 
 	protected boolean m_blockloopselect = false;
 
-	protected WeakReference<BiConsumer<String, Boolean>> m_statehandler;
-	protected BPEditorController m_ec;
-
 	public BPDataPipesPanel()
 	{
-		m_ec = new BPEditorController(this);
 		init();
 		initBPActions();
 	}
@@ -109,7 +100,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_scroll1 = new JScrollPane();
 		m_toolbar = new BPToolBarSQ(true);
 		m_lstcons = new BPList<BPDataConsumer<?>>();
-		m_lstcons.setCellRenderer(new BPList.BPListRenderer(obj -> ((BPDataConsumer<?>) obj).getID() + ":" + ((BPDataConsumer<?>) obj).getInfo()));
+		m_lstcons.setCellRenderer(new BPList.BPListRendererT<BPDataConsumer<?>>(obj -> obj.getID() + ":" + obj.getInfo()));
 		m_actrun = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNRUN, this::onRunPipe);
 		m_actaddtf = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_ADDTF, this::onCreateTransformer);
 		m_actaddep = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_ADDEP, this::onCreateEndpoint);
@@ -168,10 +159,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			}
 			selitems = new int[selcs.size()];
 			for (int i = 0; i < selcs.size(); i++)
-			{
-				BPDataConsumer<?> selc = selcs.get(i);
-				selitems[i] = m_dps.getRawChildren().indexOf(selc);
-			}
+				selitems[i] = m_dps.getRawChildren().indexOf(selcs.get(i));
 		}
 		if (selitems != null)
 		{
@@ -197,11 +185,6 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 	public BPComponentType getComponentType()
 	{
 		return BPComponentType.CUSTOMCOMP;
-	}
-
-	public JPanel getComponent()
-	{
-		return this;
 	}
 
 	public void bind(BPMContainer<BPDataPipes> con, boolean noread)
@@ -251,19 +234,13 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		m_idgen.setValue(maxid + 1);
 
 		for (BPDataConsumer<?> c : chs)
-		{
 			addNodeToDiagram(c, d);
-		}
 		return d;
 	}
 
 	public BPMContainer<BPDataPipes> getDataContainer()
 	{
 		return m_con;
-	}
-
-	public void focusEditor()
-	{
 	}
 
 	public String getEditorInfo()
@@ -318,8 +295,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 					ele.measuresize = null;
 					m_dcomp.refresh();
 				}
-				m_needsave = true;
-				dispatchStateChanged();
+				changeNeedSave(true);
 			}
 		}
 	}
@@ -341,9 +317,9 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		List<BPDataConsumer<?>> cons = m_lstcons.getSelectedValuesList();
 		Map<BPDataConsumer<?>, String> rccmap = m_rccmap;
 		List<String> keys = new ArrayList<String>();
-		for (BPDataConsumer<?> con : cons)
+		for (int i = 0; i < cons.size(); i++)
 		{
-			String key = rccmap.get(con);
+			String key = rccmap.get(cons.get(i));
 			if (key != null)
 			{
 				if (!keys.contains(key))
@@ -376,14 +352,13 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 	{
 		addNodeToDiagram(c, m_dcomp.getDiagram());
 		m_dcomp.refresh();
-		m_needsave = true;
-		dispatchStateChanged();
+		changeNeedSave(true);
 	}
 
 	protected void onCreateTransformer(ActionEvent e)
 	{
 		List<BPTransformerFactory> facs = BPTransformerManager.getTransformerFacs(null);
-		BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), obj -> ((BPTransformerFactory) obj).getName());
+		BPTransformerFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TF), Nameable.nameTranslator(BPDataConsumer.class, "FAC_"));
 		if (fac != null)
 		{
 			List<String> fts = new ArrayList<String>(fac.getFunctionTypes());
@@ -411,7 +386,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 		List<BPDataEndpointFactory> facs = new ArrayList<BPDataEndpointFactory>();
 		for (BPDataEndpointFactory fac : loader)
 			facs.add(fac);
-		BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), obj -> ((BPDataEndpointFactory) obj).getName());
+		BPDataEndpointFactory fac = UIStd.select(facs, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_ENDPOINT), Nameable.nameTranslator(BPDataConsumer.class, "FAC_"));
 		if (fac != null)
 		{
 			List<String> fts = fac.getSupportedFormats();
@@ -461,8 +436,7 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			}
 		}
 		m_dcomp.deleteElements(delkeys);
-		m_needsave = true;
-		dispatchStateChanged();
+		changeNeedSave(true);
 	}
 
 	public void save()
@@ -474,64 +448,15 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			con.writeMData(m_dps, true);
 			con.close();
 		}
-		m_needsave = false;
-		dispatchStateChanged();
+		changeNeedSave(false);
 	}
 
 	public void reloadData()
 	{
 	}
 
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
-	}
-
-	public void setID(String id)
-	{
-		m_id = id;
-	}
-
-	public String getID()
-	{
-		return m_id;
-	}
-
-	public void setChannelID(int channelid)
-	{
-		m_channelid = channelid;
-	}
-
-	public int getChannelID()
-	{
-		return m_channelid;
-	}
-
 	public void setOnDynamicInfo(Consumer<String> info)
 	{
-	}
-
-	public void setOnStateChanged(BiConsumer<String, Boolean> handler)
-	{
-		m_statehandler = new WeakReference<BiConsumer<String, Boolean>>(handler);
-	}
-
-	public void dispatchStateChanged()
-	{
-		WeakReference<BiConsumer<String, Boolean>> ref = m_statehandler;
-		if (ref != null)
-		{
-			BiConsumer<String, Boolean> handler = ref.get();
-			if (handler != null)
-			{
-				handler.accept(m_id, m_needsave);
-			}
-		}
 	}
 
 	public BPDataContainer createDataContainer(BPResource res)
@@ -548,10 +473,5 @@ public class BPDataPipesPanel extends JPanel implements BPEditor<JPanel>, BPView
 			con.bind(res);
 			return con;
 		}
-	}
-
-	public BPEditorController getEditorController()
-	{
-		return m_ec;
 	}
 }

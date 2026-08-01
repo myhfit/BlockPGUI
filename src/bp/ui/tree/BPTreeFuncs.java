@@ -32,42 +32,42 @@ public interface BPTreeFuncs
 	{
 		BPTreeActionEventHandler h = getTreeActionHandler();
 		if (h != null)
-			h.onTreeEvent(BPTreeActionType.SELECT, tree, node);
+			h.onTreeEvent(BPTreeActionType.SELECT, tree, node, null);
 	}
 
 	default void onOpen(BPTree tree, BPTreeNode node)
 	{
 		BPTreeActionEventHandler h = getTreeActionHandler();
 		if (h != null)
-			h.onTreeEvent(BPTreeActionType.OPEN, tree, node);
+			h.onTreeEvent(BPTreeActionType.OPEN, tree, node, null);
 	}
 
 	default void onDelete(BPTree tree, BPTreeNode node)
 	{
 		BPTreeActionEventHandler h = getTreeActionHandler();
 		if (h != null)
-			h.onTreeEvent(BPTreeActionType.DELETE, tree, node);
+			h.onTreeEvent(BPTreeActionType.DELETE, tree, node, null);
 	}
-	
+
 	default void onPaste(BPTree tree, BPTreeNode node)
 	{
 		BPTreeActionEventHandler h = getTreeActionHandler();
 		if (h != null)
-			h.onTreeEvent(BPTreeActionType.PASTE, tree, node);
+			h.onTreeEvent(BPTreeActionType.PASTE, tree, node, null);
 	}
-	
+
 	default void onCopy(BPTree tree, BPTreeNode node)
 	{
 		BPTreeActionEventHandler h = getTreeActionHandler();
 		if (h != null)
-			h.onTreeEvent(BPTreeActionType.COPY, tree, node);
+			h.onTreeEvent(BPTreeActionType.COPY, tree, node, null);
 	}
-	
-	default void onRename(BPTree tree, BPTreeNode node)
+
+	default void onAction(BPTree tree, BPTreeNode node, String extact)
 	{
 		BPTreeActionEventHandler h = getTreeActionHandler();
 		if (h != null)
-			h.onTreeEvent(BPTreeActionType.RENAME, tree, node);
+			h.onTreeEvent(BPTreeActionType.EXT, tree, node, extact);
 	}
 
 	default void setTreeFilter(Predicate<?> filter)
@@ -97,7 +97,7 @@ public interface BPTreeFuncs
 	{
 		return null;
 	}
-	
+
 	default void clearResource()
 	{
 
@@ -110,12 +110,15 @@ public interface BPTreeFuncs
 
 	public static interface BPTreeActionEventHandler
 	{
-		void onTreeEvent(BPTreeActionType actiontype, BPTree tree, BPTreeNode node);
+		void onTreeEvent(BPTreeActionType actiontype, BPTree tree, BPTreeNode node, String extact);
 	}
 
 	public static enum BPTreeActionType
 	{
-		SELECT, OPEN, DELETE, COPY, PASTE, RENAME
+		SELECT, OPEN, DELETE, COPY, PASTE, EXT;
+
+		public final static String EXT_ACT_RENAME = "rename";
+		public final static String EXT_ACT_PROPERTY = "property";
 	}
 
 	public final static class BPTreeFuncsVoid implements BPTreeFuncs

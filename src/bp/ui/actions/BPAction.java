@@ -56,11 +56,17 @@ public class BPAction extends AbstractAction
 	{
 		return new BPActionBuilder(new BPAction("")).separator().getAction();
 	}
-	
+
 	public final static void batchSetCommand(Object... kvs)
 	{
 		for (int i = 0; i < kvs.length; i += 2)
 			((Action) kvs[i]).putValue(BPAction.ACTION_COMMAND_KEY, kvs[i + 1]);
+	}
+
+	public final static void batchSetNameFromTooltip(BPAction... acts)
+	{
+		for (BPAction act : acts)
+			act.putValue(Action.NAME, act.getValue(Action.SHORT_DESCRIPTION));
 	}
 
 	public final static class BPActionBuilder

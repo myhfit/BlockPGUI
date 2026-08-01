@@ -12,6 +12,7 @@ import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
 import bp.ui.res.icon.BPIconResV;
+import bp.ui.scomp.BPTable.BPTableModel;
 
 public class BPFormPanelMapOrdered extends BPFormPanelMap
 {
@@ -28,10 +29,10 @@ public class BPFormPanelMapOrdered extends BPFormPanelMap
 	protected List<Action> makeToolBarActions()
 	{
 		List<Action> rc = super.makeToolBarActions();
-		BPAction actadd2 = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_INSERT, this::onInsert, b -> b.vIcon(BPIconResV.TORIGHT()));
+		BPAction actinsert = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNINSERT, BPActionConstCommon.ACT_BTNINSERT_ACC, this::onInsert, b -> b.vIcon(BPIconResV.TORIGHT()));
 		BPAction actup = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNUP, this::onMoveUp);
 		BPAction actdown = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDOWN, this::onMoveDown);
-		rc.add(0, actadd2);
+		rc.add(0, actinsert);
 		rc.add(BPAction.separator());
 		rc.add(BPAction.separator());
 		rc.add(actup);
@@ -48,8 +49,14 @@ public class BPFormPanelMapOrdered extends BPFormPanelMap
 			onAdd(e);
 			return;
 		}
-		m_tabkvs.getBPTableModel().getDatas().add(si, new KV());
-		m_tabkvs.getBPTableModel().fireTableDataChanged();
+		BPTableModel<KV> m = m_tabkvs.getBPTableModel();
+		List<KV> kvs = m.getDatas();
+		kvs.add(si, new KV());
+		m.fireTableDataChanged();
+		int r = m_tabkvs.convertRowIndexToView(si);
+		m_tabkvs.getSelectionModel().setSelectionInterval(r, r);
+		m_tabkvs.scrollTo(r, 0);
+		m_tabkvs.requestFocus();
 	}
 
 	protected void onMoveUp(ActionEvent e)

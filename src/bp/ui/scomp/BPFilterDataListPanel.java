@@ -90,7 +90,7 @@ public class BPFilterDataListPanel<DATA> extends JPanel implements BPFilterCompo
 		m_txtrule.setLabelFont();
 		pantop2.setBackground(UIConfigs.COLOR_TEXTBG());
 		m_pansetting.setBackground(UIConfigs.COLOR_TEXTBG());
-		m_cmbfilters.setRenderer(new BPList.BPListRenderer(this::getFilterName));
+		m_cmbfilters.setRenderer(new BPList.BPListRendererT<>(this::getFilterName));
 		m_cmbfilters.setModel(new BPComboBox.BPComboBoxModel<>());
 		m_cmbfilters.getBPModel().setDatas(m_filterrefs);
 		m_cmbfilters.replaceWBorder();
@@ -180,7 +180,12 @@ public class BPFilterDataListPanel<DATA> extends JPanel implements BPFilterCompo
 		{
 			DATA d = m_lstresults.getSelectedValue();
 			JComponent comp0 = m_pandetail.getComponentCount() > 0 ? (JComponent) m_pandetail.getComponent(0) : null;
-			JComponent comp = m_dbuicbref.exec(cb -> cb.apply(d, comp0));
+			JComponent comp = null;
+			{
+				BiFunction<DATA, JComponent, JComponent> f = m_dbuicbref.get();
+				if (f != null)
+					comp = f.apply(d, comp0);
+			}
 			m_pandetail.removeAll();
 			if (comp != null)
 			{
@@ -201,7 +206,8 @@ public class BPFilterDataListPanel<DATA> extends JPanel implements BPFilterCompo
 	{
 		if (filter == null)
 			return "";
-		return ((WeakRefGo<BPTransformerRuleFilter<DATA>>) filter).exec(f -> f.getInfo());
+		BPTransformerRuleFilter<DATA> f = ((WeakRefGo<BPTransformerRuleFilter<DATA>>) filter).get();
+		return f != null ? f.getInfo() : null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -302,7 +308,7 @@ public class BPFilterDataListPanel<DATA> extends JPanel implements BPFilterCompo
 		for (WeakRefGo<BPTransformerRuleFilter<DATA>> fref : m_filterrefs)
 		{
 			BPTransformerRuleFilter<DATA> f2 = fref.get();
-			if (clsname.equals(f2.getClass().getName()))
+			if (f2 != null && clsname.equals(f2.getClass().getName()))
 			{
 				m_cmbfilters.setSelectedItem(fref);
 				m_txtrule.setText(f.getRule());

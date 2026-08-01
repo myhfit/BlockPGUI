@@ -40,7 +40,7 @@ public class BPDialogNewProject extends BPDialogCommon
 	{
 		m_lstfacs = new BPList<BPProjectFactory>();
 		m_lstfacs.setModel(new BPList.BPListModel<BPProjectFactory>());
-		m_lstfacs.setCellRenderer(new BPList.BPListRenderer(BPDialogNewProject::transFacName));
+		m_lstfacs.setCellRenderer(new BPList.BPListRendererT<>(BPDialogNewProject::transFacName));
 		m_lstfacs.setListFont();
 
 		JPanel leftpan = new JPanel();
@@ -82,15 +82,13 @@ public class BPDialogNewProject extends BPDialogCommon
 
 	protected void onListSelectionChange(ListSelectionEvent e)
 	{
-		if (!e.getValueIsAdjusting())
+		if (!e.getValueIsAdjusting() && m_lstfacs.getSelectedIndex() != -1)
 		{
 			if (m_form != null)
 				remove(m_form.getComponent());
-			m_form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), m_lstfacs.getSelectedValue().getProjectClass(), BPResourceProject.class);
+			m_form = BPFormManager.getFormByClassTree(m_lstfacs.getSelectedValue().getProjectClass(), BPResourceProject.class);
 			if (m_form != null)
-			{
 				add(m_form.getComponent(), BorderLayout.CENTER);
-			}
 			validate();
 			repaint();
 		}

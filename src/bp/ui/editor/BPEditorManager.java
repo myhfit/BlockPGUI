@@ -12,7 +12,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import bp.format.BPFormatUnknown;
 import bp.util.ClassUtil;
 import bp.util.LockUtil;
-import bp.util.LogicUtil;
 
 public class BPEditorManager
 {
@@ -33,8 +32,9 @@ public class BPEditorManager
 				for (BPEditorFactory fac : facs)
 				{
 					String[] formats = fac.getFormats();
-					for (String format : formats)
+					for (int i = 0; i < formats.length; i++)
 					{
+						String format = formats[i];
 						List<BPEditorFactory> tfacs = S_FACS.get(format);
 						if (tfacs == null)
 						{
@@ -81,7 +81,11 @@ public class BPEditorManager
 
 	public final static List<BPEditorFactory> getFactories(String formatkey)
 	{
-		return LockUtil.rwLock(S_LOCK, false, () -> LogicUtil.IFVR(S_FACS.get(formatkey), (facs) -> new ArrayList<BPEditorFactory>(facs)));
+		return LockUtil.rwLock(S_LOCK, false, () ->
+		{
+			List<BPEditorFactory> facs = S_FACS.get(formatkey);
+			return facs != null ? new ArrayList<>(facs) : null;
+		});
 	}
 
 	public final static List<BPEditorFactory> getAllFactories()

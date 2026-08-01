@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.BoxLayout;
-import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
@@ -41,8 +40,7 @@ public class BPFormPanelEnvs extends BPFormPanel
 	@SuppressWarnings("unchecked")
 	public void showData(Map<String, ?> data, boolean editable)
 	{
-		List<BPEnv> envs = (List<BPEnv>) data.get("envs");
-		m_lstenvs.setDatas(envs);
+		m_lstenvs.setDatas((List<BPEnv>) data.get("envs"));
 	}
 
 	protected void initForm()
@@ -50,14 +48,10 @@ public class BPFormPanelEnvs extends BPFormPanel
 		m_lstenvs = new BPBoxButtons<BPEnv>(BoxLayout.Y_AXIS);
 		m_lstenvs.setShowDelete(false);
 		m_lstenvs.setShowSelect(false);
-		JLabel lbl = makeLineLabel("Environments", true);
 		JScrollPane scroll = new JScrollPane();
 
 		m_lstenvs.setRenderer(this::renderEnv);
 		m_lstenvs.setClickHandler(this::onClickEnv);
-
-		lbl.setPreferredSize(new Dimension(m_labelwidth, m_lineheight));
-		lbl.setMinimumSize(new Dimension(m_labelwidth, m_lineheight));
 
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		scroll.setViewportView(m_lstenvs);

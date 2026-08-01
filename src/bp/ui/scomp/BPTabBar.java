@@ -438,14 +438,13 @@ public class BPTabBar extends JPanel
 							if (!checker.test(m_id))
 								continue;
 					}
-					Action act;
 					if (name.equals("-"))
 					{
 						pmnu.add(new JPopupMenu.Separator());
 					}
 					else
 					{
-						act = BPAction.build(name).callback(e -> onMenuAction(key)).getAction();
+						Action act = BPAction.build(name).callback(e -> onMenuAction(key)).getAction();
 						BPMenuItem item = new BPMenuItem(act);
 						pmnu.add(item);
 					}

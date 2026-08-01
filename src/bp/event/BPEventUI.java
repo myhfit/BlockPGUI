@@ -4,9 +4,9 @@ import java.util.Map;
 
 public class BPEventUI extends BPEvent
 {
-	public String subkey;
-	public Object[] datas;
-	public Map<String, Object> context;
+	public volatile String subkey;
+	public volatile Object[] datas;
+	public volatile Map<String, Object> context;
 
 	public final static String FIELD_ROUTABLE_CONTAINERID = "rconid";
 

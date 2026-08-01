@@ -58,12 +58,14 @@ public class BPTableFuncsResourceFiles extends BPTableFuncsResource
 		{
 			case 0:
 				return 200;
+			case 1:
+				return -400;
 			case 2:
 				return 80;
 			case 3:
 				return 80;
 			case 4:
-				return 120;
+				return 150;
 			default:
 				return 0;
 		}

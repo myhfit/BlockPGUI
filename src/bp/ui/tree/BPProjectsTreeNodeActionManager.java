@@ -48,9 +48,8 @@ public class BPProjectsTreeNodeActionManager
 	public final static BPProjectsTreeNodeActionFactory getFactory(BPResource res)
 	{
 		if (!inited)
-		{
 			init();
-		}
+		
 		return LockUtil.rwLock(S_LOCK, false, () ->
 		{
 			if (res == null)

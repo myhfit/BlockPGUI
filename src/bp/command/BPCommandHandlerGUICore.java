@@ -1,9 +1,7 @@
-package bp.core;
+package bp.command;
 
 import bp.BPCore;
 import bp.BPGUICore;
-import bp.data.BPCommand;
-import bp.data.BPCommandResult;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
@@ -30,13 +28,9 @@ public class BPCommandHandlerGUICore extends BPCommandHandlerBase implements BPC
 		switch (cmdname)
 		{
 			case CN_RES_OPEN:
-			{
 				return openResource(getPSStringArr(cmd.ps));
-			}
 			case CN_FILE_OPEN:
-			{
 				return openFile(getPSStringArr(cmd.ps));
-			}
 		}
 		return null;
 	}

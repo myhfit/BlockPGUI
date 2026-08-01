@@ -30,8 +30,8 @@ public class BPTreeFuncsResource extends BPTreeFuncsAbstract
 			BPResource[] sub = res.listResources();
 			if (sub != null && sub.length > 0)
 			{
-				for (BPResource s : sub)
-					rc.add(s);
+				for (int i = 0; i < sub.length; i++)
+					rc.add(sub[i]);
 			}
 		}
 		return rc;

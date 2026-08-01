@@ -8,15 +8,17 @@ import javax.swing.Action;
 
 import bp.config.BPSetting;
 import bp.config.ShortCuts;
+import bp.locale.BPLocaleHelpers;
 import bp.typeext.KV;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.actions.BPActionHelpers;
-import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSetting;
+import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.shortcut.BPShortCut;
 import bp.ui.shortcut.BPShortCutFactory;
 import bp.ui.shortcut.BPShortCutManager;
+import bp.ui.util.UIStd;
 import bp.util.JSONUtil;
 import bp.util.ObjUtil;
 import bp.util.TextUtil;
@@ -109,13 +111,8 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 			if (setting == null)
 			{
 				if (sckey == null)
-				{
-					List<String> keys = BPShortCutManager.getFactoryKeys();
-					BPDialogSelectData<String> dlg = new BPDialogSelectData<String>();
-					dlg.setSource(keys);
-					dlg.setVisible(true);
-					sckey = dlg.getSelectData();
-				}
+					sckey = UIStd.select(BPShortCutManager.getFactoryKeys(), null, s -> BPLocaleHelpers.translateByClass(BPShortCut.class, (String) s));
+
 				if (sckey != null)
 				{
 					setting = BPShortCutManager.getSetting(sckey);
@@ -139,18 +136,9 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 		}
 	}
 
-	protected void onAdd(ActionEvent e)
+	protected KV showCreateSC()
 	{
-		String sckey = null;
-		List<String> keys = BPShortCutManager.getFactoryKeys();
-
-		{
-			BPDialogSelectData<String> dlg = new BPDialogSelectData<String>();
-			dlg.setSource(keys);
-			dlg.setVisible(true);
-			sckey = dlg.getSelectData();
-		}
-
+		String sckey = UIStd.select(BPShortCutManager.getFactoryKeys(), null, s -> BPLocaleHelpers.translateByClass(BPShortCut.class, (String) s));
 		if (sckey != null)
 		{
 			BPSetting setting = BPShortCutManager.getSetting(sckey);
@@ -164,10 +152,46 @@ public class BPFormPanelShortCuts extends BPFormPanelMapOrdered
 				KV kv = new KV();
 				kv.key = name;
 				kv.value = JSONUtil.encode(ps);
-
-				m_tabkvs.getBPTableModel().getDatas().add(kv);
-				m_tabkvs.getBPTableModel().fireTableDataChanged();
+				return kv;
 			}
+		}
+		return null;
+	}
+
+	protected void onAdd(ActionEvent e)
+	{
+		KV kv = showCreateSC();
+		if (kv != null)
+		{
+			BPTableModel<KV> m = m_tabkvs.getBPTableModel();
+			List<KV> kvs = m.getDatas();
+			kvs.add(kv);
+			int r = m_tabkvs.convertRowIndexToView(kvs.size()-1);
+			m_tabkvs.getBPTableModel().fireTableDataChanged();
+			m_tabkvs.getSelectionModel().setSelectionInterval(r, r);
+			m_tabkvs.requestFocus();
+		}
+	}
+
+	protected void onInsert(ActionEvent e)
+	{
+		int si = m_tabkvs.getSelectedRow();
+		if (si < 0)
+		{
+			onAdd(e);
+			return;
+		}
+		KV kv = showCreateSC();
+		if (kv != null)
+		{
+			BPTableModel<KV> m = m_tabkvs.getBPTableModel();
+			List<KV> kvs = m.getDatas();
+			kvs.add(si, new KV());
+			m.fireTableDataChanged();
+			int r = m_tabkvs.convertRowIndexToView(si);
+			m_tabkvs.getSelectionModel().setSelectionInterval(r, r);
+			m_tabkvs.scrollTo(r, 0);
+			m_tabkvs.requestFocus();
 		}
 	}
 }

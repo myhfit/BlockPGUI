@@ -98,8 +98,8 @@ public class BPDialogFind extends BPDialogCommon
 		line0.setPreferredSize(d);
 		line1.setPreferredSize(d);
 
-		line0.setBorder(new EmptyBorder(2, 2, 2, 2));
-		line1.setBorder(new EmptyBorder(0, 2, 2, 2));
+		line0.setBorder(new EmptyBorder(0, 4, 2, 4));
+		line1.setBorder(new EmptyBorder(0, 4, 2, 4));
 		line2.setBorder(new EmptyBorder(0, 2, 2, 2));
 
 		line0.setLayout(new BorderLayout());

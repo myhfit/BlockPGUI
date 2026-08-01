@@ -60,8 +60,7 @@ public class BlockPMenus
 			{
 				BPMenuDynamic mnudyna = new BPMenuDynamic(mnuname, () ->
 				{
-					ShortCutData sc2 = ShortCuts.getShortCut(scname);
-					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(ShortCuts.getShortCut(scname));
 					if (bsc != null)
 						return bsc.expand();
 					else
@@ -74,8 +73,7 @@ public class BlockPMenus
 			{
 				Action act = BPAction.build(mnuname).callback(e ->
 				{
-					ShortCutData sc2 = ShortCuts.getShortCut(scname);
-					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(ShortCuts.getShortCut(scname));
 					if (bsc != null)
 						bsc.run();
 				}).getAction();
@@ -142,8 +140,7 @@ public class BlockPMenus
 			{
 				BPMenuDynamic mnudyna = new BPMenuDynamic(mnuname, () ->
 				{
-					ShortCutData sc2 = ShortCuts.getShortCut(scname);
-					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(ShortCuts.getShortCut(scname));
 					if (bsc != null)
 						return bsc.expand();
 					else
@@ -158,8 +155,7 @@ public class BlockPMenus
 				BPMenuItemInTray newmnu = new BPMenuItemInTray(mnuname);
 				newmnu.addActionListener(e ->
 				{
-					ShortCutData sc2 = ShortCuts.getShortCut(scname);
-					BPShortCut bsc = BPShortCutManager.makeShortCut(sc2);
+					BPShortCut bsc = BPShortCutManager.makeShortCut(ShortCuts.getShortCut(scname));
 					if (bsc != null)
 						bsc.run();
 				});

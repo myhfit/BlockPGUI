@@ -26,7 +26,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 	protected BPPathTreeNodeActions m_actptree;
 	protected int m_channelid;
 	protected boolean m_skiproot;
-	protected boolean m_readonly;
+	protected boolean m_selonly;
 
 	public BPPathTreeLocalFuncs()
 	{
@@ -78,11 +78,6 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 	public String getRootPath()
 	{
 		return m_base;
-	}
-
-	public void setReadOnly(boolean flag)
-	{
-		m_readonly = flag;
 	}
 
 	public List<?> getRoots()
@@ -173,7 +168,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 					rc.add(m_actptree.getOpenFileWithToolAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-					if (!m_readonly)
+					if (!m_selonly)
 					{
 						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
 						rc.add(BPAction.separator());
@@ -193,7 +188,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 					rc.add(m_actptree.getOpenFileWithToolAction(tree, res, m_channelid));
 					rc.add(BPAction.separator());
 					rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-					if (!m_readonly)
+					if (!m_selonly)
 					{
 						rc.add(m_actptree.getCopyToAction(tree, ress, m_channelid));
 						rc.add(BPAction.separator());
@@ -228,9 +223,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 		{
 			BPResource res = (BPResource) node.getUserObject();
 			if (res != null)
-			{
 				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_ACTION, new Object[] { getResources(tree), BPPathTreeNodeActions.ACTION_DELETES }));
-			}
 		}
 	}
 
@@ -240,9 +233,7 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 		{
 			BPResource res = (BPResource) node.getUserObject();
 			if (res != null)
-			{
 				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_SELECT, res));
-			}
 		}
 	}
 
@@ -252,12 +243,10 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 		{
 			BPResource res = (BPResource) node.getUserObject();
 			if (res != null)
-			{
 				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_OPEN, res));
-			}
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public void onCopy(BPTree tree, BPTreeNode node)
 	{
@@ -268,7 +257,36 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 				m_actptree.getCopyAction((BPTreeComponent<BPTree>) tree, res, m_channelid).actionPerformed(null);
 		}
 	}
-	
+
+	public void onAction(BPTree tree, BPTreeNode node, String extact)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+			{
+				BPAction act = getActionForExt(tree, res, extact);
+				if (act != null)
+					act.actionPerformed(null);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected BPAction getActionForExt(BPTree tree, BPResource res, String extact)
+	{
+		if (extact == null)
+			return null;
+		switch (extact)
+		{
+			case BPTreeActionType.EXT_ACT_PROPERTY:
+				return m_actptree.getPropertyAction((BPTreeComponent<BPTree>) tree, res, m_channelid);
+			case BPTreeActionType.EXT_ACT_RENAME:
+				return m_actptree.getRenameResAction((BPTreeComponent<BPTree>) tree, res, m_channelid);
+		}
+		return null;
+	}
+
 	public boolean isOverwriteCopy()
 	{
 		return true;
@@ -285,31 +303,8 @@ public class BPPathTreeLocalFuncs implements BPPathTreeFuncs
 		}
 	}
 
-	public final static BPPathTreeLocalFuncs OnlySelect()
+	public void setSelectOnly(boolean flag)
 	{
-		BPPathTreeLocalFuncs rc = new BPPathTreeLocalFuncs()
-		{
-			public List<Action> getActions(BPTreeComponent<BPTree> tree, BPTreeNode node)
-			{
-				List<Action> rc = new ArrayList<Action>();
-				if (node != null)
-				{
-					BPResource res = (BPResource) node.getUserObject();
-					if (!res.isLeaf())
-					{
-						rc.add(m_actptree.getNewFileOnlyDirAction(tree, res, m_channelid));
-						rc.add(BPAction.separator());
-						rc.add(m_actptree.getCopyAction(tree, res, m_channelid));
-						rc.add(BPAction.separator());
-						rc.add(m_actptree.getRefreshResAction(tree, res, m_channelid));
-						rc.add(BPAction.separator());
-						rc.add(m_actptree.getPropertyAction(tree, res, m_channelid));
-					}
-				}
-				return rc;
-			}
-		};
-		rc.setReadOnly(true);
-		return rc;
+		m_selonly = flag;
 	}
 }

@@ -45,7 +45,7 @@ public class BPDialogScriptManager extends BPDialogCommon
 	{
 		m_lstscripts = new BPList<BPScript>();
 		m_lstscripts.setListFont();
-		m_lstscripts.setCellRenderer(new BPList.BPListRenderer((script) -> ((BPScript) script).getName()));
+		m_lstscripts.setCellRenderer(new BPList.BPListRendererT<>(BPScript::getName));
 		m_lstscripts.addListSelectionListener(this::onListSelectionChange);
 
 		m_lstbar = new BPToolBarSQ();

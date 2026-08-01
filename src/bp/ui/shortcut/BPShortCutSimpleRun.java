@@ -35,8 +35,7 @@ public class BPShortCutSimpleRun extends BPShortCutBase
 			}
 			else
 			{
-				String argstr = (String) argobj;
-				args = argstr.split(" ");
+				args = ((String) argobj).split(" ");
 			}
 		}
 		SystemUtil.runSimpleProcess(cmd, workdir, args, true);

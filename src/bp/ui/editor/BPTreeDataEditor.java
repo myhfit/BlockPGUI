@@ -40,7 +40,6 @@ import bp.ui.actions.BPTreeDataCloneActions;
 import bp.ui.actions.BPTreeDataEditorActions;
 import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
-import bp.ui.editor.controller.BPEditorController;
 import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPTree.BPTreeModel;
 import bp.ui.tree.BPTreeCellRendererObject;
@@ -52,15 +51,13 @@ import bp.util.ClassUtil;
 import bp.util.JSONUtil;
 import bp.util.ObjUtil;
 
-public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel implements BPEditor<JPanel>, BPViewer<CON>
+public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends BPAbstractEditorPanel implements BPViewer<CON>
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6643778268900534375L;
 
-	protected String m_id;
-	protected int m_channelid;
 	protected CON m_con;
 
 	protected WeakReference<Consumer<String>> m_dynainfo;
@@ -72,14 +69,10 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 
 	protected BPActionHolder m_acts;
 
-	protected boolean m_needsave;
-	protected BPEditorController m_ec;
-
 	private WeakReference<BiConsumer<String, Boolean>> m_statehandler;
 
 	public BPTreeDataEditor()
 	{
-		m_ec = new BPEditorController(this);
 		init();
 	}
 
@@ -110,11 +103,6 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 	public BPComponentType getComponentType()
 	{
 		return BPComponentType.TABLE;
-	}
-
-	public JPanel getComponent()
-	{
-		return this;
 	}
 
 	public BPDataContainer createDataContainer(BPResource res)
@@ -178,10 +166,6 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 		return m_con;
 	}
 
-	public void focusEditor()
-	{
-	}
-
 	public String getEditorInfo()
 	{
 		return null;
@@ -195,7 +179,7 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 			if (m_con.writeTreeData(m_treedata))
 			{
 				setSaved();
-				m_needsave = false;
+				m_ec.setNeedSave(false);
 			}
 		}
 		finally
@@ -221,36 +205,6 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 	{
 	}
 
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
-	}
-
-	public void setID(String id)
-	{
-		m_id = id;
-	}
-
-	public String getID()
-	{
-		return m_id;
-	}
-
-	public void setChannelID(int channelid)
-	{
-		m_channelid = channelid;
-	}
-
-	public int getChannelID()
-	{
-		return m_channelid;
-	}
-
 	public void setOnDynamicInfo(Consumer<String> info)
 	{
 		m_dynainfo = new WeakReference<Consumer<String>>(info);
@@ -270,7 +224,7 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 		removeAll();
 	}
 
-	public void delete()
+	public void delete(ActionEvent e)
 	{
 	}
 
@@ -307,9 +261,8 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 	{
 		Object obj=m_treedata.getRoot();
 		if(obj==null||!(obj instanceof Map))
-		{
 			return;
-		}
+		
 		Map<String,Object> kv=(Map<String, Object>) obj;
 		BPDialogForm dlg = new BPDialogForm();
 		dlg.setEditable(true);
@@ -332,9 +285,8 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 	{
 		Object obj = m_treedata.getRoot();
 		if (obj == null || !(obj instanceof Map))
-		{
 			return;
-		}
+		
 		Map<String, Object> kv = (Map<String, Object>) obj;
 		List<String> keys = new ArrayList<String>(kv.keySet());
 		UIStd.info(JSONUtil.encode(keys));
@@ -356,18 +308,11 @@ public class BPTreeDataEditor<CON extends BPTreeDataContainer> extends JPanel im
 		{
 			JPopupMenu pop = new JPopupMenu();
 			JComponent[] comps = UIUtil.makeMenuItems(acts);
-			for (JComponent comp : comps)
-			{
-				pop.add(comp);
-			}
+			for (int i = 0; i < comps.length; i++)
+				pop.add(comps[i]);
 			JComponent source = (JComponent) e.getSource();
 			JComponent par = (JComponent) source.getParent();
 			pop.show(par, source.getX(), source.getY() + source.getHeight());
 		}
-	}
-
-	public BPEditorController getEditorController()
-	{
-		return m_ec;
 	}
 }

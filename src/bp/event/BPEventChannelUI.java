@@ -12,17 +12,11 @@ public class BPEventChannelUI extends BPEventChannelBase
 		boolean rc = false;
 		if (event.triggerLater)
 		{
-			UIUtil.laterUI(() ->
-			{
-				super.triggerEventListenersInner(ls, event);
-			});
+			UIUtil.laterUI(() -> super.triggerEventListenersInner(ls, event));
 		}
 		else
 		{
-			UIUtil.inUI(() ->
-			{
-				super.triggerEventListenersInner(ls, event);
-			});
+			UIUtil.inUI(() -> super.triggerEventListenersInner(ls, event));
 			rc = event.stopDefault;
 		}
 		return rc;

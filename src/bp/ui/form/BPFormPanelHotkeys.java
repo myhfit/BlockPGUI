@@ -53,25 +53,17 @@ public class BPFormPanelHotkeys extends BPFormPanel
 		if (m_tabhks.isEditing())
 			m_tabhks.getCellEditor().stopCellEditing();
 		List<Hotkey> datas = m_tabhks.getBPTableModel().getDatas();
-		Map<String, Object> rc = createMap();
+		Map<String, Object> rc = new LinkedHashMap<String, Object>();
 		for (Hotkey hk : datas)
 			rc.put(hk.getMapKey(), hk.target);
 		return rc;
-	}
-
-	protected Map<String, Object> createMap()
-	{
-		return new LinkedHashMap<String, Object>();
 	}
 
 	public void showData(Map<String, ?> data, boolean editable)
 	{
 		List<Hotkey> hks = new ArrayList<Hotkey>();
 		for (String key : data.keySet())
-		{
-			Hotkey hk = new Hotkey(key, (String) data.get(key));
-			hks.add(hk);
-		}
+			hks.add(new Hotkey(key, (String) data.get(key)));
 		m_tabhks.getBPTableModel().setDatas(hks);
 		m_tabhks.refreshData();
 		if (!editable)
@@ -136,13 +128,9 @@ public class BPFormPanelHotkeys extends BPFormPanel
 
 	protected List<Action> makeToolBarActions()
 	{
-		List<Action> rc = new ArrayList<Action>();
 		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
 		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
-		rc.add(BPAction.separator());
-		rc.add(actadd);
-		rc.add(actdel);
-		return rc;
+		return ObjUtil.makeList(BPAction.separator(), actadd, actdel);
 	}
 
 	protected final static Object getHotkeyValue(Hotkey o, int row, int col)

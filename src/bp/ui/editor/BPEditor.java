@@ -24,18 +24,38 @@ public interface BPEditor<C extends Component> extends BPComponent<C>
 
 	}
 
-	void save();
+	default void save()
+	{
 
-	void reloadData();
+	}
 
-	boolean needSave();
+	default boolean isNoSave()
+	{
+		return false;
+	}
+
+	default void reloadData()
+	{
+
+	}
+
+	default boolean needSave()
+	{
+		BPEditorController c = getEditorController();
+		return c.isNeedSave();
+	}
+
+	default void setNeedSave(boolean needsave)
+	{
+		BPEditorController c = getEditorController();
+		if (c != null)
+			c.setNeedSave(needsave);
+	}
 
 	default String[] getExts()
 	{
 		return null;
 	}
-
-	void setNeedSave(boolean needsave);
 
 	void setID(String id);
 

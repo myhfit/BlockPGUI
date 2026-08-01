@@ -63,7 +63,6 @@ import bp.ui.scomp.BPTextField;
 import bp.ui.util.CommonUIOperations;
 import bp.ui.util.UIStd;
 import bp.util.FileUtil;
-import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 
 public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
@@ -77,7 +76,6 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	protected int m_channelid;
 	protected int m_pchid;
 	protected BPEventChannelUI m_pch;
-	protected boolean m_needsave;
 	protected boolean m_editable;
 
 	protected JPanel m_mainp;
@@ -92,6 +90,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	public BPParallelEditorPanel()
 	{
 		m_ec = new BPEditorController(this);
+		m_ec.setNeedSaveEditable(true);
 		m_eps = new ArrayList<BPEditorSubPanel>();
 		m_editable = true;
 		initBPEvents();
@@ -116,7 +115,7 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	{
 		m_toolbar = new BPToolBarSQ();
 		m_mainp = new JPanel();
-		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actadd = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_CREATE_ACC, this::onAdd);
 		BPAction actcompare = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCOMPARE, this::onCompare);
 		m_actsyncstatus = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNTOGGLESYNC_STATUS, this::onToggleSyncStatus);
 		m_actsyncaction = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNTOGGLESYNC_ACTION, this::onToggleSyncAction);
@@ -160,24 +159,6 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 	public String getEditorInfo()
 	{
 		return null;
-	}
-
-	public void save()
-	{
-	}
-
-	public void reloadData()
-	{
-	}
-
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
 	}
 
 	public void setID(String id)
@@ -861,7 +842,11 @@ public class BPParallelEditorPanel extends JPanel implements BPEditor<JPanel>
 					BPResource res = v.tryGetResource();
 					String resname = res != null ? res.getName() : null;
 					if (resname == null)
-						rc = LogicUtil.NVL(editor.getEditorName(), "untitled");
+					{
+						rc = editor.getEditorName();
+						if (rc == null)
+							rc = "untitled";
+					}
 					else
 						rc = resname;
 				}

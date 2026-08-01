@@ -61,7 +61,7 @@ public class BPFormContext implements Traversable, BPMData
 	public void loadConfig(String relpath, Class<?> leaf, Class<?> root)
 	{
 		Set<String> checker = new HashSet<String>();
-		loadConfig(ClassUtil.tryLoopSuperClass(cls -> (cls != Object.class) ? getConfig(relpath, cls.getName().replace('.', '/'), checker) : null, leaf, root));
+		loadConfig(ClassUtil.tryLoopSuperClass(cls -> (cls != Object.class) ? getConfig(relpath, cls.getName().replace('.', '/').replace('$', '_'), checker) : null, leaf, root));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -81,9 +81,10 @@ public class BPFormContext implements Traversable, BPMData
 		if (rc != null)
 		{
 			String par = (String) rc.get("parent");
-			if (par != null)
+			String parkey = par != null ? par.replace('.', '/') : null;
+			if (par != null && !parkey.equals(key))
 			{
-				Map<String, Object> parcfg = getConfig(relpath, par.replace('.', '/'), checker);
+				Map<String, Object> parcfg = getConfig(relpath, parkey, checker);
 				if (parcfg != null)
 				{
 					List<Map<String, Object>> items = null;
@@ -194,8 +195,8 @@ public class BPFormContext implements Traversable, BPMData
 	{
 		itemdefs = new ArrayList<BPFormItemDef>();
 		itemdefmap = new HashMap<>();
-		for (String key : keys)
-			addItemDef(BPFormItemDef.createSimple(key, itemtype, readonly));
+		for (int i = 0; i < keys.length; i++)
+			addItemDef(BPFormItemDef.createSimple(keys[i], itemtype, readonly));
 	}
 
 	public void setMappedData(Map<String, Object> data)
@@ -242,7 +243,7 @@ public class BPFormContext implements Traversable, BPMData
 		}
 	}
 
-	public void initUI(BPFormPanel fp,boolean needclear)
+	public void initUI(BPFormPanel fp, boolean needclear)
 	{
 		if (needclear)
 			fp.clearForm();
@@ -252,10 +253,7 @@ public class BPFormContext implements Traversable, BPMData
 		if (itemdefs != null)
 		{
 			for (BPFormItemDef itemdef : itemdefs)
-			{
-				BPFormItem item = createItem(itemdef, this,fp);
-				newitems.add(item);
-			}
+				newitems.add(createItem(itemdef, this, fp));
 			items = newitems;
 
 			for (BPFormItem item : newitems)
@@ -279,11 +277,15 @@ public class BPFormContext implements Traversable, BPMData
 
 	public Object controlSetValue(Object v, BPFormItem item)
 	{
-		return controller.controlSetValue(v, this, item);
+		if (controller != null)
+			return controller.controlSetValue(v, this, item);
+		return v;
 	}
 
 	public Object controlGetValue(Object v, BPFormItem item)
 	{
-		return controller.controlGetValue(v, this, item);
+		if (controller != null)
+			return controller.controlGetValue(v, this, item);
+		return v;
 	}
 }

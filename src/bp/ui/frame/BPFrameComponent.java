@@ -92,12 +92,12 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		BPMenu mnuview = new BPMenu(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEW, null));
 		m_mnuactbar = new JPanel();
 
-		m_actsave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, e -> save());
-		BPAction actclose = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECLOSE, e -> dispose());
-		BPAction acttoggleleftpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN, e -> toggleEditorLeftPanel());
-		BPAction acttogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, e -> toggleRightPanel());
-		BPAction acttogglebottompan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN, e -> toggleEditorBottomPanel());
-		BPAction actfullscreen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWFULLSCREEN, e -> fullScreen());
+		m_actsave = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILESAVE, UIUtil.makeDynamicInstCB(this, "save"));
+		BPAction actclose = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUFILECLOSE, UIUtil.makeDynamicInstCB(this, "dispose"));
+		BPAction acttoggleleftpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLELEFTPAN, UIUtil.makeDynamicInstCB(this, "toggleEditorLeftPanel"));
+		BPAction acttogglerightpan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLERIGHTPAN, UIUtil.makeDynamicInstCB(this, "toggleRightPanel"));
+		BPAction acttogglebottompan = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWTOGGLEBOTTOMPAN, UIUtil.makeDynamicInstCB(this, "toggleEditorBottomPanel"));
+		BPAction actfullscreen = BPActionHelpers.getAction(BPActionConstCommon.MF_MNUVIEWFULLSCREEN, UIUtil.makeDynamicInstCB(this, "fullScreen"));
 
 		FlowLayout fl = new FlowLayout(FlowLayout.RIGHT);
 		fl.setVgap(0);
@@ -190,8 +190,7 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 			else
 			{
 				String editorname = editor.getEditorName();
-				if (editorname != null)
-					setTitle(BPGUICore.S_BP_TITLE + " - " + editorname);
+				setTitle(BPGUICore.S_BP_TITLE + (editorname != null ? (" - " + editorname) : ""));
 			}
 
 			validate();
@@ -246,7 +245,7 @@ public class BPFrameComponent extends BPFrame implements WindowListener, BPFrame
 		}
 	}
 
-	protected void save()
+	public void save()
 	{
 		BPComponent<?> comp = m_comp;
 		if (comp instanceof BPEditor)

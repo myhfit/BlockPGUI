@@ -19,7 +19,6 @@ import bp.ui.form.BPForm;
 import bp.ui.form.BPFormManager;
 import bp.ui.scomp.BPList;
 import bp.ui.util.UIUtil;
-import bp.util.ClassUtil;
 
 public class BPDialogConfigs extends BPDialogCommon
 {
@@ -46,7 +45,7 @@ public class BPDialogConfigs extends BPDialogCommon
 	{
 		m_lstcfgs = new BPList<BPConfig>();
 		m_lstcfgs.setListFont();
-		m_lstcfgs.setCellRenderer(new BPList.BPListRenderer(this::getConfigName));
+		m_lstcfgs.setCellRenderer(new BPList.BPListRendererT<>(this::getConfigName));
 		m_lstcfgs.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(160, 0)));
 		m_lstcfgs.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_STRONGBORDER()));
 		m_lstcfgs.addListSelectionListener(this::onListSelectionChange);
@@ -75,13 +74,11 @@ public class BPDialogConfigs extends BPDialogCommon
 		if (!e.getValueIsAdjusting())
 		{
 			if (m_form != null)
-			{
 				remove(m_form.getComponent());
-			}
 			BPConfig cfg = m_lstcfgs.getSelectedValue();
 			if (cfg != null)
 			{
-				m_form = ClassUtil.tryLoopSuperClass((cls) -> BPFormManager.getForm(cls.getName()), cfg.getClass(), BPConfig.class);
+				m_form = BPFormManager.getFormByClassTree(cfg.getClass(), BPConfig.class);
 				if (m_form != null)
 				{
 					add(m_form.getComponent(), BorderLayout.CENTER);

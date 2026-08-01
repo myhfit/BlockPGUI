@@ -7,7 +7,6 @@ import java.util.Map;
 
 import bp.data.BPMData;
 import bp.typeext.Traversable;
-import bp.util.LogicUtil;
 import bp.util.ObjUtil;
 
 public class BPFormItemDef implements Traversable, BPMData
@@ -53,11 +52,10 @@ public class BPFormItemDef implements Traversable, BPMData
 		List<Map<String, Object>> chdcfgs = (List<Map<String, Object>>) cfg.get("children");
 		if (chdcfgs != null)
 		{
-			List<BPFormItemDef> children = new ArrayList<BPFormItemDef>();
+			List<BPFormItemDef> chds = new ArrayList<BPFormItemDef>();
 			for (Map<String, Object> chdcfg : chdcfgs)
-			{
-				children.add(createByConfig(chdcfg));
-			}
+				chds.add(createByConfig(chdcfg));
+			rc.children = chds;
 		}
 		return rc;
 	}
@@ -73,9 +71,17 @@ public class BPFormItemDef implements Traversable, BPMData
 		itemtype = (String) data.get("itemtype");
 		key = (String) data.get("key");
 		if (data.containsKey("writekey"))
-			writekey = LogicUtil.NVL(data.get("writekey"), NULL_KEY);
+		{
+			writekey = data.get("writekey");
+			if (writekey == null)
+				writekey = NULL_KEY;
+		}
 		if (data.containsKey("readkey"))
-			readkey = LogicUtil.NVL(data.get("readkey"), NULL_KEY);
+		{
+			readkey = data.get("readkey");
+			if (readkey == null)
+				readkey = NULL_KEY;
+		}
 		nowriteempty = ObjUtil.toBool(data.get("nowriteempty"), false);
 		readkey = (String) data.get("readkey");
 		label = (String) data.get("label");

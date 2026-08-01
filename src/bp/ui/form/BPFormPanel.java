@@ -30,6 +30,7 @@ import bp.config.UIConfigs;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPComboBox;
 import bp.ui.scomp.BPLabel;
+import bp.ui.scomp.BPPasswordField;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
 import bp.ui.scomp.BPToolVIconButton;
@@ -200,8 +201,8 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 			linepan.setBorder(new MatteBorder(0, 0, 1, 0, getGridBorder()));
 		else
 			linepan.setBorder(new EmptyBorder(0, 0, 0, 0));
-		for (Component comp : comps)
-			linepan.add(comp);
+		for (int i = 0; i < comps.length; i++)
+			linepan.add(comps[i]);
 		m_form.add(linepan);
 		m_checks.add(check);
 	}
@@ -237,11 +238,8 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 
 		if (actions != null)
 		{
-			for (Action act : actions)
-			{
-				BPToolVIconButton lblact = new BPToolVIconButton(act);
-				cpan.add(lblact);
-			}
+			for (int i = 0; i < actions.length; i++)
+				cpan.add(new BPToolVIconButton(actions[i]));
 		}
 
 		tpan.add(cpan, BorderLayout.CENTER);
@@ -258,10 +256,7 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 	{
 		JLabel[] jbls = new JLabel[comps.length];
 		for (int i = 0; i < comps.length; i++)
-		{
-			JLabel lbl = makeLineLabel(lbls[i], required);
-			jbls[i] = lbl;
-		}
+			jbls[i] = makeLineLabel(lbls[i], required);
 		addLineComponents(jbls, comps, check);
 	}
 
@@ -277,6 +272,15 @@ public abstract class BPFormPanel extends JPanel implements BPForm<JPanel>
 	protected BPTextField makeSingleLineTextField()
 	{
 		BPTextField rc = new BPTextField();
+		rc.setMonoFont();
+		rc.setBorder(new MatteBorder(0, 1, 0, 0, getGridBorder()));
+		rc.setNoMeasureSize(true);
+		return rc;
+	}
+
+	protected BPPasswordField makeSingleLinePasswordField()
+	{
+		BPPasswordField rc = new BPPasswordField();
 		rc.setMonoFont();
 		rc.setBorder(new MatteBorder(0, 1, 0, 0, getGridBorder()));
 		rc.setNoMeasureSize(true);

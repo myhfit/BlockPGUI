@@ -41,6 +41,7 @@ import bp.event.BPEventCoreUI;
 import bp.format.BPFormat;
 import bp.format.BPFormatManager;
 import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCCGUI;
 import bp.locale.BPLocaleConstCoreDict;
 import bp.locale.BPLocaleHelpers;
 import bp.project.BPProjectItemFactory;
@@ -51,10 +52,6 @@ import bp.res.BPResourceDirLocal;
 import bp.res.BPResourceFileLocal;
 import bp.res.BPResourceFileSystem;
 import bp.res.BPResourceFileSystemLocal;
-import bp.schedule.BPSchedule;
-import bp.schedule.BPScheduleFactory;
-import bp.task.BPTask;
-import bp.task.BPTaskFactory;
 import bp.tool.BPTool;
 import bp.tool.BPToolGUI;
 import bp.typeext.KV.KVs;
@@ -87,7 +84,6 @@ import bp.util.FileUtil;
 import bp.util.LogicUtil.WeakRefGo;
 import bp.util.ObjUtil;
 import bp.util.ResourceUtil;
-import bp.util.ScheduleUtil;
 import bp.util.Std;
 import bp.util.SystemUtil;
 
@@ -206,20 +202,13 @@ public class CommonUIOperations
 
 	public final static void showNewDirectory(BPResource res)
 	{
-		if (res != null)
+		if (res != null && res.isFileSystem() && ((BPResourceFileSystem) res).isDirectory())
 		{
-			if (res.isFileSystem())
+			String filename = UIStd.input(null, BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
+			if (filename != null && filename.length() > 0)
 			{
-				if (((BPResourceFileSystem) res).isDirectory())
-				{
-					BPResourceDir dir = (BPResourceDir) res;
-					String filename = UIStd.input(null, BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
-					if (filename != null && filename.length() > 0)
-					{
-						dir.createChild(filename, false);
-						refreshPathTree(res, false);
-					}
-				}
+				((BPResourceDir) res).createChild(filename, false);
+				refreshPathTree(res, false);
 			}
 		}
 	}
@@ -244,27 +233,20 @@ public class CommonUIOperations
 
 	public final static void showNewFile(BPResource res)
 	{
-		if (res != null)
+		if (res != null && res.isFileSystem() && ((BPResourceFileSystem) res).isDirectory())
 		{
-			if (res.isFileSystem())
+			String filename = UIStd.input(null, BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
+			if (filename != null && filename.length() > 0)
 			{
-				if (((BPResourceFileSystem) res).isDirectory())
+				try
 				{
-					BPResourceDir dir = (BPResourceDir) res;
-					String filename = UIStd.input(null, BPLocaleConstCC.NAME.text() + ":", UIUtil.wrapBPTitle(BPLocaleConstCC.INPUT));
-					if (filename != null && filename.length() > 0)
-					{
-						try
-						{
-							dir.createChild(filename, true);
-							refreshPathTree(res, false);
-						}
-						catch (RuntimeException re)
-						{
-							Std.err(re);
-							UIStd.err(re);
-						}
-					}
+					((BPResourceDir) res).createChild(filename, true);
+					refreshPathTree(res, false);
+				}
+				catch (RuntimeException re)
+				{
+					Std.err(re);
+					UIStd.err(re);
 				}
 			}
 		}
@@ -440,27 +422,25 @@ public class CommonUIOperations
 	public final static void openResourceNewWindow(BPResource res, BPFormat fformat, BPEditorFactory ffac, String routecontainerid, BPConfig options, Object... params)
 	{
 		String id = res.openWithTempID() ? BPCore.genID(BPCore.getFileContext()) : res.getID();
+		String ext = res.getExt();
+		BPFormat format = (fformat != null ? fformat : BPFormatManager.getFormatByExt(ext));
+		BPEditorFactory fac = (ffac != null ? ffac : BPEditorManager.getFactory(format.getName()));
+		if (fac == null)
 		{
-			String ext = res.getExt();
-			BPFormat format = (fformat != null ? fformat : BPFormatManager.getFormatByExt(ext));
-			BPEditorFactory fac = (ffac != null ? ffac : BPEditorManager.getFactory(format.getName()));
-			if (fac == null)
-			{
-				UIStd.info("No Editor for " + format.getName());
-				return;
-			}
-			BPEditor<?> editor = fac.createEditor(format, res, options, params);
-			if (editor == null)
-				return;
-			editor.setID(id);
-			fac.initEditor(editor, format, res, options);
-			if (editor instanceof BPTextEditor)
-			{
-				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
-				teditor.getTextPanel().resizeDoc();
-			}
-			showBPComponentInNewWindow(editor);
+			UIStd.info("No Editor for " + format.getName());
+			return;
 		}
+		BPEditor<?> editor = fac.createEditor(format, res, options, params);
+		if (editor == null)
+			return;
+		editor.setID(id);
+		fac.initEditor(editor, format, res, options);
+		if (editor instanceof BPTextEditor)
+		{
+			BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
+			teditor.getTextPanel().resizeDoc();
+		}
+		showBPComponentInNewWindow(editor);
 	}
 
 	public final static BPResource selectResource(Window par)
@@ -618,10 +598,8 @@ public class CommonUIOperations
 		{
 			BPResource par = ress[0].getParentResource();
 			boolean flag = false;
-			for (BPResource res : ress)
-			{
-				flag = flag | res.delete();
-			}
+			for (int i = 0; i < ress.length; i++)
+				flag = flag | ress[i].delete();
 			if (flag)
 				CommonUIOperations.refreshPathTree(par, false);
 		}
@@ -630,13 +608,6 @@ public class CommonUIOperations
 	public final static void refreshPathTree(BPResource res, boolean recursive)
 	{
 		BPCore.EVENTS_CORE.trigger(BPCore.getCoreUIChannelID(), BPEventCoreUI.refreshPathTree(res, recursive));
-	}
-
-	public final static void showNewTask()
-	{
-		BPTask<?> task = showCreate(BPTaskFactory.class);
-		if (task != null)
-			BPCore.addTask(task);
 	}
 
 	public final static <T> T showCreate(Class<? extends BPInstanceFactory<T>> facclass)
@@ -650,17 +621,10 @@ public class CommonUIOperations
 		dlg.setFactoryInterface(facclass);
 		String factypename = ClassUtil.callMethod(facclass, "getFactoryTypeName", null, null, false);
 		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_CREATE) + " " + BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, factypename, "INSTFAC_"));
-		if(initcb!=null)
+		if (initcb != null)
 			initcb.accept(dlg);
 		dlg.setVisible(true);
 		return dlg.getResult();
-	}
-
-	public final static void showNewSchedule()
-	{
-		BPSchedule sd = showCreate(BPScheduleFactory.class);
-		if (sd != null)
-			ScheduleUtil.addScheduleAndSave(sd);
 	}
 
 	public final static void showNewProject()
@@ -705,6 +669,7 @@ public class CommonUIOperations
 		Map<String, Object> kv = new LinkedHashMap<String, Object>();
 		kv.put(bpname + " Core VerTime", new Date(l));
 		kv.put(bpname + " Main Repo", "https://github.com/myhfit/BlockP");
+		kv.put(bpname + " Main Repo(backup)", "https://codeberg.com/myhfit/BlockP");
 		kv.put("Workdir", System.getProperty("user.dir"));
 		kv.put("Workspace", BPCore.getFileContext().getRootDir().getFileFullName());
 		UIStd.showStructuredCommonDatas(new KVs(kv), true, null, ObjUtil.makeMap("maxlevel", 1, "dlg.width", 600, "dlg.height", 600));
@@ -721,22 +686,50 @@ public class CommonUIOperations
 
 	public final static void openExternal(BPResourceFileSystemLocal res)
 	{
-		UIStd.wrapSegE(() -> Desktop.getDesktop().open(res.getFileObject()));
+		try
+		{
+			Desktop.getDesktop().open(res.getFileObject());
+		}
+		catch (Exception e2)
+		{
+			UIStd.err(e2);
+		}
 	}
 
 	public final static void editExternal(BPResourceFileSystemLocal res)
 	{
-		UIStd.wrapSegE(() -> Desktop.getDesktop().edit(res.getFileObject()));
+		try
+		{
+			Desktop.getDesktop().edit(res.getFileObject());
+		}
+		catch (Exception e2)
+		{
+			UIStd.err(e2);
+		}
 	}
 
 	public final static void printExternal(BPResourceFileSystemLocal res)
 	{
-		UIStd.wrapSegE(() -> Desktop.getDesktop().print(res.getFileObject()));
+		try
+		{
+			Desktop.getDesktop().print(res.getFileObject());
+		}
+		catch (Exception e2)
+		{
+			UIStd.err(e2);
+		}
 	}
 
 	public final static void openExternal(URI uri)
 	{
-		UIStd.wrapSegE(() -> Desktop.getDesktop().browse(uri));
+		try
+		{
+			Desktop.getDesktop().browse(uri);
+		}
+		catch (Exception e2)
+		{
+			UIStd.err(e2);
+		}
 	}
 
 	public final static void openWithTool(BPResource[] ress)
@@ -754,9 +747,7 @@ public class CommonUIOperations
 
 		BPToolGUI tool = UIStd.select(tools, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_TOOL), t -> ((BPToolGUI) t).getName());
 		if (tool != null)
-		{
 			tool.showTool(new Object[] { ress });
-		}
 	}
 
 	public final static int showToolDialog(String toolcls, Map<String, Object> dlgparams, Object... params)
@@ -878,8 +869,9 @@ public class CommonUIOperations
 		if (tdata != null)
 		{
 			DataFlavor[] dfarr = tdata.getTransferDataFlavors();
-			for (DataFlavor df : dfarr)
+			for (int i = 0; i < dfarr.length; i++)
 			{
+				DataFlavor df = dfarr[i];
 				if (df.isFlavorJavaFileListType())
 				{
 					List<?> files = null;
@@ -925,10 +917,9 @@ public class CommonUIOperations
 		long success = 0;
 		List<String> errs = new ArrayList<String>();
 		boolean p = false;
-		for (String file : files)
+		for (int fi = 0; fi < files.size(); fi++)
 		{
-			File srcfile = new File(file);
-
+			File srcfile = new File(files.get(fi));
 			BPResourceDir resdir = (BPResourceDir) res;
 			FileUtil.genCopyList(srcfile.getAbsolutePath(), resdir.getFileFullName(), srcs, tars);
 			if (srcs.size() == tars.size())
@@ -954,7 +945,7 @@ public class CommonUIOperations
 							}
 							else
 							{
-								if (UIStd.confirm(par, null, tar.getAbsolutePath() + " Exists, Confirm overwrite?"))
+								if (UIStd.confirm(par, null, "\""+tar.getAbsolutePath()+"\"" + BPLocaleConstCCGUI.EXISTS_CONFIRM_SUFFIX.text() + "?"))
 								{
 									confirmed = true;
 									p = true;
@@ -977,7 +968,7 @@ public class CommonUIOperations
 			}
 			else
 			{
-				errs.add("Error when generate copy filelist:" + srcfile.getAbsolutePath() + ">>" + resdir.getFileFullName());
+				errs.add(BPLocaleConstCCGUI.ERR_WHEN_GENCOPYLIST + ":" + srcfile.getAbsolutePath() + ">>" + resdir.getFileFullName());
 			}
 
 			srcs.clear();
@@ -986,18 +977,18 @@ public class CommonUIOperations
 		if (errs.size() > 0)
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.append("Success:" + ObjUtil.toString(success) + "/" + ObjUtil.toString(total));
-			sb.append("\nFailed:" + errs.size());
-			for (String e : errs)
+			sb.append(BPLocaleConstCC.SUCCESS.text() + ":" + ObjUtil.toString(success) + "/" + ObjUtil.toString(total));
+			sb.append("\n" + BPLocaleConstCC.FAILED.text() + ":" + errs.size());
+			for (int i = 0; i < errs.size(); i++)
 			{
 				sb.append("\n  ");
-				sb.append(e);
+				sb.append(errs.get(i));
 			}
 			UIStd.textarea(sb.toString(), BPGUICore.S_BP_TITLE);
 		}
 		else
 		{
-			UIStd.info("Success copy files:" + ObjUtil.toString(success) + "/" + ObjUtil.toString(total));
+			UIStd.info(BPLocaleConstCCGUI.SUCCESS_COPY_FILES.text() + ":" + ObjUtil.toString(success) + "/" + ObjUtil.toString(total));
 		}
 	}
 	
@@ -1032,7 +1023,7 @@ public class CommonUIOperations
 						AtomicReference<int[]> iarrref = new AtomicReference<>();
 						UIUtil.LaterUIUpdateSegment<int[]> uiseg = new UIUtil.LaterUIUpdateSegment<int[]>(cbrefresh, iarrref);
 						BiConsumer<Integer, Integer> pcb = (v, max) -> uiseg.updateObject(new int[] { v, max });
-						UIUtil.block(() -> CompletableFuture.supplyAsync(() -> ResourceUtil.copyResources(ress, dir, pcb)), "Copying...", true, false, dlg2 -> dlgref.setTarget(dlg2));
+						UIUtil.block(() -> CompletableFuture.supplyAsync(() -> ResourceUtil.copyResources(ress, dir, pcb)), BPLocaleConstCC.COPYING + "...", true, false, dlg2 -> dlgref.setTarget(dlg2));
 					}
 				}
 				else
@@ -1041,10 +1032,9 @@ public class CommonUIOperations
 						fstar.delete();
 					UIUtil.block(() -> CompletableFuture.supplyAsync(() ->
 					{
-						BPResourceFileLocal f0 = (BPResourceFileLocal) ress[0];
-						FileUtil.copyFile(new File(f0.getFileFullName()), new File(fstar.getFileFullName()));
+						FileUtil.copyFile(new File(((BPResourceFileLocal) ress[0]).getFileFullName()), new File(fstar.getFileFullName()));
 						return true;
-					}), "Copying...");
+					}), BPLocaleConstCC.COPYING + "...");
 				}
 			}
 		}

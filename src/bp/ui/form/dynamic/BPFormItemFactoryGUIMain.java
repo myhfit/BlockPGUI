@@ -12,6 +12,8 @@ public class BPFormItemFactoryGUIMain implements BPFormItemFactory
 			case "textfield_more":
 			case "textfield_area":
 			case "textarea":
+			case "passfield":
+			case "passfield_area":
 			case "checkbox":
 			case "groupheader":
 			case "combobox":
@@ -33,6 +35,10 @@ public class BPFormItemFactoryGUIMain implements BPFormItemFactory
 				return new BPFormItemTextFieldPane();
 			case "textarea":
 				return new BPFormItemTextArea();
+			case "passfield":
+				return new BPFormItemPasswordField();
+			case "passfield_area":
+				return new BPFormItemPasswordPane();
 			case "checkbox":
 				return new BPFormItemCheckBox();
 			case "separator":

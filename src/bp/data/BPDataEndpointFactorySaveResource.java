@@ -46,8 +46,7 @@ public class BPDataEndpointFactorySaveResource implements BPDataEndpointFactory
 			{
 				if (res.isFactory())
 					res = ((BPResourceFactory) res).makeResource(BPConfigSimple.fromData(ObjUtil.makeMap("format", BPFormatText.FORMAT_TEXT)));
-				BPDataConsumerResourceWriter dcrw = new BPDataConsumerResourceWriter((BPResourceIO) res);
-				dcrw.runSegmentWithData(m_text);
+				(new BPDataConsumerResourceWriter((BPResourceIO) res)).runSegmentWithData(m_text);
 			}
 		}
 
@@ -72,8 +71,7 @@ public class BPDataEndpointFactorySaveResource implements BPDataEndpointFactory
 			{
 				if (res.isFactory())
 					res = ((BPResourceFactory) res).makeResource(BPConfigSimple.fromData(ObjUtil.makeMap("format", BPFormatUnknown.FORMAT_NA)));
-				BPDataConsumerResourceWriter dcrw = new BPDataConsumerResourceWriter((BPResourceIO) res);
-				dcrw.runSegmentWithData(m_bs);
+				(new BPDataConsumerResourceWriter((BPResourceIO) res)).runSegmentWithData(m_bs);
 			}
 		}
 

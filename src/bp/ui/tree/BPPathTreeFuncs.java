@@ -13,7 +13,13 @@ public interface BPPathTreeFuncs extends BPTreeFuncs
 		return false;
 	}
 
-	default void locatePath(BPTreeComponentBase tree, String path)
+	default void setSelectOnly(boolean flag)
 	{
+
+	}
+
+	default boolean locatePath(BPTreeComponentBase tree, String path)
+	{
+		return false;
 	}
 }

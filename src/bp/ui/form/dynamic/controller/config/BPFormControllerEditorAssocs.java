@@ -23,7 +23,6 @@ public class BPFormControllerEditorAssocs extends BPFormControllerCommon impleme
 	@SuppressWarnings("unchecked")
 	public Object controlSetValue(Object v, BPFormContext context, BPFormItem item)
 	{
-		List<BPEditorFactory> facs = (List<BPEditorFactory>) v;
-		return Nameable.joinName(facs, ">");
+		return Nameable.joinName((List<BPEditorFactory>) v, ">");
 	}
 }

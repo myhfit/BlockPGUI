@@ -174,7 +174,7 @@ public abstract class BPDialogCommon extends BPDialog
 	
 	public Consumer<ActionEvent> makeCallCommonActionCB(int command)
 	{
-		return (e) -> callCommonAction(command);
+		return e -> callCommonAction(command);
 	}
 
 	public void addHiddenEscape()

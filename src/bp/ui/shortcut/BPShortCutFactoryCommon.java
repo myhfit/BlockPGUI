@@ -15,36 +15,20 @@ public class BPShortCutFactoryCommon implements BPShortCutFactory
 
 	public BPShortCut createShortCut(String key)
 	{
-		BPShortCut rc = null;
 		switch (key)
 		{
 			case BPShortCutEditor.SCKEY_EDITOR:
-			{
-				rc = new BPShortCutEditor();
-				break;
-			}
+				return new BPShortCutEditor();
 			case BPShortCutEditorNewWindow.SCKEY_EDITORNW:
-			{
-				rc = new BPShortCutEditorNewWindow();
-				break;
-			}
+				return new BPShortCutEditorNewWindow();
 			case BPShortCutConsole.SCKEY_CONSOLE:
-			{
-				rc = new BPShortCutConsole();
-				break;
-			}
+				return new BPShortCutConsole();
 			case BPShortCutSimpleRun.SCKEY_SIMPLERUN:
-			{
-				rc = new BPShortCutSimpleRun();
-				break;
-			}
+				return new BPShortCutSimpleRun();
 			case BPShortCutResource.SCKEY_RES:
-			{
-				rc = new BPShortCutResource();
-				break;
-			}
+				return new BPShortCutResource();
 		}
-		return rc;
+		return null;
 	}
 
 	public boolean canExpand(String key)

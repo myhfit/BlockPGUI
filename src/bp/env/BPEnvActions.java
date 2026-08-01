@@ -74,9 +74,7 @@ public class BPEnvActions extends BPEnvBase
 			Map<String, Object> mo = BPPDUtil.read(bs);
 			m_kvs.clear();
 			for (String k : mo.keySet())
-			{
 				setEnv(k, (String) mo.get(k));
-			}
 		}
 	}
 

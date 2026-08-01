@@ -27,8 +27,8 @@ public class BPShortCutManager
 	public final static void init()
 	{
 		Map<String, BPShortCutFactory> newfacs = new HashMap<String, BPShortCutFactory>();
-		ServiceLoader<BPShortCutFactory> facs = ClassUtil.getExtensionServices(BPShortCutFactory.class);
 		List<String> exps = new ArrayList<String>();
+		ServiceLoader<BPShortCutFactory> facs = ClassUtil.getExtensionServices(BPShortCutFactory.class);
 		for (BPShortCutFactory fac : facs)
 		{
 			fac.register((key, f) ->
@@ -54,9 +54,7 @@ public class BPShortCutManager
 		BPSetting rc = null;
 		BPShortCutFactory fac = S_FACS.get(key);
 		if (fac != null)
-		{
 			rc = fac.getSetting(key);
-		}
 		return rc;
 	}
 
@@ -70,8 +68,8 @@ public class BPShortCutManager
 				Action[] acts = bsc.expand();
 				BPPopupMenuTray pop = new BPPopupMenuTray();
 				JComponent[] subs = UIUtil.makeMenuItems(acts);
-				for (JComponent sub : subs)
-					pop.add(sub);
+				for (int i = 0; i < subs.length; i++)
+					pop.add(subs[i]);
 				PointerInfo pt = MouseInfo.getPointerInfo();
 				pop.showTray((int) pt.getLocation().getX(), (int) pt.getLocation().getY());
 				return true;
@@ -104,12 +102,9 @@ public class BPShortCutManager
 		if (v instanceof Map)
 		{
 			Map<String, Object> ps = (Map<String, Object>) v;
-			String fackey = (String) ps.get("key");
-			BPShortCutFactory fac = S_FACS.get(fackey);
+			BPShortCutFactory fac = S_FACS.get((String) ps.get("key"));
 			if (fac != null)
-			{
 				rc = fac.makeShortCut(name, ps);
-			}
 		}
 		else
 		{
@@ -120,9 +115,7 @@ public class BPShortCutManager
 			{
 				String[] params = new String[vs.length - 1];
 				if (vs.length > 1)
-				{
 					System.arraycopy(vs, 1, params, 0, vs.length - 1);
-				}
 				rc = fac.makeShortCut(name, fackey, params);
 			}
 		}
@@ -137,15 +130,9 @@ public class BPShortCutManager
 		if (values != null)
 		{
 			if (values instanceof Map)
-			{
-				Map<String, Object> ps = (Map<String, Object>) values;
-				fackey = (String) ps.get("key");
-			}
+				fackey = (String) ((Map<String, Object>) values).get("key");
 			else
-			{
-				String[] vs = (String[]) values;
-				fackey = vs[0];
-			}
+				fackey = ((String[]) values)[0];
 		}
 		if (fackey != null)
 		{

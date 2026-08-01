@@ -155,8 +155,7 @@ public class BPToolGUIUnits extends BPToolGUIBase<BPToolGUIUnits.BPToolGUIContex
 				m_cmbr.setModel(mr);
 				BPUnit<?, ?> u0 = units.getBaseUnit();
 				m_cmbr.setSelectedItem(u0);
-				int si = u0.ordinal();
-				m_cmbl.setSelectedIndex(si > 0 ? 0 : 1);
+				m_cmbl.setSelectedIndex(u0.ordinal() > 0 ? 0 : 1);
 				m_dest.setText("");
 			}
 		}
@@ -182,18 +181,12 @@ public class BPToolGUIUnits extends BPToolGUIBase<BPToolGUIUnits.BPToolGUIContex
 
 		protected <C> void setValue(boolean isleft, C v)
 		{
-			String str;
-			if (v instanceof BigDecimal)
-				str = m_df.format(v);
-			else
-				str = ObjUtil.toString(v);
-			(isleft ? m_src : m_dest).setText(str);
+			(isleft ? m_src : m_dest).setText((v instanceof BigDecimal) ? m_df.format(v) : ObjUtil.toString(v));
 		}
 
 		protected <C> C getValue(boolean isleft, BPUnit<?, C> unit)
 		{
-			String v = (isleft ? m_src : m_dest).getText();
-			return unit.castValue(v);
+			return isleft ? unit.castValue(m_src.getText()) : unit.castValue(m_dest.getText());
 		}
 	}
 }

@@ -13,6 +13,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -377,9 +378,9 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			{
 				e.acceptDrop(DnDConstants.ACTION_MOVE);
 				List<?> fs = (List<?>) t.getTransferData(DataFlavor.javaFileListFlavor);
-				for (Object fobj : fs)
+				for (int i = 0; i < fs.size(); i++)
 				{
-					File f = (File) fobj;
+					File f = (File) fs.get(i);
 					BPResource res = null;
 					if (f.isFile())
 						res = new BPResourceFileLocal(f);
@@ -461,14 +462,14 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 		String l = Locale.getDefault().toLanguageTag();
 		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.TXT_AUTO, e -> setBPLocale(null), b -> b.name(b.getValue(Action.NAME) + "(" + l + ")")));
-		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.TXT_ACT_SELMORE, e-> showSelectLocale()));
+		mnulocale.add(BPActionHelpers.getAction(BPActionConstCommon.TXT_ACT_SELMORE, this::showSelectLocale));
 	}
 
 	protected void initToolMenu(JMenu mnutool)
 	{
-		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCRIPTS, e -> showScriptManager()));
-		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUEXTS, e -> showExtensionManager()));
-		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUMODS, e -> showModuleManager()));
+		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUSCRIPTS, this::showScriptManager));
+		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUEXTS, this::showExtensionManager));
+		mnutool.add(BPActionHelpers.getAction(BPActionConstCommon.MF_MNUMODS, this::showModuleManager));
 
 		Map<String, List<BPTool>> toolmap = new HashMap<String, List<BPTool>>(BPGUICore.TOOL_MAP);
 		List<String> keys = new ArrayList<String>(toolmap.keySet());
@@ -479,10 +480,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			List<BPTool> tools = toolmap.get(key);
 			tools.sort(CompareUtil.COMPARATOR_NAMEABLE());
 			for (BPTool tool : tools)
-			{
-				Action act = BPAction.build(tool.getName()).callback((e) -> tool.run()).getAction();
-				mnu.add(act);
-			}
+				mnu.add(BPAction.build(tool.getName()).callback((e) -> tool.run()).getAction());
 			mnutool.add(mnu);
 		}
 	}
@@ -1049,10 +1047,8 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			options = dlg.getEditorOptions();
 			if (format == null && fac == null)
 				return;
-			for (BPResource res : ress)
-			{
-				m_editors.open(res, format, fac, null, options);
-			}
+			for (int i = 0; i < ress.length; i++)
+				m_editors.open(ress[i], format, fac, null, options);
 		}
 	}
 
@@ -1080,10 +1076,8 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 			m_mnubar.add(mnupar, m_mnubar.getComponentIndex(m_cmdpan) - 1);
 		}
 		JComponent[] comps = UIUtil.makeMenuItems(actions);
-		for (JComponent comp : comps)
-		{
-			mnupar.add(comp);
-		}
+		for (int i = 0; i < comps.length; i++)
+			mnupar.add(comps[i]);
 	}
 
 	public void createEditorByFileSystem(String filename, String format, String facname, Map<String, Object> optionsdata, Object... params)
@@ -1421,9 +1415,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		dlg.setVisible(true);
 		BPResource res = dlg.getSelectedResource();
 		if (res != null)
-		{
 			m_editors.open((BPResourceFile) res);
-		}
 	}
 
 	public void showLocateProjectItem()
@@ -1515,7 +1507,7 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 	{
 	}
 
-	public void showSelectLocale()
+	public void showSelectLocale(ActionEvent e)
 	{
 		Locale[] larr = Locale.getAvailableLocales();
 		List<Locale> ls = ObjUtil.makeList((Object[]) larr);
@@ -1535,20 +1527,20 @@ public class BPMainFrame extends BPFrame implements WindowListener, BPMainFrameI
 		BPActionHelpers.reInit();
 	}
 
-	public void showScriptManager()
+	public void showScriptManager(ActionEvent e)
 	{
 		BPDialogScriptManager dlg = new BPDialogScriptManager();
 		dlg.setVisible(true);
 	}
 
-	public void showExtensionManager()
+	public void showExtensionManager(ActionEvent e)
 	{
 		BPExtensionLoader[] exts = BPExtensionManager.getLoadedExtensionLoaders();
 		Arrays.sort(exts, CompareUtil.COMPARATOR_NAMEABLE());
 		UIStd.viewList(Arrays.asList(exts), UIUtil.wrapBPTitle(BPActionConstCommon.TXT_EXTS), (loader) -> ((BPExtensionLoader) loader).getInfo());
 	}
 
-	public void showModuleManager()
+	public void showModuleManager(ActionEvent e)
 	{
 		List<BPModule> mnames = BPModuleManager.getModules();
 		UIStd.viewList(mnames, UIUtil.wrapBPTitle(BPActionConstCommon.TXT_MODS), null);

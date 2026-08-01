@@ -11,7 +11,7 @@ public class BPTableFuncsTask extends BPTableFuncsBase<BPTask<?>>
 	{
 		m_collabels = new String[] { BPLocaleConstCC.NAME.text(), BPLocaleConstCC.STATUS.text(), BPLocaleConstCC.PROGRESS.text() };
 		m_colnames = new String[] { "Name", "Status", "Progress" };
-		m_cols = new Class<?>[] { String.class, String.class, Float.class };
+		m_cols = new Class<?>[] { BPTask.class, String.class, Float.class };
 	}
 
 	public String[] getColumnNames()
@@ -31,7 +31,7 @@ public class BPTableFuncsTask extends BPTableFuncsBase<BPTask<?>>
 		{
 			case 0:
 			{
-				return task.toString();
+				return task;
 			}
 			case 1:
 			{

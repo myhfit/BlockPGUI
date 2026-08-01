@@ -19,6 +19,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import bp.ui.actions.BPAction;
 import bp.ui.scomp.BPTree;
+import bp.ui.tree.BPTreeFuncs.BPTreeActionType;
 import bp.ui.tree.BPTreeFuncs.BPTreeFuncsVoid;
 import bp.ui.util.UIUtil;
 import bp.util.LogicUtil.WeakRefGoFunction;
@@ -63,24 +64,14 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 
 	public Object getSelectedNodeUserObject()
 	{
-		Object rc = null;
 		TreePath path = getSelectionPath();
-		if (path != null)
-		{
-			rc = getUserObject(path.getLastPathComponent());
-		}
-		return rc;
+		return path != null ? getUserObject(path.getLastPathComponent()) : null;
 	}
 
 	public BPTreeNode getSelectedNode()
 	{
-		BPTreeNode rc = null;
 		TreePath path = getSelectionPath();
-		if (path != null)
-		{
-			rc = (BPTreeNode) path.getLastPathComponent();
-		}
-		return rc;
+		return path != null ? (BPTreeNode) path.getLastPathComponent() : null;
 	}
 
 	public Object[] getSelectedNodeUserObjectPath()
@@ -181,9 +172,18 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 		BPTreeNode node = getSelectedNode();
 		switch (keycode)
 		{
+			case KeyEvent.VK_F2:
+			{
+				if (e.getModifiers() == 0)
+					getTreeFuncs().onAction(this, getSelectedNode(), BPTreeActionType.EXT_ACT_RENAME);
+				break;
+			}
 			case KeyEvent.VK_ENTER:
 			{
-				getTreeFuncs().onOpen(this, getSelectedNode());
+				if (e.isAltDown())
+					getTreeFuncs().onAction(this, getSelectedNode(), BPTreeActionType.EXT_ACT_PROPERTY);
+				else
+					getTreeFuncs().onOpen(this, getSelectedNode());
 				break;
 			}
 			case KeyEvent.VK_CONTEXT_MENU:
@@ -195,10 +195,8 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 					{
 						JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
 						JPopupMenu pop = new JPopupMenu();
-						for (JComponent item : items)
-						{
-							pop.add(item);
-						}
+						for (int i = 0; i < items.length; i++)
+							pop.add(items[i]);
 						Rectangle rect = getUI().getPathBounds(this, getSelectionPath());
 						pop.show(this, rect.x, rect.y + rect.height);
 					}
@@ -295,10 +293,8 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 				}
 				JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
 				JPopupMenu pop = new JPopupMenu();
-				for (JComponent item : items)
-				{
-					pop.add(item);
-				}
+				for (int i = 0; i < items.length; i++)
+					pop.add(items[i]);
 				pop.show(this, e.getX(), e.getY());
 			}
 		}
@@ -310,9 +306,9 @@ public class BPTreeComponentBase extends BPTree implements BPTreeComponent<BPTre
 		if (path != null && selpaths != null && selpaths.length > 0)
 		{
 			Object lo = path.getLastPathComponent();
-			for (TreePath selp : selpaths)
+			for (int i = 0; i < selpaths.length; i++)
 			{
-				if (selp.getLastPathComponent() == lo)
+				if (selpaths[i].getLastPathComponent() == lo)
 				{
 					rc = true;
 					break;

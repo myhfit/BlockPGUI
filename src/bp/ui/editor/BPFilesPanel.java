@@ -125,6 +125,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		m_table.addMouseListener(new UIUtil.BPMouseListener(this::onTableClick, null, null, null, null));
 		m_table.getInputMap(BPTable.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deletefiles");
 		m_table.getActionMap().put("deletefiles", BPAction.build("deletefiles").callback(this::onDeleteFile).getAction());
+		m_table.setShowVerticalLines(false);
 		m_table.setBorder(null);
 		initTableColumn();
 		m_table.getSelectionModel().addListSelectionListener(this::onSelectionChanged);
@@ -134,8 +135,8 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		scroll.setViewportView(m_table);
 		m_scroll = scroll;
 
-		m_actrefresh = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNREFRESH, e -> refresh());
-		BPAction actstat = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTAT, e -> stat());
+		m_actrefresh = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNREFRESH, this::refresh);
+		BPAction actstat = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTAT, this::stat);
 		BPAction actfilter = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNFILTER, e -> onShowFilter(false));
 		BPAction actcfilter = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCHAINFILTER, e -> onShowFilter(true));
 		m_acttogglelistsub = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNTOGGLE, BPActionConstCommon.ACT_BTNTOGGLE_LISTSUB, this::toggleListSub);
@@ -164,13 +165,13 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 			tcm.removeColumn(tcm.getColumn(0));
 		}
 		m_table.setAutoResizeMode(BPTable.AUTO_RESIZE_NEXT_COLUMN);
+		m_table.setFillsViewportHeight(true);
 		tcm.applyDefaultColumnWidth(m_table.getBPTableModel().getTableFuncs());
 	}
 
 	protected void initBPEvents()
 	{
 		m_refreshpathhandler = this::onRefreshPathEvent;
-
 		m_ec.initStatusSync((BiConsumer<BPEventUISyncEditor, BPFilesPanel>) BPFilesPanel::onSyncEditorOuter);
 
 		BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_REFRESHPATHTREE, m_refreshpathhandler);
@@ -199,13 +200,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		cm.setColumnHide("Path", !m_listsub);
 		List<String> cols = new ArrayList<String>();
 		for (int i = 0; i < m.getColumnCount(); i++)
-		{
-			String colname = m.getColumnRawName(i);
-			cols.add(colname);
-		}
+			cols.add(m.getColumnRawName(i));
 		m_table.initColumnsFromModel(cols);
 		cm.applyDefaultColumnWidth(m.getTableFuncs());
-		refresh();
+		refresh(null);
 	}
 
 	public BPComponentType getComponentType()
@@ -218,10 +216,10 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		return this;
 	}
 
-	protected void onCopy(ActionEvent e)
-	{
-		copy();
-	}
+//	protected void onCopy(ActionEvent e)
+//	{
+//		copy();
+//	}
 
 	protected void onScroll(AdjustmentEvent e)
 	{
@@ -232,9 +230,9 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		}
 	}
 
-	public void copy()
-	{
-	}
+//	public void copy()
+//	{
+//	}
 
 	protected static class FileStatItem
 	{
@@ -243,7 +241,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		public String label;
 	}
 
-	protected void stat()
+	protected void stat(ActionEvent e)
 	{
 		List<String> cats = Arrays.asList("Filename Extension");
 		String cat = UIStd.select(cats, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_STATISTICS, BPLocaleConstCC.METHOD), null);
@@ -339,10 +337,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 						p.getTable().setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 						List<BPXData> newdatalist = new ArrayList<BPXData>();
 						for (FileStatItem item : stats)
-						{
-							BPXDataArray itemline = new BPXDataArray(new Object[] { item.label, item.count, item.size });
-							newdatalist.add(itemline);
-						}
+							newdatalist.add(new BPXDataArray(new Object[] { item.label, item.count, item.size }));
 						BPXYDataList newdata = new BPXYDataList(new Class<?>[] { String.class, Long.class, Long.class }, new String[] { BPLocaleConstCC.NAME.text(), BPLocaleConstCC.COUNT.text(), BPLocaleConstCC.SIZE.text() }, null, newdatalist,
 								true);
 						p.showData(ObjUtil.makeMap("_xydata", newdata), false);
@@ -422,7 +417,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		}
 	}
 
-	protected void refresh()
+	protected void refresh(ActionEvent e)
 	{
 		setBaseResource(m_con.getResource());
 	}
@@ -439,7 +434,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				String subkey = e.subkey;
 				if ((subkey != null && subkey.equals(m_id)) || checkSubPath(path))
 				{
-					refresh();
+					refresh(null);
 				}
 			}
 			catch (Exception err)
@@ -495,11 +490,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 			m_con.open();
 			BPDataContainerFileSystem confs = (BPDataContainerFileSystem) m_con;
 			confs.readFull(this::checkEntry);
-			BPResource[] subfs = confs.listResources();
-			for (BPResource subf : subfs)
-			{
-				children.add(subf);
-			}
+			children.addAll(Arrays.asList(confs.listResources()));
 		}
 
 		initList(children);
@@ -609,21 +600,9 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		this.requestFocus();
 	}
 
-	public void save()
+	public boolean isNoSave()
 	{
-	}
-
-	public void reloadData()
-	{
-	}
-
-	public boolean needSave()
-	{
-		return false;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
+		return true;
 	}
 
 	public void setID(String id)
@@ -777,9 +756,7 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 		int[] rc = new int[ress.length];
 		List<BPResource> datas = m_table.getBPTableModel().getDatas();
 		for (int i = 0; i < ress.length; i++)
-		{
 			rc[i] = datas.indexOf(ress[i]);
-		}
 		return rc;
 	}
 
@@ -840,17 +817,13 @@ public class BPFilesPanel extends JPanel implements BPEditor<JPanel>, BPViewer<B
 				{
 					String basestr = ((BPResourceFileSystem) base).getFileFullName();
 					for (int i = 0; i < ress.size(); i++)
-					{
 						resstrs[i] = ((BPResourceFileSystem) ress.get(i)).getFileFullName().substring(basestr.length());
-					}
 					m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 				}
 				else
 				{
 					for (int i = 0; i < ress.size(); i++)
-					{
 						resstrs[i] = ress.get(i).getName();
-					}
 					m_ec.syncstatus.trigger(BPEventUISyncEditor.syncSelection(m_id, SYNCSELSTYPE_FILES, resstrs));
 				}
 			}

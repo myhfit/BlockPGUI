@@ -189,26 +189,14 @@ public class BPCompareFileSystemPanel extends JPanel implements BPEditor<JPanel>
 
 	}
 
+	public boolean isNoSave()
+	{
+		return true;
+	}
+
 	public String getEditorInfo()
 	{
 		return null;
-	}
-
-	public void save()
-	{
-	}
-
-	public void reloadData()
-	{
-	}
-
-	public boolean needSave()
-	{
-		return false;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
 	}
 
 	public void setID(String id)

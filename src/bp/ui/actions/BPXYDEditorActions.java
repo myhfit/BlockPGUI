@@ -12,8 +12,8 @@ public class BPXYDEditorActions implements BPActionHolder
 
 	public BPXYDEditorActions(BPXYDEditor<?> editor)
 	{
-		actnewline = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_NEWLINE, e -> editor.newLine());
-		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, e -> editor.delete());
+		actnewline = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_NEWLINE, editor::newLine);
+		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, editor::delete);
 		actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, editor::showClone);
 	}
 

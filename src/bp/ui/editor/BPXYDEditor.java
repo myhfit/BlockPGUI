@@ -81,7 +81,6 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	protected BPActionHolder m_acts;
 
-	protected boolean m_needsave;
 	protected BPEditorController m_ec;
 
 	protected WeakReference<BiConsumer<String, Boolean>> m_statehandler;
@@ -89,6 +88,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 	public BPXYDEditor()
 	{
 		m_ec = new BPEditorController(this);
+		m_ec.setNeedSaveEditable(true);
 		m_adddatafunc = this::onAddData;
 		m_setupqueryfunc = this::onSetupXY;
 		m_ec.initStatusSync((BiConsumer<BPEventUISyncEditor,BPXYDEditor<?>>)BPXYDEditor::onSyncEditorOuter);
@@ -223,17 +223,16 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	public void save()
 	{
-		List<BPXData> datas = m_model.getDatas();
 		m_con.open();
 		try
 		{
-			BPXYDData xydata = createSaveData(m_funcs.getColumnNames(), m_funcs.getColumnClasses(), m_funcs.getColumnLabels(), datas);
+			BPXYDData xydata = createSaveData(m_funcs.getColumnNames(), m_funcs.getColumnClasses(), m_funcs.getColumnLabels(), m_model.getDatas());
 			if (m_con instanceof BPXYDContainer)
 				((BPXYDContainer) m_con).writeXYDData(xydata);
 			else
 				m_con.writeXYData(xydata);
 			setSaved();
-			m_needsave = false;
+			m_ec.setNeedSave(false);
 		}
 		finally
 		{
@@ -274,16 +273,6 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	public void reloadData()
 	{
-	}
-
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
 	}
 
 	public void setID(String id)
@@ -382,7 +371,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_model.fireTableDataChanged();
 	}
 
-	public void newLine()
+	public void newLine(ActionEvent e)
 	{
 		int c = m_funcs.getColumnClasses().length;
 		BPXData newline = new BPXData.BPXDataArray(new Object[c]);
@@ -393,7 +382,7 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 		m_table.scrollTo(m_model.getRowCount() - 1, 0);
 	}
 
-	public void delete()
+	public void delete(ActionEvent e)
 	{
 		int[] rs = m_table.getSelectedModelRows();
 		if (rs != null && rs.length > 0)
@@ -415,20 +404,16 @@ public class BPXYDEditor<CON extends BPXYContainer> extends JPanel implements BP
 
 	public void showClone(ActionEvent e)
 	{
-		List<BPXData> datas = m_model.getDatas();
-		BPXYDData xydata = createCloneData(m_funcs.getColumnNames(), m_funcs.getColumnClasses(), m_funcs.getColumnLabels(), datas);
+		BPXYDData xydata = createCloneData(m_funcs.getColumnNames(), m_funcs.getColumnClasses(), m_funcs.getColumnLabels(), m_model.getDatas());
 		Action[] acts = BPXYDataCloneActions.getActions(xydata, null);
 		if (acts != null && acts.length > 0)
 		{
 			JPopupMenu pop = new JPopupMenu();
 			JComponent[] comps = UIUtil.makeMenuItems(acts);
-			for (JComponent comp : comps)
-			{
-				pop.add(comp);
-			}
+			for (int i = 0; i < comps.length; i++)
+				pop.add(comps[i]);
 			JComponent source = (JComponent) e.getSource();
-			JComponent par = (JComponent) source.getParent();
-			pop.show(par, source.getX(), source.getY() + source.getHeight());
+			pop.show(source.getParent(), source.getX(), source.getY() + source.getHeight());
 		}
 	}
 

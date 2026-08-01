@@ -35,8 +35,8 @@ public class BPDataEndpointFactoryCommonShow implements BPDataEndpointFactory
 	{
 		List<String> rc = ObjUtil.makeList(BPFormatText.FORMAT_TEXT, BPFormatUnknown.FORMAT_NA, BPFormatTreeData.FORMAT_TREEDATA, BPFormatXYData.FORMAT_XYDATA);
 		List<BPFormat> fs = BPFormatManager.getFormatsByFeature(BPFormatFeature.IMAGE);
-		for (BPFormat f : fs)
-			rc.add(f.getName());
+		for (int i = 0; i < fs.size(); i++)
+			rc.add(fs.get(i).getName());
 		return rc;
 	}
 
@@ -45,11 +45,8 @@ public class BPDataEndpointFactoryCommonShow implements BPDataEndpointFactory
 		public void finish()
 		{
 			super.finish();
-			if (m_datas != null)
-			{
-				if (m_datas.size() == 1)
-					UIStd.showStructuredCommonDatas(m_datas.size() == 1 ? m_datas.get(0) : m_datas, false);
-			}
+			if (m_datas != null && m_datas.size() == 1)
+				UIStd.showStructuredCommonDatas(m_datas.size() == 1 ? m_datas.get(0) : m_datas, false);
 		}
 
 		public String getInfo()

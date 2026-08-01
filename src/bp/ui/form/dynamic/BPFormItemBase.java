@@ -176,8 +176,12 @@ public abstract class BPFormItemBase<C extends Component> implements BPFormItem,
 					String clsname = sp[1];
 					String prefix = sp.length > 2 ? sp[2] : null;
 					Class<?> cls = ClassUtil.getEClass(clsname);
-					BPLocaleConstDirect l = (BPLocaleConstDirect) ObjUtil.enumValueOf((Class) cls, "S");
-					rc = BPLocaleHelpers.translate(l, rc, prefix);
+					if (cls != null)
+					{
+						BPLocaleConstDirect l = (BPLocaleConstDirect) ObjUtil.enumValueOf((Class) cls, "S");
+						if (l != null)
+							rc = BPLocaleHelpers.translate(l, rc, prefix);
+					}
 					break;
 				}
 				case "dc":

@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,13 +13,13 @@ import java.util.Map.Entry;
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import bp.BPCore;
 import bp.locale.BPLocaleConstCC;
 import bp.schedule.BPSchedule;
+import bp.schedule.BPScheduleFactory;
 import bp.ui.BPComponent;
 import bp.ui.actions.BPAction;
 import bp.ui.actions.BPActionConstCommon;
@@ -29,7 +28,6 @@ import bp.ui.container.BPToolBarSQ;
 import bp.ui.dialog.BPDialogForm;
 import bp.ui.scomp.BPTable;
 import bp.ui.scomp.BPTable.BPTableModel;
-import bp.ui.scomp.BPToolVIconButton;
 import bp.ui.table.BPTableFuncsSimple;
 import bp.ui.table.BPTableFuncsSimple.BPTableFuncsContextActionMaker;
 import bp.ui.table.BPTableFuncsSimple.BPTableFuncsValueGetter;
@@ -85,9 +83,9 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 		m_tabschedules.setTableFont();
 		m_pgselcolor = UIManager.getColor("Table.selectionBackground");
 
-		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		BPAction actadd = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_CREATE_ACC, this::onAdd);
 		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
-		BPAction actedit = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNEDIT, this::onEdit, ab -> ab.acceleratorKey(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0)));
+		BPAction actedit = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_ACC, this::onEdit);
 		BPAction actenable = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNENABLE, this::onEnable);
 		BPAction actdisable = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDISABLE, this::onDisable);
 		Action[] acts = new Action[] { BPAction.separator(), actadd, actdel, actedit, BPAction.separator(), actenable, actdisable };
@@ -99,14 +97,6 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 		setLayout(new BorderLayout());
 		add(sp, BorderLayout.CENTER);
 		add(m_toolbar, BorderLayout.WEST);
-	}
-
-	protected void setupButtons(int btnsize, BPToolVIconButton... btns)
-	{
-		for (BPToolVIconButton btn : btns)
-		{
-			btn.setButtonSize(btnsize);
-		}
 	}
 
 	protected void initDatas()
@@ -131,8 +121,12 @@ public class BPSchedulesUI extends JPanel implements BPComponent<JPanel>
 
 	protected void onAdd(ActionEvent e)
 	{
-		CommonUIOperations.showNewSchedule();
-		initDatas();
+		BPSchedule sd = CommonUIOperations.showCreate(BPScheduleFactory.class);
+		if (sd != null)
+		{
+			ScheduleUtil.addScheduleAndSave(sd);
+			initDatas();
+		}
 	}
 
 	protected void onDel(ActionEvent e)

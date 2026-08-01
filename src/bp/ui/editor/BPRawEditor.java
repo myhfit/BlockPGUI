@@ -71,7 +71,6 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public final static String SYNCPOSTYPE_RAW = "RAW";
 	public final static String SYNCSELSTYPE_RAW = "RAW";
 
-	protected boolean m_needsave;
 	protected String m_id;
 	protected int m_channelid;
 	protected boolean m_fullscroll;
@@ -98,7 +97,8 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	public BPRawEditor()
 	{
 		m_ec = new BPEditorController(this);
-		
+		m_ec.setNeedSaveEditable(true);
+
 		m_fullscroll = ObjUtil.toBool(BPEnvManager.getEnvValue(BPEnvEditors.ENV_NAME_EDITORS, BPEnvEditors.ENVKEY_RAWEDITOR_FULLSCROLL), false);
 		m_txtp = new BPTextPane();
 		m_hexp = new BPHexPane();
@@ -178,12 +178,9 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	protected Action[] makeToolBarActions()
 	{
 		BPAction acttest = BPAction.build("teststruct").tooltip("Test Structure").callback(this::onTestStructure).vIcon(BPIconResV.PATHTREE()).getAction();
-		List<Action> rc = ObjUtil.makeList(BPAction.separator(), acttest);
-		Action[] extacts = BPEditorActionManager.getBarActions(this);
-		if (extacts != null)
-			for (Action act : extacts)
-				rc.add(act);
-		return rc.toArray(new Action[rc.size()]);
+		List<Action[]> rc = ObjUtil.makeList((Object) (new Action[] { BPAction.separator(), acttest }));
+		rc.add(BPEditorActionManager.getBarActions(this));
+		return ObjUtil.mergeArrays(rc, Action.class);
 	}
 
 	public BPComponentType getComponentType()
@@ -552,24 +549,14 @@ public class BPRawEditor extends JPanel implements BPEditor<JPanel>, BPViewer<BP
 	{
 	}
 
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
-	}
-
 	protected void changeNeedSave(boolean needsave)
 	{
-		if (m_needsave != needsave)
+		if (m_ec.isNeedSave() != needsave)
 		{
-			m_needsave = needsave;
+			m_ec.setNeedSave(needsave);
 			BiConsumer<String, Boolean> scb = m_statechangedcb;
 			if (scb != null)
-				scb.accept(m_id, m_needsave);
+				scb.accept(m_id, needsave);
 		}
 	}
 

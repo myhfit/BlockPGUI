@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.util.function.Function;
 
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class BPTextFieldPane extends JPanel
@@ -13,22 +14,32 @@ public class BPTextFieldPane extends JPanel
 	 */
 	private static final long serialVersionUID = -3837932300160301944L;
 
-	protected BPTextField m_txt;
+	protected JTextField m_txt;
 	protected JPanel m_rightpan;
 	protected BPToolSQButton m_morebtn;
 
 	public BPTextFieldPane()
 	{
-		m_txt = new BPTextField();
-		m_txt.setNoMeasureSize(true);
+		BPTextField txt = new BPTextField();
+		txt.setNoMeasureSize(true);
+		m_txt = txt;
 		setLayout(new BorderLayout());
 		add(m_txt, BorderLayout.CENTER);
 		setBorder(new EmptyBorder(0, 0, 0, 0));
 	}
 
-	public BPTextField getTextComponent()
+	public BPTextFieldPane(JTextField txt)
 	{
-		return m_txt;
+		m_txt = txt;
+		setLayout(new BorderLayout());
+		add(m_txt, BorderLayout.CENTER);
+		setBorder(new EmptyBorder(0, 0, 0, 0));
+	}
+
+	@SuppressWarnings("unchecked")
+	public <TF extends JTextField> TF getTextComponent()
+	{
+		return (TF) m_txt;
 	}
 
 	public BPToolSQButton addMoreBtnAuto(Function<String, String> cb)

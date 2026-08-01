@@ -4,33 +4,25 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.function.Consumer;
 
-import javax.swing.JPanel;
-
 import bp.config.BPConfig;
 import bp.data.BPDataContainerBase;
 import bp.format.BPFormat;
 import bp.format.BPFormatProject;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
-import bp.ui.editor.controller.BPEditorController;
 import bp.ui.view.BPProjectOverviewComp;
 import bp.ui.view.BPProjectOverviewCompFactory;
 import bp.ui.view.BPProjectOverviewManager;
 
-public class BPProjectPanel extends JPanel implements BPEditor<JPanel>
+public class BPProjectPanel extends BPAbstractEditorPanel
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -8576684707228195625L;
 
-	protected String m_id;
-	protected int m_channelid;
-	protected BPEditorController m_ec;
-
 	public BPProjectPanel()
 	{
-		m_ec = new BPEditorController(this);
 		setLayout(new BorderLayout());
 	}
 
@@ -39,13 +31,9 @@ public class BPProjectPanel extends JPanel implements BPEditor<JPanel>
 		return BPComponentType.PANEL;
 	}
 
-	public JPanel getComponent()
+	public String getEditorName()
 	{
-		return this;
-	}
-
-	public void focusEditor()
-	{
+		return ((BPProjectOverviewComp<?>) getComponent(0)).getProject().getName();
 	}
 
 	public String getEditorInfo()
@@ -53,46 +41,14 @@ public class BPProjectPanel extends JPanel implements BPEditor<JPanel>
 		return null;
 	}
 
-	public void save()
+	public boolean isNoSave()
 	{
+		return true;
 	}
 
 	public void setOverviewComp(BPProjectOverviewComp<?> comp)
 	{
 		add((Component) comp, BorderLayout.CENTER);
-	}
-
-	public void reloadData()
-	{
-	}
-
-	public boolean needSave()
-	{
-		return false;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-	}
-
-	public void setID(String id)
-	{
-		m_id = id;
-	}
-
-	public String getID()
-	{
-		return m_id;
-	}
-
-	public void setChannelID(int channelid)
-	{
-		m_channelid = channelid;
-	}
-
-	public int getChannelID()
-	{
-		return m_channelid;
 	}
 
 	public void setOnDynamicInfo(Consumer<String> info)
@@ -102,11 +58,6 @@ public class BPProjectPanel extends JPanel implements BPEditor<JPanel>
 	public boolean isRoutable()
 	{
 		return true;
-	}
-
-	public BPEditorController getEditorController()
-	{
-		return m_ec;
 	}
 
 	public static class BPEditorFactoryProject implements BPEditorFactory

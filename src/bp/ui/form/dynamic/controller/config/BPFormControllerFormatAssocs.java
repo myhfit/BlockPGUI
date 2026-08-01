@@ -14,7 +14,7 @@ public class BPFormControllerFormatAssocs extends BPFormControllerCommon impleme
 	{
 		context.labelwidth = 120;
 		String[] keys = sortKeys(data);
-		context.createItemDefs(keys, "textfield", false);
+		context.createItemDefs(keys, "textfield", true);
 		return true;
 	}
 

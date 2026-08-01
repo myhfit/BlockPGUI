@@ -42,7 +42,7 @@ public class BPDialogSelectFont extends BPDialogCommon
 	{
 		m_lstfonts = new BPList<Font>();
 		m_lstfonts.setModel(new BPList.BPListModel<Font>());
-		m_lstfonts.setCellRenderer(new BPList.BPListRenderer(BPDialogSelectFont::transFontName));
+		m_lstfonts.setCellRenderer(new BPList.BPListRendererT<>(Font::getName));
 		m_lstfonts.setListFont();
 		JScrollPane scroll = new JScrollPane();
 		scroll.setViewportView(m_lstfonts);
@@ -97,11 +97,6 @@ public class BPDialogSelectFont extends BPDialogCommon
 		setCommandBarMode(COMMANDBAR_OK_CANCEL);
 		setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPLocaleConstCC.FONT));
 		setModal(true);
-	}
-
-	protected final static String transFontName(Object font)
-	{
-		return ((Font) font).getName();
 	}
 
 	protected void setPrefers()

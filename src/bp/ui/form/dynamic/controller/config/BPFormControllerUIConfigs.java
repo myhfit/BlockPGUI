@@ -12,11 +12,11 @@ import javax.swing.UIManager.LookAndFeelInfo;
 
 import bp.locale.BPLocaleConstCC;
 import bp.ui.actions.BPActionConstCommon;
-import bp.ui.dialog.BPDialogSelectData;
 import bp.ui.dialog.BPDialogSelectFont;
 import bp.ui.form.dynamic.BPFormContext;
 import bp.ui.form.dynamic.controller.BPFormController;
 import bp.ui.form.dynamic.controller.BPFormControllerCommon;
+import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.ClassUtil;
 
@@ -65,11 +65,7 @@ public class BPFormControllerUIConfigs extends BPFormControllerCommon implements
 				}
 			}
 		}
-		BPDialogSelectData<String> dlg = new BPDialogSelectData<>();
-		dlg.setSource(laflist);
-		dlg.setTitle(UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_LAF, BPLocaleConstCC.CLASSNAME));
-		dlg.setVisible(true);
-		return dlg.getSelectData();
+		return UIStd.select(laflist, UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_LAF, BPLocaleConstCC.CLASSNAME), null, (old != null ? laflist.indexOf(old) : -1));
 	}
 
 	protected CompletionStage<List<String>> getLAFClasses()

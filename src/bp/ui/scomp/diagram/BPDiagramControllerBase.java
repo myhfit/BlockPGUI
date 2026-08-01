@@ -41,12 +41,16 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 
 	public void mousePressed(MouseEvent e)
 	{
-		m_compref.run(BPDiagramComponent::requestFocusInWindow);
+		BPDiagramComponent comp = m_compref.get();
+		if (comp != null)
+			comp.requestFocusInWindow();
 	}
 
 	public void initCursor()
 	{
-		m_compref.run(comp -> comp.setCursor(new Cursor(Cursor.DEFAULT_CURSOR)));
+		BPDiagramComponent comp = m_compref.get();
+		if (comp != null)
+			comp.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
 
 	public void mouseReleased(MouseEvent e)
@@ -70,7 +74,9 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 		int c = e.getUnitsToScroll();
 		if (c != 0)
 		{
-			m_compref.run(comp -> comp.scale(c > 0 ? -1 : 1));
+			BPDiagramComponent comp = m_compref.get();
+			if (comp != null)
+				comp.scale(c > 0 ? -1 : 1);
 		}
 	}
 
@@ -103,9 +109,9 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 		int[] dragpts = m_dragpts;
 		if (dragpts != null)
 		{
-			// dragpts[2] = x;
-			// dragpts[3] = y;
-			m_compref.run(BPDiagramComponent::stopDrag);
+			BPDiagramComponent comp = m_compref.get();
+			if (comp != null)
+				comp.stopDrag();
 		}
 		m_dragpts = null;
 		m_downeleref.setTarget(null);
@@ -119,11 +125,13 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 		if (dragpts != null)
 		{
 			BPDiagramElement downele = m_downeleref.get();
+			BPDiagramComponent comp = m_compref.get();
 			if (downele == null)
 			{
 				dragpts[2] = x;
 				dragpts[3] = y;
-				m_compref.run(comp -> comp.moveDiagram(dragpts));
+				if (comp != null)
+					comp.moveDiagram(dragpts);
 				dragpts[4] = x;
 				dragpts[5] = y;
 			}
@@ -131,7 +139,8 @@ public abstract class BPDiagramControllerBase implements BPDiagramController
 			{
 				dragpts[2] = x;
 				dragpts[3] = y;
-				m_compref.run(comp -> comp.dragElement(downele, dragpts, m_dragelepts));
+				if (comp != null)
+					comp.dragElement(downele, dragpts, m_dragelepts);
 				dragpts[4] = x;
 				dragpts[5] = y;
 			}

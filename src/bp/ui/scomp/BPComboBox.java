@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.plaf.ComboBoxUI;
 import javax.swing.plaf.basic.BasicBorders.FieldBorder;
 
 import bp.config.UIConfigs;
@@ -41,6 +42,9 @@ public class BPComboBox<E> extends JComboBox<E>
 		Font tfont = new Font(UIConfigs.LIST_FONT_NAME(), Font.PLAIN, fontsize);
 		setFont(tfont);
 	}
+    public void setUI(ComboBoxUI ui) {
+        super.setUI(ui);
+    }
 
 	public boolean hasWBorder()
 	{

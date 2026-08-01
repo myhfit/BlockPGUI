@@ -42,8 +42,7 @@ public class BPFormPanelTaskSerial extends BPFormPanelTask
 	public Map<String, Object> getFormData()
 	{
 		Map<String, Object> rc = super.getFormData();
-		List<Map<String, Object>> tasks = m_lsttasks.getDatas();
-		rc.put("tasks", tasks);
+		rc.put("tasks", m_lsttasks.getDatas());
 		return rc;
 	}
 
@@ -125,7 +124,6 @@ public class BPFormPanelTaskSerial extends BPFormPanelTask
 	public void showData(Map<String, ?> data, boolean editable)
 	{
 		super.showData(data, editable);
-		List<Map<String, Object>> tasks = (List<Map<String, Object>>) data.get("tasks");
-		m_lsttasks.setDatas(tasks);
+		m_lsttasks.setDatas((List<Map<String, Object>>) data.get("tasks"));
 	}
 }

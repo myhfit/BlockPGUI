@@ -3,7 +3,6 @@ package bp.ui.console;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,13 +14,12 @@ import bp.config.UIConfigs;
 import bp.console.BPConsole;
 import bp.console.BPConsoleCLI;
 import bp.ui.actions.BPAction;
+import bp.ui.actions.BPActionConstCommon;
+import bp.ui.actions.BPActionHelpers;
 import bp.ui.container.BPPanelContainerBase;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPConsolePane;
 import bp.ui.scomp.BPMenuItem;
-import bp.ui.scomp.BPToolVIconButton;
-import bp.ui.util.UIUtil;
 import bp.util.SystemUtil;
 
 public class BPConsoleUI extends BPPanelContainerBase
@@ -48,26 +46,13 @@ public class BPConsoleUI extends BPPanelContainerBase
 
 		m_toolbar = new BPToolBarSQ(true);
 		m_toolbar.setBorder(new MatteBorder(0, 0, 0, 1, UIConfigs.COLOR_WEAKBORDER()));
-		Action actsel = BPAction.build("sel").tooltip("Select").vIcon(BPIconResV.MORE()).getAction();
-		Action actnew = BPAction.build("new").tooltip("Create").vIcon(BPIconResV.ADD()).callback(this::onAdd).getAction();
-		Action actstop = BPAction.build("stop").tooltip("Stop").vIcon(BPIconResV.STOP()).callback(this::onStop).getAction();
-		Action actclose = BPAction.build("close").tooltip("Close").vIcon(BPIconResV.DEL()).callback(this::onClose).getAction();
-		Action actclear = BPAction.build("clear").tooltip("Clear").vIcon(BPIconResV.KILL()).callback(this::onClear).getAction();
-		BPToolVIconButton btnadd = new BPToolVIconButton(actnew, this);
-		BPToolVIconButton btnsel = new BPToolVIconButton(actsel, this);
-		BPToolVIconButton btnstop = new BPToolVIconButton(actstop, this);
-		BPToolVIconButton btnclose = new BPToolVIconButton(actclose, this);
-		BPToolVIconButton btnclear = new BPToolVIconButton(actclear, this);
-		btnsel.addMouseListener(new UIUtil.BPMouseListener(this::onShowSelect, null, null, null, null));
-		m_toolbar.addSeparator();
-		m_toolbar.add(btnadd);
-		m_toolbar.add(btnclose);
-		m_toolbar.addSeparator();
-		m_toolbar.add(btnstop);
-		m_toolbar.addSeparator();
-		m_toolbar.addSeparator();
-		m_toolbar.add(btnclear);
-		m_toolbar.add(btnsel);
+		Action actsel = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSEL, this::onShowSelect);
+		Action actnew = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
+		Action actstop = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNSTOP, this::onStop);
+		Action actclose = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNCLOSE, this::onClose);
+		Action actclear = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNCLOSETAB, BPActionConstCommon.ACT_BTNCLEAR, this::onClear);
+		Action[] acts = new Action[] { BPAction.separator(), actnew, actclose, BPAction.separator(), actstop, BPAction.separator(), BPAction.separator(), actclear, actsel };
+		m_toolbar.setActions(acts, this);
 
 		setLayout(new BorderLayout());
 		add(m_toolbar, BorderLayout.WEST);
@@ -82,7 +67,7 @@ public class BPConsoleUI extends BPPanelContainerBase
 		return null;
 	}
 
-	protected void onShowSelect(MouseEvent e)
+	protected void onShowSelect(ActionEvent e)
 	{
 		List<BPConsolePanel> consoles = new ArrayList<BPConsolePanel>(m_consoles);
 		if (consoles.size() == 0)
@@ -95,7 +80,8 @@ public class BPConsoleUI extends BPPanelContainerBase
 			BPMenuItem mnu = new BPMenuItem(BPAction.build(name).callback((ae) -> switchConsole(con)).getAction());
 			pop.add(mnu);
 		}
-		pop.show((Component) e.getSource(), e.getX(), e.getY());
+		Component c=(Component) e.getSource();
+		pop.show(c,0,c.getHeight());
 	}
 
 	protected void onAdd(ActionEvent e)

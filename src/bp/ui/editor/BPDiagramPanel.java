@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 
 import javax.swing.Action;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
@@ -27,24 +26,21 @@ import bp.res.BPResource;
 import bp.ui.BPViewer;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.editor.controller.BPEditorController;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPDiagramComponent;
 import bp.ui.scomp.diagram.BPDiagramControllerRectangleSelect;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 import bp.util.DiagramUtil;
+import bp.util.Std;
 
-public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPMContainer<BPDiagram>>
+public class BPDiagramPanel extends BPAbstractEditorPanel implements BPViewer<BPMContainer<BPDiagram>>
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 5438174846930862232L;
 
-	protected boolean m_needsave;
-	protected String m_id;
-	protected int m_channelid;
 	protected BPMContainer<BPDiagram> m_con;
 	protected BPDiagramComponent m_dcomp;
 	protected JScrollPane m_scroll;
@@ -55,12 +51,10 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	protected Action m_actrectsel;
 	protected Action m_actlayout;
 	protected BiFunction<BPDiagramElement, BPDiagramComponent, JPopupMenu> m_oncontextcb;
-	protected BPEditorController m_ec;
 
 	public BPDiagramPanel()
 	{
 		m_oncontextcb = this::getElementContextMenu;
-		m_ec = new BPEditorController(this);
 
 		init();
 		initBPActions();
@@ -109,14 +103,8 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 				if (eletype == BPDiagramElement.ELEMENTTYPE_NODE)
 				{
 					if (s == 2)
-					{
-						BPAction act = BPAction.build("Create Link").callback(this::onCreateLink).getAction();
-						rc.add(act);
-					}
-					{
-						BPAction act = BPAction.build("Edit").callback(e -> editElement(ele0key)).getAction();
-						rc.add(act);
-					}
+						rc.add(BPAction.build("Create Link").callback(this::onCreateLink).getAction());
+					rc.add(BPAction.build("Edit").callback(e -> editElement(ele0key)).getAction());
 				}
 			}
 		}
@@ -126,11 +114,6 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	public BPComponentType getComponentType()
 	{
 		return BPComponentType.CUSTOMCOMP;
-	}
-
-	public JPanel getComponent()
-	{
-		return this;
 	}
 
 	public void bind(BPMContainer<BPDiagram> con, boolean noread)
@@ -164,10 +147,6 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 		return m_con;
 	}
 
-	public void focusEditor()
-	{
-	}
-
 	public String getEditorInfo()
 	{
 		return null;
@@ -197,6 +176,7 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 		n.setRandomKey();
 		d.getLayer("node").addElement(n);
 		m_dcomp.refresh();
+		changeNeedSave(true);
 	}
 
 	protected void onCreateLink(ActionEvent e)
@@ -215,6 +195,7 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 				BPDiagram d = m_dcomp.getDiagram();
 				d.getLayer("link").addElement(newlink);
 				m_dcomp.refresh();
+				changeNeedSave(true);
 			}
 		}
 	}
@@ -230,6 +211,7 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 				ele.label = newlabel;
 				ele.measuresize = null;
 				m_dcomp.refresh();
+				changeNeedSave(true);
 			}
 		}
 	}
@@ -237,6 +219,7 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	protected void onDelete(ActionEvent e)
 	{
 		m_dcomp.deleteSelectedElement();
+		changeNeedSave(true);
 	}
 
 	protected void onEnterRectSelect(ActionEvent e)
@@ -264,43 +247,21 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 
 	public void save()
 	{
-		m_con.open();
-		m_con.writeMData(m_dcomp.getDiagram(), true);
-		m_con.close();
+		try
+		{
+			m_con.open();
+			m_con.writeMData(m_dcomp.getDiagram(), true);
+			m_con.close();
+			changeNeedSave(false);
+		}
+		catch (Exception e)
+		{
+			Std.err(e);
+		}
 	}
 
 	public void reloadData()
 	{
-	}
-
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
-	}
-
-	public void setID(String id)
-	{
-		m_id = id;
-	}
-
-	public String getID()
-	{
-		return m_id;
-	}
-
-	public void setChannelID(int channelid)
-	{
-		m_channelid = channelid;
-	}
-
-	public int getChannelID()
-	{
-		return m_channelid;
 	}
 
 	public void setOnDynamicInfo(Consumer<String> info)
@@ -321,10 +282,5 @@ public class BPDiagramPanel extends JPanel implements BPEditor<JPanel>, BPViewer
 			con.bind(res);
 			return con;
 		}
-	}
-
-	public BPEditorController getEditorController()
-	{
-		return m_ec;
 	}
 }

@@ -14,7 +14,7 @@ public class BPTreeDataEditorActions implements BPActionHolder
 
 	public BPTreeDataEditorActions(BPTreeDataEditor<?> editor)
 	{
-		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, e -> editor.delete());
+		actdelete = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, editor::delete);
 		actclone = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNCLONE, editor::showClone);
 		acteditkv = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_KV, editor::showEditKV);
 		acteditxy = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNEDIT, BPActionConstCommon.ACT_BTNEDIT_XY, editor::showEditXY);

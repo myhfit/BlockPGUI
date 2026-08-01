@@ -167,50 +167,54 @@ public class BPEditors extends BPTabbedContainerBase
 				UIStd.info("No Editor for " + format.getName());
 				return;
 			}
-			BPEditor<?> editor = fac.createEditor(format, res, null);
-			if (editor == null)
-				return;
-			editor.setChannelID(m_channelid);
-			editor.setID(id);
-			editor.setOnStateChanged(m_statecb);
-			editor.setOnDynamicInfo(m_dynainfocb);
-			fac.initEditor(editor, format, res, config);
-			if (res.isRoutable() && editor.isRoutable())
+			
+			try
 			{
-				BPComponent<?> cur = getCurrent();
-				if (routecontainerid != null && cur != null && cur.isRoutableContainer() && routecontainerid.equals(((BPRoutableContainer<?>) cur).getID()))
+				BPEditor<?> editor = fac.createEditor(format, res, null);
+				if (editor == null)
+					return;
+				editor.setChannelID(m_channelid);
+				editor.setID(id);
+				editor.setOnStateChanged(m_statecb);
+				editor.setOnDynamicInfo(m_dynainfocb);
+				fac.initEditor(editor, format, res, config);
+				if (res.isRoutable() && editor.isRoutable())
 				{
-					BPRoutableContainer<?> par = (BPRoutableContainer<?>) cur;
-					par.addRoute(id, res.getName(), editor);
+					BPComponent<?> cur = getCurrent();
+					if (routecontainerid != null && cur != null && cur.isRoutableContainer() && routecontainerid.equals(((BPRoutableContainer<?>) cur).getID()))
+					{
+						BPRoutableContainer<?> par = (BPRoutableContainer<?>) cur;
+						par.addRoute(id, res.getName(), editor);
+					}
+					else
+					{
+						BPRoutableContainerBase par = new BPRoutableContainerBase();
+						par.addRoute(id, res.getName(), editor);
+						String parid = BPCore.genID(BPCore.getFileContext());
+						par.setID(parid);
+						m_compmap.put(parid, par);
+						addTab(parid, res.getName(), (Icon) null, par.getComponent());
+						switchTab(parid);
+					}
 				}
 				else
 				{
-					BPRoutableContainerBase par = new BPRoutableContainerBase();
-					par.addRoute(id, res.getName(), editor);
-					String parid = BPCore.genID(BPCore.getFileContext());
-					par.setID(parid);
-					m_compmap.put(parid, par);
-					addTab(parid, res.getName(), (Icon) null, par.getComponent());
-					switchTab(parid);
+					comp = editor;
+					m_compmap.put(id, comp);
+					addTab(id, res.getName(), (Icon) null, editor.getComponent());
+					switchTab(id);
 				}
+				if (editor instanceof BPTextEditor)
+				{
+					BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
+					teditor.getTextPanel().resizeDoc();
+				}
+				editor.focusEditor();
 			}
-			else
+			catch (Exception e)
 			{
-				comp = editor;
-				m_compmap.put(id, comp);
-				addTab(id, res.getName(), (Icon) null, editor.getComponent());
-				switchTab(id);
+				UIStd.err(e);
 			}
-			if (editor instanceof BPTextEditor)
-			{
-				BPTextEditor<?, ?> teditor = ((BPTextEditor<?, ?>) editor);
-				teditor.getTextPanel().resizeDoc();
-			}
-			// if (editor.needActiveOnStart())
-			// {
-			// editor.activeEditor();
-			// }
-			editor.focusEditor();
 		}
 		else
 		{
@@ -286,7 +290,7 @@ public class BPEditors extends BPTabbedContainerBase
 				else if (comp instanceof BPEditor)
 					exts = ((BPEditor<?>) comp).getExts();
 				Consumer<BPDialogSelectResource> cb = null;
-				if (oldres != null && oldres.isFileSystem())
+				if (oldres != null && oldres.isFileSystem() && ((BPResourceFileSystem) oldres).exists())
 					cb = dlg -> dlg.switchPathTreeFunc(3).setPreSelectedResource((BPResourceFileSystem) oldres);
 				BPResource file = CommonUIOperations.showSaveResource(null, exts, cb);
 				if (file != null)

@@ -26,6 +26,9 @@ public class BPEditorController
 
 	protected BPEditor<?> m_editor;
 
+	protected boolean m_needsaveeditable;
+	protected boolean m_needsave;
+
 	public BPEditorController(BPEditor<?> editor)
 	{
 		m_editor = editor;
@@ -142,5 +145,21 @@ public class BPEditorController
 			if (stopsynccb != null)
 				((Consumer<BPEditor<?>>) stopsynccb).accept(m_editor);
 		}
+	}
+	
+	public void setNeedSaveEditable(boolean flag)
+	{
+		m_needsaveeditable=flag;
+	}
+
+	public void setNeedSave(boolean flag)
+	{
+		if (m_needsaveeditable)
+			m_needsave = flag;
+	}
+
+	public boolean isNeedSave()
+	{
+		return m_needsave;
 	}
 }

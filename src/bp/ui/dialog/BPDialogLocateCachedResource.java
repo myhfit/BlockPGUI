@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
@@ -32,6 +33,7 @@ import bp.ui.actions.BPCommonDialogActions;
 import bp.ui.scomp.BPLabel;
 import bp.ui.scomp.BPList;
 import bp.ui.scomp.BPList.BPListModel;
+import bp.ui.scomp.BPList.BPListRendererIFC;
 import bp.ui.scomp.BPTextField;
 import bp.ui.util.UIUtil;
 import bp.util.FileUtil;
@@ -219,7 +221,7 @@ public class BPDialogLocateCachedResource extends BPDialogCommon
 	}
 
 	@SuppressWarnings("serial")
-	protected static class FSCacheDataListRenderer extends DefaultListCellRenderer
+	protected static class FSCacheDataListRenderer extends DefaultListCellRenderer implements BPListRendererIFC
 	{
 		protected BPLabel lbl;
 		protected BPLabel lbl1;
@@ -249,30 +251,24 @@ public class BPDialogLocateCachedResource extends BPDialogCommon
 				pan.add(lbl, BorderLayout.CENTER);
 				pan.add(lbl2, BorderLayout.EAST);
 			}
-			if (isSelected)
+
 			{
-				Color bg = list.getSelectionBackground();
-				Color fg = list.getSelectionForeground();
+				Color bg = isSelected ? list.getSelectionBackground() : list.getBackground();
+				Color fg = isSelected ? list.getSelectionForeground() : list.getForeground();
+
 				pan.setBackground(bg);
 				lbl.setBackground(bg);
 				lbl.setForeground(fg);
 				lbl1.setBackground(bg);
-				lbl1.setForeground(fg);
 				lbl2.setBackground(bg);
-				lbl2.setForeground(fg);
+
+				{
+					Color fg2 = isSelected ? fg : UIConfigs.COLOR_TEXTHALF();
+					lbl1.setForeground(fg2);
+					lbl2.setForeground(fg2);
+				}
 			}
-			else
-			{
-				Color bg = list.getBackground();
-				Color fg = list.getForeground();
-				pan.setBackground(bg);
-				lbl.setBackground(bg);
-				lbl.setForeground(fg);
-				lbl1.setBackground(bg);
-				lbl1.setForeground(UIConfigs.COLOR_TEXTHALF());
-				lbl2.setBackground(bg);
-				lbl2.setForeground(UIConfigs.COLOR_TEXTHALF());
-			}
+			
 			BPCacheDataFileSystem data = (BPCacheDataFileSystem) value;
 			String p = data.getFullPath();
 			String txt = data.getName();
@@ -299,6 +295,11 @@ public class BPDialogLocateCachedResource extends BPDialogCommon
 			for (int i = c; i < 9; i++)
 				sb.append(" ");
 			return sb.toString();
+		}
+
+		public Function<BPCacheDataFileSystem, ?> getTransFunction()
+		{
+			return BPCacheDataFileSystem::getName;
 		}
 	}
 }

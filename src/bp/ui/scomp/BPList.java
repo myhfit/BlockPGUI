@@ -13,7 +13,6 @@ import javax.swing.JList;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
@@ -72,10 +71,12 @@ public class BPList<T> extends JList<T>
 	public void onFind(ActionEvent e)
 	{
 		WeakRefGo<BPDialogFind> finddlgref = m_finddlgref;
-		finddlgref.run(dlg -> dlg.dispose());
+		BPDialogFind dlg = finddlgref.get();
+		if (dlg != null)
+			dlg.dispose();
 		finddlgref.setTarget(null);
 
-		BPDialogFind dlg = new BPDialogFind(SwingUtilities.getWindowAncestor(this));
+		dlg = new BPDialogFind(this);
 		dlg.setReplaceable(false);
 		dlg.setFindCallBack(m_findcb);
 		finddlgref.setTarget(dlg);
@@ -89,13 +90,14 @@ public class BPList<T> extends JList<T>
 		return false;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public boolean find(String target, boolean isforward, boolean wholeword, boolean casesensitive, boolean onlysel)
 	{
 		int si = getSelectedIndex();
 		int delta = isforward ? 1 : -1;
 		int i = si + delta;
 		int c = getModel().getSize();
-		Function<Object, ?> br = getRendererTransFunction();
+		Function<?, ?> br = getRendererTransFunction();
 		if (isforward)
 		{
 			if (i >= c)
@@ -137,7 +139,7 @@ public class BPList<T> extends JList<T>
 			{
 				Object ele = model.getElementAt(i);
 				if (br != null)
-					ele = br.apply(ele);
+					ele = ((Function)br).apply(ele);
 				t = ObjUtil.toString(ele);
 			}
 
@@ -154,7 +156,7 @@ public class BPList<T> extends JList<T>
 		return false;
 	}
 
-	protected Function<Object, ?> getRendererTransFunction()
+	protected Function<?, ?> getRendererTransFunction()
 	{
 		ListCellRenderer<? super T> r = getCellRenderer();
 		if (r != null && r instanceof BPListRendererIFC)
@@ -207,27 +209,28 @@ public class BPList<T> extends JList<T>
 		}
 	}
 
-	protected static interface BPListRendererIFC
+	public static interface BPListRendererIFC
 	{
-		Function<Object, ?> getTransFunction();
+		Function<?, ?> getTransFunction();
 	}
 
 	@SuppressWarnings("serial")
-	public static class BPListRenderer extends DefaultListCellRenderer implements BPListRendererIFC
+	public static class BPListRendererT<T> extends DefaultListCellRenderer implements BPListRendererIFC
 	{
-		protected Function<Object, ?> m_transfunc;
+		protected Function<? super T, ?> m_transfunc;
 
-		public BPListRenderer(Function<Object, ?> transfunc)
+		public BPListRendererT(Function<? super T, ?> transfunc)
 		{
 			m_transfunc = transfunc;
 		}
 
+		@SuppressWarnings("unchecked")
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
-			return super.getListCellRendererComponent(list, m_transfunc == null ? value : m_transfunc.apply(value), index, isSelected, cellHasFocus);
+			return super.getListCellRendererComponent(list, m_transfunc == null ? value : m_transfunc.apply((T) value), index, isSelected, cellHasFocus);
 		}
 
-		public Function<Object, ?> getTransFunction()
+		public Function<? super T, ?> getTransFunction()
 		{
 			return m_transfunc;
 		}
@@ -236,20 +239,21 @@ public class BPList<T> extends JList<T>
 	@SuppressWarnings("serial")
 	public static class BPListRendererWeakRef extends DefaultListCellRenderer implements BPListRendererIFC
 	{
-		protected WeakReference<Function<Object, ?>> m_transfuncref;
+		protected WeakReference<Function<?, ?>> m_transfuncref;
 
-		public BPListRendererWeakRef(Function<Object, ?> transfunc)
+		public BPListRendererWeakRef(Function<?, ?> transfunc)
 		{
 			m_transfuncref = new WeakReference<>(transfunc);
 		}
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus)
 		{
-			Function<Object, ?> tf = m_transfuncref == null ? null : m_transfuncref.get();
-			return super.getListCellRendererComponent(list, tf == null ? value : tf.apply(value), index, isSelected, cellHasFocus);
+			Function<?, ?> tf = m_transfuncref == null ? null : m_transfuncref.get();
+			return super.getListCellRendererComponent(list, tf == null ? value : ((Function)tf).apply(value), index, isSelected, cellHasFocus);
 		}
 
-		public Function<Object, ?> getTransFunction()
+		public Function<?, ?> getTransFunction()
 		{
 			return m_transfuncref.get();
 		}

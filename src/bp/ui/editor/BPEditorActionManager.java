@@ -65,10 +65,8 @@ public class BPEditorActionManager
 						Action[] sacts = ((Function<BPEditor<?>, Action[]>) func).apply(editor);
 						if (sacts != null)
 						{
-							for (Action sact : sacts)
-							{
-								acts.add(sact);
-							}
+							for (int i=0;i< sacts.length;i++)
+								acts.add(sacts[i]);
 						}
 					}
 					catch (Error e)

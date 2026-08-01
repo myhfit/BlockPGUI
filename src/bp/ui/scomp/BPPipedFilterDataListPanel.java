@@ -82,9 +82,7 @@ public class BPPipedFilterDataListPanel<DATA> extends JPanel implements BPFilter
 		List<BPTransformerRuleFilter<DATA>> filters = getFilters();
 		List<Map<String, Object>> fobjs = new ArrayList<>();
 		for (BPTransformerRuleFilter<DATA> f : filters)
-		{
 			fobjs.add(ObjUtil.objToMap(f));
-		}
 		String txt = JSONUtil.encode(fobjs);
 		BPResource res = CommonUIOperations.selectResource(SwingUtilities.getWindowAncestor(this), true);
 		IOUtil.write((BPResourceIO) res, TextUtil.fromString(txt, "utf-8"));

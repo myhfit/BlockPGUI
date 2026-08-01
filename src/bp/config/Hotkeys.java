@@ -62,10 +62,7 @@ public class Hotkeys extends BPConfigAdvBase
 		byte[] bs = IOUtil.read(BPCore.getWorkspaceContext().getConfigRes(CFG_FILENAME));
 		Map<String, String> pmap = new LinkedHashMap<String, String>();
 		if (bs != null)
-		{
-			String str = TextUtil.toString(bs, "utf-8");
-			pmap = TextUtil.getPlainMap(str, true);
-		}
+			pmap = TextUtil.getPlainMap(TextUtil.toString(bs, "utf-8"), true);
 		m_map.clear();
 		m_map.putAll(pmap);
 	}
@@ -175,8 +172,7 @@ public class Hotkeys extends BPConfigAdvBase
 	{
 		if (m_awtlistener != null)
 		{
-			Toolkit tk = Toolkit.getDefaultToolkit();
-			tk.removeAWTEventListener(m_awtlistener);
+			Toolkit.getDefaultToolkit().removeAWTEventListener(m_awtlistener);
 			m_awtlistener = null;
 		}
 	}
@@ -252,15 +248,18 @@ public class Hotkeys extends BPConfigAdvBase
 
 		public Hotkey(String mkey, String target)
 		{
+			if (mkey != null)
 			{
-				String k = mkey == null ? "" : mkey;
-				if (k != null && k.startsWith("!"))
+				if (mkey.startsWith("!"))
 				{
-					k = k.substring(1);
+					key = mkey.substring(1);
 					issystem = true;
 				}
-				key = k;
+				else
+					key = mkey;
 			}
+			else
+				key = "";
 			this.target = target;
 		}
 

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +24,7 @@ import bp.config.UIConfigs;
 import bp.event.BPEventChannelUI;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
+import bp.locale.BPLocaleConstCCGUI;
 import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.res.BPResourceFactory;
@@ -44,7 +46,6 @@ import bp.ui.tree.BPProjectsTreeFuncs;
 import bp.ui.tree.BPTreeFuncs;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
-import bp.util.LogicUtil;
 import bp.util.LogicUtil.WeakRefGoPredicate;
 import bp.util.ObjUtil;
 
@@ -72,6 +73,8 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 	protected BPAction m_actlocate;
 	protected CHECKEXITFLAG m_checkexist;
 	protected String[] m_exts;
+	protected SELECTMODE m_selmode;
+	protected SELECTSCOPE[] m_selscopes;
 
 	protected WeakRefGoPredicate<BPResource> m_filterref;
 	protected WeakReference<Predicate<BPResource>> m_targetfilterref;
@@ -169,11 +172,12 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 		m_filebox = new BPTextField();
 		m_ptreehandler = new BPPathTreeNodeCommonHandler(m_ptree.getTreeComponent());
 
-		m_actprjres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PRJTREE, e -> switchPathTreeFunc(2));
-		m_actfileres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PATHTREE, e -> switchPathTreeFunc(1));
-		m_actcfileres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_COMPUTERTREE, e -> switchPathTreeFunc(3));
-		m_actspres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_SPTREE, e -> switchPathTreeFunc(4));
-		m_actlocate = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNGOTO, BPActionConstCommon.ACT_BTNGOTO_ACC, e -> showLocate());
+		m_actprjres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PRJTREE, this::onSwitchPathTreeFunc);
+		m_actfileres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_PATHTREE, this::onSwitchPathTreeFunc);
+		m_actcfileres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_COMPUTERTREE, this::onSwitchPathTreeFunc);
+		m_actspres = BPActionHelpers.getAction(BPActionConstCommon.PTREE_SPTREE, this::onSwitchPathTreeFunc);
+		BPAction.batchSetCommand(m_actprjres, "2", m_actfileres, "1", m_actcfileres, "3", m_actspres, "4");
+		m_actlocate = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNGOTO, BPActionConstCommon.ACT_BTNGOTO_ACC, this::showLocate);
 		m_acts = new Action[] { m_actprjres, m_actfileres, m_actcfileres, m_actspres, null, m_actlocate };
 		m_ptree.setToolBarActions(m_acts);
 		m_actprjres.putValue(Action.SELECTED_KEY, true);
@@ -223,7 +227,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 	{
 	}
 
-	protected void showLocate()
+	protected void showLocate(ActionEvent e)
 	{
 		String presetpath = "";
 		if (m_preselres != null && m_preselres.isFileSystem())
@@ -233,12 +237,18 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 		{
 			BPPathTreeFuncs funcs = (BPPathTreeFuncs) m_ptree.getPathTreeFuncs();
 			funcs.locatePath(m_ptree.getTreeComponent(), p);
+			m_ptree.getTreeComponent().requestFocus();
 		}
 	}
 
 	protected void initTreeFuncs(BPPathTreeFuncs tf, int f)
 	{
 		tf.setTreeFilter(this::filterTreeItem);
+	}
+	
+	protected void onSwitchPathTreeFunc(ActionEvent e)
+	{
+		switchPathTreeFunc(e.getActionCommand().charAt(0) - '0');
 	}
 
 	public BPDialogSelectResource2 switchPathTreeFunc(int func)
@@ -295,6 +305,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 				break;
 			}
 		}
+		funcs.setSelectOnly(m_selmode == SELECTMODE.OPEN);
 		m_actlocate.setEnabled(funcs != null ? funcs.canLocatePath() : false);
 		return this;
 	}
@@ -309,6 +320,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 	public BPDialogSelectResource2 setScopes(SELECTSCOPE... scopes)
 	{
 		List<SELECTSCOPE> scs = Arrays.asList(scopes);
+		m_selscopes = scopes;
 		m_actfileres.setEnabled(scs.contains(SELECTSCOPE.WORKSPACE));
 		m_actprjres.setEnabled(scs.contains(SELECTSCOPE.PROJECT));
 		m_actcfileres.setEnabled(scs.contains(SELECTSCOPE.COMPUTER));
@@ -324,7 +336,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 		BPResource res = (BPResource) obj;
 		if (m_selecttype == SELECTTYPE.DIR && res.isLeaf())
 			return false;
-		return LogicUtil.NVL(m_filterref.test(res), true);
+		return m_filterref.test(res, true);
 	}
 
 	public void clearSubComponents()
@@ -342,11 +354,15 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 	{
 		m_exts = exts;
 		m_checkexist = CHECKEXITFLAG.CONFIRMOVERWRITE;
+		m_selmode = SELECTMODE.SAVE;
 		if (m_preselres != null)
 		{
 			BPTreeFuncs funcs = m_ptree.getPathTreeFuncs();
 			if (funcs != null && funcs instanceof BPPathTreeFuncs)
-				((BPPathTreeFuncs) funcs).locatePath(m_ptree.getTreeComponent(), ((BPResourceFileSystem) m_preselres).getFileFullName());
+			{
+				if (((BPPathTreeFuncs) funcs).locatePath(m_ptree.getTreeComponent(), ((BPResourceFileSystem) m_preselres).getFileFullName()))
+					m_ptree.getTreeComponent().requestFocus();
+			}
 		}
 		setVisible(true);
 	}
@@ -359,10 +375,9 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 			{
 				if (exts == null || exts.length == 0)
 					return true;
-				String ext = res.getExt();
-				for (String e : exts)
+				for (int i = 0; i < exts.length; i++)
 				{
-					if (e.equals(ext))
+					if (exts[i].equals(res.getExt()))
 						return true;
 				}
 				return false;
@@ -379,17 +394,25 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 	{
 		m_checkexist = CHECKEXITFLAG.BLOCKNOTEXIST;
 		m_filenamep.setVisible(false);
+		m_selmode = SELECTMODE.OPEN;
 		if (m_preselres != null)
 		{
 			BPTreeFuncs funcs = m_ptree.getPathTreeFuncs();
 			if (funcs != null && funcs instanceof BPPathTreeFuncs)
-				((BPPathTreeFuncs) funcs).locatePath(m_ptree.getTreeComponent(), ((BPResourceFileSystem) m_preselres).getFileFullName());
+			{
+				BPPathTreeFuncs pf = (BPPathTreeFuncs) funcs;
+				if (pf.locatePath(m_ptree.getTreeComponent(), ((BPResourceFileSystem) m_preselres).getFileFullName()))
+					m_ptree.getTreeComponent().requestFocus();
+				pf.setSelectOnly(true);
+			}
 		}
 		setVisible(true);
 	}
 
 	public void setVisible(boolean flag)
 	{
+		if (flag && m_selscopes != null && m_selscopes.length == 1)
+			m_ptree.getTreeComponent().requestFocus();
 		super.setVisible(flag);
 	}
 
@@ -474,7 +497,7 @@ public class BPDialogSelectResource2 extends BPDialogCommon implements BPDialogS
 					}
 					if (rc != null && rc.isFileSystem() && ((BPResourceFileSystem) rc).exists() && checkexist == CHECKEXITFLAG.CONFIRMOVERWRITE)
 					{
-						if (!UIStd.confirm(this, res.toString() + " exists, \nOverwrite?", "Confirm"))
+						if (!UIStd.confirm(this, null, "\"" + res.toString() + "\"" + BPLocaleConstCCGUI.EXISTS_CONFIRM_SUFFIX.text() + "?"))
 							return true;
 					}
 				}

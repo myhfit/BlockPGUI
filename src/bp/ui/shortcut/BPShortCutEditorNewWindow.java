@@ -5,7 +5,7 @@ import bp.util.TextUtil;
 
 public class BPShortCutEditorNewWindow extends BPShortCutEditor
 {
-	public final static String SCKEY_EDITORNW = "Editor(window)";
+	public final static String SCKEY_EDITORNW = "Editor(Window)";
 
 	public boolean run()
 	{

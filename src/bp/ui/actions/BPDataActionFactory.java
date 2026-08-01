@@ -3,6 +3,7 @@ package bp.ui.actions;
 import java.awt.event.ActionEvent;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,19 +149,9 @@ public interface BPDataActionFactory
 				try
 				{
 					con.bind(file);
-					con.useOutputStream(out ->
-					{
-						try (BufferedOutputStream bos = new BufferedOutputStream(out))
-						{
-							BPPDUtil.write(bos, xydata.toMapList());
-							UIStd.info("Cloned to " + file.toString() + " finished");
-						}
-						catch (IOException e)
-						{
-							Std.err(e);
-						}
-						return true;
-					});
+					Object data = xydata.toMapList();
+					if (con.useOutputStream(out -> writeData(out, data)))
+						UIStd.info("Cloned to " + file.toString() + " finished");
 				}
 				finally
 				{
@@ -171,7 +162,7 @@ public interface BPDataActionFactory
 
 		public final static void cloneTreeDataToJSON(BPTreeData treedata, ActionEvent event)
 		{
-			BPResource file = CommonUIOperations.selectResource(null, true);
+			BPResource file = CommonUIOperations.selectResource(null, true, new String[] { "json" });
 			if (file != null)
 			{
 				BPTextContainer con = new BPTextContainerBase();
@@ -200,25 +191,29 @@ public interface BPDataActionFactory
 				try
 				{
 					con.bind(file);
-					con.useOutputStream(out ->
-					{
-						try (BufferedOutputStream bos = new BufferedOutputStream(out))
-						{
-							BPPDUtil.write(bos, treedata.getRoot());
-							UIStd.info("Cloned to " + file.toString() + " finished");
-						}
-						catch (IOException e)
-						{
-							Std.err(e);
-						}
-						return true;
-					});
+					Object data = treedata.getRoot();
+					if (con.useOutputStream(out -> writeData(out, data)))
+						UIStd.info("Cloned to " + file.toString() + " finished");
 				}
 				finally
 				{
 					con.close();
 				}
 			}
+		}
+
+		protected final static boolean writeData(OutputStream out, Object data)
+		{
+			try (BufferedOutputStream bos = new BufferedOutputStream(out))
+			{
+				BPPDUtil.write(bos, data);
+				return true;
+			}
+			catch (IOException e)
+			{
+				Std.err(e);
+			}
+			return false;
 		}
 	}
 

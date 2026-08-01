@@ -49,7 +49,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 		m_filter = new WeakRefGoPredicate<BPInstanceFactory<T>>();
 		m_lstfacs = new BPList<BPInstanceFactory<T>>();
 		m_lstfacs.setModel(new BPList.BPListModel<BPInstanceFactory<T>>());
-		m_lstfacs.setCellRenderer(new BPList.BPListRenderer(this::transFacName));
+		m_lstfacs.setCellRenderer(new BPList.BPListRendererT<>(this::transFacName));
 		m_lstfacs.setListFont();
 
 		JPanel leftpan = new JPanel();
@@ -90,7 +90,8 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 	public void setFactoryInterface(Class<? extends BPInstanceFactory<T>> facintf)
 	{
 		m_facintf = facintf;
-		m_lh = facintf == null ? null : new BPLocaleHelperDict.BPLocaleHelperDictClass(facintf.getName());
+		String dictclsname = ClassUtil.callMethod(facintf, "getDictClassName", null, null, true);
+		m_lh = facintf == null ? null : new BPLocaleHelperDict.BPLocaleHelperDictClass(dictclsname != null ? dictclsname : facintf.getName());
 		initDatas();
 	}
 
@@ -116,8 +117,7 @@ public class BPDialogCommonCreator<T> extends BPDialogCommon
 		WeakRefGoPredicate<BPInstanceFactory<T>> filter = m_filter;
 		for (BPInstanceFactory<T> fac : facs)
 		{
-			Boolean f = filter.test(fac);
-			if (f == null || f)
+			if (filter.test(fac, true))
 				datas.add(fac);
 		}
 		((BPList.BPListModel<BPInstanceFactory<T>>) m_lstfacs.getModel()).setDatas(datas);

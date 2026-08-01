@@ -22,16 +22,15 @@ import bp.client.BPClientManager;
 import bp.config.UIConfigs;
 import bp.ui.actions.BPAction;
 import bp.ui.container.BPToolBarSQ;
-import bp.ui.editor.controller.BPEditorController;
 import bp.ui.res.icon.BPIconResV;
 import bp.ui.scomp.BPClientComponent;
 import bp.ui.scomp.BPComboBox;
 import bp.ui.scomp.BPComboBox.BPComboBoxModel;
+import bp.ui.scomp.BPToolVIconButton;
 import bp.ui.util.UIStd;
 import bp.util.JSONUtil;
-import bp.ui.scomp.BPToolVIconButton;
 
-public class BPClientPanel extends JPanel implements BPEditor<JPanel>
+public class BPClientPanel extends BPAbstractEditorPanel
 {
 	/**
 	 * 
@@ -41,15 +40,12 @@ public class BPClientPanel extends JPanel implements BPEditor<JPanel>
 	protected BPComboBox<BPClientFactory> m_cmbfacs;
 	protected BPClientComponent m_ccomp;
 
-	protected String m_id;
 	protected int m_channelid;
 
 	private BPAction m_actrunclient;
-	protected BPEditorController m_ec;
 
 	public BPClientPanel()
 	{
-		m_ec = new BPEditorController(this);
 		initUIComponents();
 		initDatas();
 	}
@@ -102,55 +98,9 @@ public class BPClientPanel extends JPanel implements BPEditor<JPanel>
 		return BPComponentType.CUSTOMCOMP;
 	}
 
-	public JPanel getComponent()
-	{
-		return this;
-	}
-
-	public void focusEditor()
-	{
-	}
-
 	public String getEditorInfo()
 	{
 		return null;
-	}
-
-	public void save()
-	{
-	}
-
-	public void reloadData()
-	{
-	}
-
-	public boolean needSave()
-	{
-		return false;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-	}
-
-	public void setID(String id)
-	{
-		m_id = id;
-	}
-
-	public String getID()
-	{
-		return m_id;
-	}
-
-	public void setChannelID(int channelid)
-	{
-		m_channelid = channelid;
-	}
-
-	public int getChannelID()
-	{
-		return m_channelid;
 	}
 
 	public void setOnDynamicInfo(Consumer<String> info)
@@ -185,10 +135,5 @@ public class BPClientPanel extends JPanel implements BPEditor<JPanel>
 	protected void onRunClient(ActionEvent e)
 	{
 		m_ccomp.run();
-	}
-
-	public BPEditorController getEditorController()
-	{
-		return m_ec;
 	}
 }

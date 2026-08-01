@@ -161,28 +161,20 @@ public class BPTable<T> extends JTable
 
 	public void setMonoFont()
 	{
-		int fontsize = UIConfigs.TABLEFONT_SIZE();
-		Font tfont = new Font(UIConfigs.MONO_FONT_NAME(), Font.PLAIN, fontsize + UIConfigs.MONO_FONT_SIZEDELTA());
+		Font tfont = new Font(UIConfigs.MONO_FONT_NAME(), Font.PLAIN, UIConfigs.TABLEFONT_SIZE() + UIConfigs.MONO_FONT_SIZEDELTA());
 		setFont(tfont);
 		getTableHeader().setFont(tfont);
 		for (Object key : defaultEditorsByColumnClass.keySet())
-		{
-			DefaultCellEditor editor = (DefaultCellEditor) defaultEditorsByColumnClass.get(key);
-			editor.getComponent().setFont(tfont);
-		}
+			((DefaultCellEditor) defaultEditorsByColumnClass.get(key)).getComponent().setFont(tfont);
 	}
 
 	public void setTableFont()
 	{
-		int fontsize = UIConfigs.TABLEFONT_SIZE();
-		Font tfont = new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, fontsize);
+		Font tfont = new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, UIConfigs.TABLEFONT_SIZE());
 		setFont(tfont);
 		getTableHeader().setFont(tfont);
 		for (Object key : defaultEditorsByColumnClass.keySet())
-		{
-			DefaultCellEditor editor = (DefaultCellEditor) defaultEditorsByColumnClass.get(key);
-			editor.getComponent().setFont(tfont);
-		}
+			((DefaultCellEditor) defaultEditorsByColumnClass.get(key)).getComponent().setFont(tfont);
 	}
 
 	public void setCommonRenderAlign()
@@ -201,11 +193,8 @@ public class BPTable<T> extends JTable
 		BPTableModel<T> model = getBPTableModel();
 		if (rows != null)
 		{
-			for (int i : rows)
-			{
-				int r = convertRowIndexToModel(i);
-				rc.add(model.getRow(r));
-			}
+			for (int i = 0; i < rows.length; i++)
+				rc.add(model.getRow(convertRowIndexToModel(rows[i])));
 		}
 		return rc;
 	}
@@ -216,10 +205,7 @@ public class BPTable<T> extends JTable
 		int row = getSelectedRow();
 		BPTableModel<T> model = getBPTableModel();
 		if (row > -1)
-		{
-			int r = convertRowIndexToModel(row);
-			rc = model.getRow(r);
-		}
+			rc = model.getRow(convertRowIndexToModel(row));
 		return rc;
 	}
 
@@ -249,9 +235,7 @@ public class BPTable<T> extends JTable
 			rc = new ArrayList<T>(rows.length);
 			BPTableModel<T> model = getBPTableModel();
 			for (int i = 0; i < rows.length; i++)
-			{
 				rc.add(model.getRow(rows[i]));
-			}
 		}
 		return rc;
 	}
@@ -269,8 +253,7 @@ public class BPTable<T> extends JTable
 		{
 			for (int i = 0; i < sels.length; i++)
 			{
-				int p = sels[i];
-				p = convertRowIndexToView(p);
+				int p = convertRowIndexToView(sels[i]);
 				if (p >= l || p < 0)
 					continue;
 				if (i == 0)
@@ -346,8 +329,7 @@ public class BPTable<T> extends JTable
 
 	public void scrollTo(int row, int col)
 	{
-		Rectangle rect = getCellRect(row, col, true);
-		scrollRectToVisible(rect);
+		scrollRectToVisible(getCellRect(row, col, true));
 	}
 
 	protected void trySelect(MouseEvent e)
@@ -358,9 +340,9 @@ public class BPTable<T> extends JTable
 		boolean flag = true;
 		if (rows != null)
 		{
-			for (int row : rows)
+			for (int i = 0; i < rows.length; i++)
 			{
-				if (row == nr)
+				if (rows[i] == nr)
 				{
 					flag = false;
 					break;
@@ -392,8 +374,8 @@ public class BPTable<T> extends JTable
 			{
 				JPopupMenu pop = new JPopupMenu();
 				JComponent[] comps = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
-				for (JComponent comp : comps)
-					pop.add(comp);
+				for (int i = 0; i < comps.length; i++)
+					pop.add(comps[i]);
 				pop.show(header, e.getX(), e.getY());
 			}
 		}
@@ -407,13 +389,15 @@ public class BPTable<T> extends JTable
 		Action actgoto = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUGOTO, this::onGoto);
 		Action actcloneraw = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONERAW, this::onCloneEditor);
 		Action acttogglelinenum = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUTOGGLELINENUM, this::onToggleLineNum);
-//		Action actcloneseen = BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONESEEN, this::onCloneSeenEditor);
+		// Action actcloneseen =
+		// BPActionHelpers.getAction(BPActionConstCommon.CTX_MNUCLONESEEN,
+		// this::onCloneSeenEditor);
 		rc.add(actfind);
 		rc.add(actfilter);
 		rc.add(actgoto);
 		rc.add(acttogglelinenum);
 		rc.add(actcloneraw);
-//		rc.add(actcloneseen);
+		// rc.add(actcloneseen);
 		return rc;
 	}
 
@@ -439,10 +423,8 @@ public class BPTable<T> extends JTable
 			{
 				JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
 				JPopupMenu pop = new JPopupMenu();
-				for (JComponent item : items)
-				{
-					pop.add(item);
-				}
+				for (int i = 0; i < items.length; i++)
+					pop.add(items[i]);
 				Rectangle rect = super.getCellRect(sr, sc, true);
 				pop.show(this, rect.x, rect.y + rect.height);
 			}
@@ -468,8 +450,7 @@ public class BPTable<T> extends JTable
 					Action act = null;
 					if (row != -1)
 					{
-						T data = getBPTableModel().getRow(row);
-						act = funcs.getOpenAction(this, data, row, col);
+						act = funcs.getOpenAction(this, getBPTableModel().getRow(row), row, col);
 						if (act != null)
 							act.actionPerformed(null);
 					}
@@ -488,8 +469,7 @@ public class BPTable<T> extends JTable
 				List<Action> acts = null;
 				if (rows != null && rows.length > 0)
 				{
-					List<T> datas = getDatasFromRows(rows);
-					acts = funcs.getActions(this, datas, rows, sr, sc);
+					acts = funcs.getActions(this, getDatasFromRows(rows), rows, sr, sc);
 				}
 				else
 				{
@@ -499,24 +479,22 @@ public class BPTable<T> extends JTable
 				{
 					JComponent[] items = UIUtil.makeMenuItems(acts.toArray(new Action[acts.size()]));
 					JPopupMenu pop = new JPopupMenu();
-					for (JComponent item : items)
-					{
-						pop.add(item);
-					}
+					for (int i = 0; i < items.length; i++)
+						pop.add(items[i]);
 					pop.show(this, e.getX(), e.getY());
 				}
 			}
 		}
 	}
-	
+
 	protected void setupInnerOPs()
 	{
-		InputMap im=getInputMap();
+		InputMap im = getInputMap();
 		im.put(BPActionConstCommon.CMPOP_FIND.accKey(), "find");
 		im.put(BPActionConstCommon.CMPOP_GOTO.accKey(), "goto");
 		im.put(BPActionConstCommon.CMPOP_FILTER.accKey(), "filter");
-		
-		ActionMap am=getActionMap();
+
+		ActionMap am = getActionMap();
 		am.put("find", BPAction.build("find").callback(this::onFind).getAction());
 		am.put("goto", BPAction.build("goto").callback(this::onGoto).getAction());
 		am.put("filter", BPAction.build("filter").callback(this::onFilter).getAction());
@@ -596,14 +574,12 @@ public class BPTable<T> extends JTable
 
 	public void onCloneEditor(ActionEvent e)
 	{
-		BPXYData xydata = cloneXYData(true);
-		BPDataActionFactoryCommon.cloneXYDataToNewEditor(xydata, e);
+		BPDataActionFactoryCommon.cloneXYDataToNewEditor(cloneXYData(true), e);
 	}
 
 	public void onCloneSeenEditor(ActionEvent e)
 	{
-		BPXYData xydata = cloneXYData(false);
-		BPDataActionFactoryCommon.cloneXYDataToNewEditor(xydata, e);
+		BPDataActionFactoryCommon.cloneXYDataToNewEditor(cloneXYData(false), e);
 	}
 
 	public BPXYData cloneXYData(boolean raw)
@@ -631,8 +607,7 @@ public class BPTable<T> extends JTable
 					{
 						arr[j] = f.getValue(data, i, j);
 					}
-					BPXData xdata = new BPXData.BPXDataArray(arr);
-					rc.add(xdata);
+					rc.add(new BPXData.BPXDataArray(arr));
 				}
 			}
 		}
@@ -649,8 +624,10 @@ public class BPTable<T> extends JTable
 
 	public void onFind(ActionEvent e)
 	{
-		m_finddlgref.run(dlg -> dlg.dispose());
-		BPDialogFind dlg = new BPDialogFind(this);
+		BPDialogFind dlg = m_finddlgref.get();
+		if (dlg != null)
+			dlg.dispose();
+		dlg = new BPDialogFind(this);
 		dlg.setFindCallBack(m_findcb);
 		m_finddlgref.setTarget(dlg);
 		dlg.setVisible(true);
@@ -658,8 +635,9 @@ public class BPTable<T> extends JTable
 
 	public void clearResource()
 	{
-		m_finddlgref.run(dlg -> dlg.dispose());
-
+		BPDialogFind dlg = m_finddlgref.get();
+		if (dlg != null)
+			dlg.dispose();
 		BPTableModel<T> model = tryGetBPTableModel();
 		if (model != null)
 			model.setDatas(new ArrayList<T>());
@@ -883,7 +861,7 @@ public class BPTable<T> extends JTable
 		}
 		return false;
 	}
-	
+
 	public void setColumnWidthBatch(int w, int linenumw)
 	{
 		boolean isshowlinenum = getBPTableModel().isShowLineNum();
@@ -891,10 +869,27 @@ public class BPTable<T> extends JTable
 		for (int i = 0; i < tcm.getColumnCount(); i++)
 		{
 			if (isshowlinenum)
-				tcm.getColumn(i).setPreferredWidth(i == 0 ? linenumw : w);
+				tcm.getColumn(i).setPreferredWidth(isshowlinenum ? (i == 0 ? linenumw : w) : w);
 			else
 				tcm.getColumn(i).setPreferredWidth(w);
 		}
+	}
+
+	public void installRowHeader(JScrollPane scroll)
+	{
+		scroll.setRowHeaderView(genRowHeader());
+		scroll.getRowHeader().setPreferredSize(new Dimension(UIUtil.scale(48), 0));
+	}
+
+	public JTable genRowHeader()
+	{
+		JTable rc = new JTable();
+		rc.setModel(new BPRowHeaderTableModel(this));
+		{
+			TableColumn tc = rc.getColumnModel().getColumn(0);
+			tc.setCellRenderer(new BPRowHeaderRenderer(this));
+		}
+		return rc;
 	}
 
 	public static class BPTableRendererFileSize extends DefaultTableCellRenderer
@@ -907,6 +902,7 @@ public class BPTable<T> extends JTable
 		public BPTableRendererFileSize()
 		{
 			super();
+			setHorizontalAlignment(BPTableRendererFileSize.RIGHT);
 		}
 
 		public void setValue(Object value)
@@ -927,11 +923,12 @@ public class BPTable<T> extends JTable
 		 */
 		private static final long serialVersionUID = 8426919503254677194L;
 
-		DateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		protected DateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 		public BPTableRendererDateTime()
 		{
 			super();
+			setHorizontalAlignment(BPTableRendererFileSize.CENTER);
 		}
 
 		public void setValue(Object value)
@@ -959,9 +956,7 @@ public class BPTable<T> extends JTable
 		public BPTableRendererMultiline()
 		{
 			super();
-			int fontsize = UIConfigs.TABLEFONT_SIZE();
-			Font tfont = new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, fontsize);
-			setFont(tfont);
+			setFont(new Font(UIConfigs.TABLE_FONT_NAME(), Font.PLAIN, UIConfigs.TABLEFONT_SIZE()));
 			m_pgselcolor = UIManager.getColor("Table.selectionBackground");
 			putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
 		}
@@ -1042,11 +1037,7 @@ public class BPTable<T> extends JTable
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col)
 		{
 			Component comp = m_cb.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-			if (comp == null)
-			{
-				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-			}
-			return comp;
+			return comp != null ? comp : super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 		}
 	}
 
@@ -1402,7 +1393,7 @@ public class BPTable<T> extends JTable
 			while (cm.getColumnCount() > 0)
 				cm.removeColumn(cm.getColumn(0));
 
-			int c=0;
+			int c = 0;
 			for (String colname : cols)
 			{
 				TableColumn tc = null;
@@ -1471,7 +1462,7 @@ public class BPTable<T> extends JTable
 		{
 			return m_colname;
 		}
-		
+
 		public void setModelIndex(int index)
 		{
 			super.setModelIndex(index);
@@ -1496,6 +1487,7 @@ public class BPTable<T> extends JTable
 
 		protected Map<String, BPTableColumn> m_colcache;
 		protected Map<String, Boolean> m_hidecols;
+		protected int m_calcw;
 
 		public BPTableColumnModel()
 		{
@@ -1546,7 +1538,8 @@ public class BPTable<T> extends JTable
 		public void applyDefaultColumnWidth(BPTableFuncs<?> f)
 		{
 			int c = getColumnCount();
-			int d=0;
+			int d = 0;
+			int s = 0;
 			for (int i = 0; i < c; i++)
 			{
 				TableColumn tc = getColumn(i);
@@ -1561,11 +1554,36 @@ public class BPTable<T> extends JTable
 					int ci = btc.getModelIndex();
 					int w = f.getColumnWidth(ci - d);
 					if (w <= 0)
-						btc.setPreferredWidthOnce(10000);
+					{
+						if (w == -999999)
+						{
+							btc.setMinWidth(0);
+						}
+						else
+						{
+							if (w < 0)
+							{
+								btc.setMinWidth(UIUtil.scale(0 - w));
+							}
+							s += 0 - w;
+//							btc.setPreferredWidth(10000);
+						}
+					}
 					else
+					{
+						s += w;
+						btc.setMaxWidth(UIUtil.scale(w));
+						btc.setPreferredWidth(UIUtil.scale(w));
 						btc.setMinWidth(UIUtil.scale(w));
+					}
 				}
 			}
+			m_calcw = s;
+		}
+
+		public int getCalcWidth()
+		{
+			return m_calcw;
 		}
 
 		public static class ColumnBuilder
@@ -1625,23 +1643,6 @@ public class BPTable<T> extends JTable
 		}
 	}
 
-	public void installRowHeader(JScrollPane scroll)
-	{
-		scroll.setRowHeaderView(genRowHeader());
-		scroll.getRowHeader().setPreferredSize(new Dimension(UIUtil.scale(48), 0));
-	}
-
-	public JTable genRowHeader()
-	{
-		JTable rc = new JTable();
-		rc.setModel(new BPRowHeaderTableModel(this));
-		{
-			TableColumn tc = rc.getColumnModel().getColumn(0);
-			tc.setCellRenderer(new BPRowHeaderRenderer(this));
-		}
-		return rc;
-	}
-
 	public class BPRowHeaderTableModel extends AbstractTableModel implements PropertyChangeListener, TableModelListener
 	{
 		/**
@@ -1674,8 +1675,8 @@ public class BPTable<T> extends JTable
 
 		public int getRowCount()
 		{
-			Integer rc = m_tableref.exec(t -> t.getRowCount());
-			return rc == null ? 0 : rc;
+			JTable t = m_tableref.get();
+			return t == null ? 0 : t.getRowCount();
 		}
 
 		public int getColumnCount()

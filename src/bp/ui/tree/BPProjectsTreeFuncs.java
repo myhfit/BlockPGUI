@@ -79,9 +79,7 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 			boolean isdir1 = a.isLeaf();
 			boolean isdir2 = b.isLeaf();
 			if (isdir1 == isdir2)
-			{
 				return a.getName().compareToIgnoreCase(b.getName());
-			}
 			return (!isdir1) ? -1 : 1;
 		});
 	}
@@ -97,9 +95,9 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 			if (fsch != null)
 			{
 				rc = new ArrayList<BPResource>(fsch.length);
-				for (BPResource f : fsch)
+				for (int i = 0; i < fsch.length; i++)
 				{
-					BPResource wres = prj.wrapResource(f);
+					BPResource wres = prj.wrapResource(fsch[i]);
 					if (wres != null)
 					{
 						if (m_filter == null || m_filter.test(wres))
@@ -254,6 +252,51 @@ public class BPProjectsTreeFuncs implements BPPathTreeFuncs
 				BPGUICore.EVENTS_UI.trigger(m_channelid, new BPEventUIPathTree(BPEventUIPathTree.NODE_OPEN, res));
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public void onCopy(BPTree tree, BPTreeNode node)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+				m_actptree.getCopyAction((BPTreeComponent<BPTree>) tree, res, m_channelid).actionPerformed(null);
+		}
+	}
+
+	public void onAction(BPTree tree, BPTreeNode node, String extact)
+	{
+		if (node != null)
+		{
+			BPResource res = (BPResource) node.getUserObject();
+			if (res != null)
+			{
+				BPAction act = getActionForExt(tree, res, extact);
+				if (act != null)
+					act.actionPerformed(null);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected BPAction getActionForExt(BPTree tree, BPResource res, String extact)
+	{
+		if (extact == null)
+			return null;
+		switch (extact)
+		{
+			case BPTreeActionType.EXT_ACT_PROPERTY:
+				return m_actptree.getPropertyAction((BPTreeComponent<BPTree>) tree, res, m_channelid);
+			case BPTreeActionType.EXT_ACT_RENAME:
+				return m_actptree.getRenameResAction((BPTreeComponent<BPTree>) tree, res, m_channelid);
+		}
+		return null;
+	}
+
+	public boolean isOverwriteCopy()
+	{
+		return true;
 	}
 
 	public String getRootPath()

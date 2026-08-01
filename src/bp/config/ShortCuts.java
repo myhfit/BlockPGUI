@@ -108,8 +108,7 @@ public class ShortCuts extends BPConfigAdvBase
 					{
 						vs = TextUtil.splitEscapePlainText(v);
 					}
-					ShortCutData sc = new ShortCutData(key, vs);
-					scs.add(sc);
+					scs.add(new ShortCutData(key, vs));
 				}
 			}
 		}

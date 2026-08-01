@@ -61,13 +61,10 @@ public interface BPArchiveTreeFuncs extends BPTreeFuncs
 		{
 			nodes.sort((a, b) ->
 			{
-
 				boolean isdir1 = isDir(a);
 				boolean isdir2 = isDir(b);
 				if (isdir1 == isdir2)
-				{
 					return a.toString().compareToIgnoreCase(b.toString());
-				}
 				return isdir1 ? -1 : 1;
 			});
 		}

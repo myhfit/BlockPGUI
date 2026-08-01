@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -75,7 +76,7 @@ public abstract class BPDataSourcePanel<DS extends BPDataSource> extends BPAbstr
 		m_tf.installTreeActionHandler(m_treeactcb);
 	}
 
-	protected void onTreeEvent(BPTreeActionType actiontype, BPTree tree, BPTreeNode node)
+	protected void onTreeEvent(BPTreeActionType actiontype, BPTree tree, BPTreeNode node, String extact)
 	{
 		switch (actiontype)
 		{
@@ -106,14 +107,6 @@ public abstract class BPDataSourcePanel<DS extends BPDataSource> extends BPAbstr
 	public String getEditorInfo()
 	{
 		return null;
-	}
-
-	public void save()
-	{
-	}
-
-	public void reloadData()
-	{
 	}
 
 	public void setOnDynamicInfo(Consumer<String> info)
@@ -158,10 +151,6 @@ public abstract class BPDataSourcePanel<DS extends BPDataSource> extends BPAbstr
 
 	protected List<BPResource> getStructureRoots(DS ds)
 	{
-		List<BPResource> rc = new ArrayList<BPResource>();
-		BPResource[] ress = ds.getStructureResource().listResources();
-		for (BPResource res : ress)
-			rc.add(res);
-		return rc;
+		return new ArrayList<BPResource>(Arrays.asList(ds.getStructureResource().listResources()));
 	}
 }

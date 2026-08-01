@@ -1,7 +1,6 @@
 package bp.ui.scomp;
 
 import java.awt.Component;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +9,7 @@ import java.util.List;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellEditor;
 
 import bp.config.BPSetting;
@@ -90,7 +90,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 
 		protected void onShowSelectResource(ActionEvent e)
 		{
-			BPResource res = CommonUIOperations.selectResource((Window) m_btn.getTopLevelAncestor(), m_isressave);
+			BPResource res = CommonUIOperations.selectResource(SwingUtilities.getWindowAncestor(m_btn), m_isressave);
 			if (res != null)
 			{
 				m_btn.setText(res.getName());
@@ -133,7 +133,8 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 				model.setDatas(Arrays.asList(item.candidates));
 				m_cb.setModel(model);
 				m_cb.setSelectedItem(value);
-				m_cb.setEditable(!item.readonly);
+				m_cb.setEditable(false);
+				m_cb.setEnabled(!item.readonly);
 				return m_cb;
 			}
 			else if (BPSettingItem.ITEM_TYPE_RESOURCE.equals(item.itemtype) || BPSettingItem.ITEM_TYPE_RESOURCE_SAVE.equals(item.itemtype))
@@ -141,7 +142,7 @@ public class BPTableSetting extends BPTable<BPSettingItem>
 				m_isressave = BPSettingItem.ITEM_TYPE_RESOURCE_SAVE.equals(item.itemtype);
 				m_sb = 2;
 				BPButton btn = m_btn;
-				if (value != null)
+				if (value != null && (!(value instanceof String && ((String) value).length() == 0)))
 				{
 					if (value instanceof BPResource)
 						btn.setText(ResourceUtil.getResourceLink((BPResource) value));

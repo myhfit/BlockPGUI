@@ -126,11 +126,11 @@ public class UIUtil
 	public final static String assembleLocaleTexts(BPLocaleConst... keys)
 	{
 		StringBuilder sb = new StringBuilder();
-		for (BPLocaleConst key : keys)
+		for (int i = 0; i < keys.length; i++)
 		{
 			if (sb.length() > 0)
 				sb.append(" ");
-			sb.append((String) BPLocaleHelpers.getValue(key));
+			sb.append((String) BPLocaleHelpers.getValue(keys[i]));
 		}
 		return sb.toString();
 	}
@@ -273,10 +273,8 @@ public class UIUtil
 		if (actions != null && actions.length > 0)
 		{
 			JComponent[] mnus = UIUtil.makeMenuItems(actions);
-			for (JComponent mnu : mnus)
-			{
-				par.add(mnu);
-			}
+			for (int i = 0; i < mnus.length; i++)
+				par.add(mnus[i]);
 			if (autovis && !par.isVisible())
 				par.setVisible(true);
 		}
@@ -617,10 +615,8 @@ public class UIUtil
 				mnu.setFont(new Font(UIConfigs.MENU_FONT_NAME(), Font.PLAIN, UIConfigs.MENUFONT_SIZE()));
 				item = mnu;
 				JComponent[] subitems = makeMenuItems(subacts, outofwindow);
-				for (JComponent subitem : subitems)
-				{
-					mnu.add(subitem);
-				}
+				for (int j = 0; j < subitems.length; j++)
+					mnu.add(subitems[j]);
 			}
 			else
 			{
@@ -653,10 +649,8 @@ public class UIUtil
 		{
 			JPopupMenu pop = new JPopupMenu();
 			JComponent[] comps = makeMenuItems(acts);
-			for (JComponent comp : comps)
-			{
-				pop.add(comp);
-			}
+			for (int i = 0; i < comps.length; i++)
+				pop.add(comps[i]);
 			pop.show(c, x, y);
 		}
 	}

@@ -22,6 +22,11 @@ public interface BPForm<C extends Component> extends BPComponent<C>
 	{
 
 	}
-	
+
+	default boolean needSetting()
+	{
+		return false;
+	}
+
 	void laterInit();
 }

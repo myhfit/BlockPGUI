@@ -26,10 +26,8 @@ public class BPResourceOperationCommonHandler
 					case BPFileActions.ACTION_OPEN:
 					{
 						BPResource[] ress = event.getSelectedResources();
-						for (BPResource res : ress)
-						{
-							CommonUIOperations.openResourceNewWindow(res, null, null, null, null);
-						}
+						for (int i = 0; i < ress.length; i++)
+							CommonUIOperations.openResourceNewWindow(ress[i], null, null, null, null);
 						break;
 					}
 					case BPFileActions.ACTION_OPENAS:
@@ -41,10 +39,8 @@ public class BPResourceOperationCommonHandler
 					case BPFileActions.ACTION_PROPERTIES:
 					{
 						BPResource[] ress = event.getSelectedResources();
-						for (BPResource res : ress)
-						{
-							CommonUIOperations.showProperty(res, (BPResource) null);
-						}
+						for (int i = 0; i < ress.length; i++)
+							CommonUIOperations.showProperty(ress[i], (BPResource) null);
 						break;
 					}
 					case BPFileActions.ACTION_NEWFILE:
@@ -131,10 +127,8 @@ public class BPResourceOperationCommonHandler
 			options = dlg.getEditorOptions();
 			if (format == null && fac == null)
 				return;
-			for (BPResource res : ress)
-			{
-				CommonUIOperations.openResourceNewWindow(res, format, fac, null, options);
-			}
+			for (int i = 0; i < ress.length; i++)
+				CommonUIOperations.openResourceNewWindow(ress[i], format, fac, null, options);
 		}
 	}
 }

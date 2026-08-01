@@ -2,7 +2,7 @@
 	"parent":"bp.task.BPTaskExec",
 	"items":
 	[
-		{"itemtype":"separator","key":"sp_states","label":"States"},
-		{"itemtype":"textfield_area","key":"states","label":"States","required":true}
+		{"itemtype":"separator","key":"sp_states","label":"STATES","lbltr":"c,c_cgui"},
+		{"itemtype":"textfield_area","key":"states","label":"STATES","lbltr":"c,c_cgui","required":true}
 	]
 }

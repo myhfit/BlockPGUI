@@ -22,6 +22,11 @@ public class BPFormPanelSetting extends BPFormPanel
 	protected BPTableSetting m_tab;
 	protected BPSetting m_setting;
 
+	public boolean needSetting()
+	{
+		return true;
+	}
+
 	protected boolean needScroll()
 	{
 		return false;

@@ -8,6 +8,7 @@ import javax.swing.border.MatteBorder;
 import bp.ui.actions.BPActionConstCommon;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
+import bp.ui.scomp.BPToolSQButton;
 import bp.ui.util.UIStd;
 import bp.ui.util.UIUtil;
 
@@ -27,13 +28,25 @@ public class BPFormItemTextFieldPane extends BPFormItemTextField
 		txt.setMonoFont();
 		txt.setBorder(new MatteBorder(0, 1, 0, 1, getGridBorderColor(context)));
 		txt.setEditable(!itemdef.readonly);
-		if ("textfield_more".equals(def.itemtype))
-			rc.addMoreBtnAuto(this::onMore).setPreferredSize(new Dimension(context.lineheight, context.lineheight));
-		else if ("textfield_area".equals(def.itemtype))
-			rc.addMoreBtnAuto(this::onInput).setPreferredSize(new Dimension(context.lineheight, context.lineheight));
-
+		createMoreBtn(itemdef, context, rc);
 		stcomp = rc;
 		comp = txt;
+	}
+
+	protected void createMoreBtn(BPFormItemDef itemdef, BPFormContext context, BPTextFieldPane p)
+	{
+		BPToolSQButton btn = null;
+		switch (def.itemtype)
+		{
+			case "textfield_more":
+				btn = p.addMoreBtnAuto(this::onMore);
+				break;
+			case "textfield_area":
+				btn = p.addMoreBtnAuto(this::onInput);
+				break;
+		}
+		if (btn != null)
+			btn.setPreferredSize(new Dimension(context.lineheight, context.lineheight));
 	}
 
 	protected String onInput(String str)

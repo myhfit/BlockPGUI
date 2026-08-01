@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.util.List;
 import java.util.function.Consumer;
 
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
@@ -16,14 +15,13 @@ import bp.format.BPFormatFeature;
 import bp.format.BPFormatManager;
 import bp.res.BPResource;
 import bp.ui.BPViewer;
-import bp.ui.editor.controller.BPEditorController;
 import bp.ui.tree.BPArchiveTreeFuncs;
 import bp.ui.tree.BPArchiveTreeFuncs.BPTreeCellRendererZip;
 import bp.ui.tree.BPArchiveTreeFuncs.BPZipFileTreeFuncs;
 import bp.ui.tree.BPTreeComponentBase;
 import bp.util.IOUtil;
 
-public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer<BPDataContainer>, BPPathSelector
+public class BPArchivePanel extends BPAbstractEditorPanel implements BPViewer<BPDataContainer>, BPPathSelector
 {
 	/**
 	 * 
@@ -34,21 +32,12 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	protected JScrollPane m_scroll;
 	protected BPArchiveTreeFuncs m_funcs;
 
-	protected String m_id;
-
-	protected int m_channelid;
-
-	protected boolean m_needsave;
-
 	protected BPDataContainer m_con;
 
 	protected BPFormat m_format;
 
-	protected BPEditorController m_ec;
-
 	public BPArchivePanel()
 	{
-		m_ec = new BPEditorController(this);
 		init();
 	}
 
@@ -66,11 +55,6 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 	public BPComponentType getComponentType()
 	{
 		return BPComponentType.TREE;
-	}
-
-	public JPanel getComponent()
-	{
-		return this;
 	}
 
 	public void bind(BPDataContainer con, boolean noread)
@@ -107,7 +91,6 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 				m_con.close();
 			}
 		}
-
 	}
 
 	public void unbind()
@@ -126,91 +109,14 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 		return m_con;
 	}
 
-	public void focusEditor()
-	{
-	}
-
 	public String getEditorInfo()
 	{
 		return "Archive";
 	}
 
-	public void save()
-	{
-	}
-
-	public void reloadData()
-	{
-	}
-
-	public boolean needSave()
-	{
-		return m_needsave;
-	}
-
-	public void setNeedSave(boolean needsave)
-	{
-		m_needsave = needsave;
-	}
-
-	public void setID(String id)
-	{
-		m_id = id;
-	}
-
-	public String getID()
-	{
-		return m_id;
-	}
-
-	public void setChannelID(int channelid)
-	{
-		m_channelid = channelid;
-	}
-
-	public int getChannelID()
-	{
-		return m_channelid;
-	}
-
 	public void setOnDynamicInfo(Consumer<String> info)
 	{
 
-	}
-
-	public final static class BPEditorFactoryArchive implements BPEditorFactory
-	{
-		public String[] getFormats()
-		{
-			List<BPFormat> fs = BPFormatManager.getFormatsByFeature(BPFormatFeature.ARCHIVE);
-			String[] fnames = new String[fs.size()];
-			for (int i = 0; i < fs.size(); i++)
-			{
-				fnames[i] = fs.get(i).getName();
-			}
-			return fnames;
-		}
-
-		public BPEditor<?> createEditor(BPFormat format, BPResource res, BPConfig options, Object... params)
-		{
-			return new BPArchivePanel();
-		}
-
-		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
-		{
-			if (res.isIO())
-			{
-				BPDataContainerBase con = new BPDataContainerBase();
-				con.bind(res);
-				((BPArchivePanel) editor).setFormat(format);
-				((BPArchivePanel) editor).bind(con);
-			}
-		}
-
-		public String getName()
-		{
-			return "Archive Editor";
-		}
 	}
 
 	public void setFormat(BPFormat format)
@@ -256,8 +162,36 @@ public class BPArchivePanel extends JPanel implements BPEditor<JPanel>, BPViewer
 		removeAll();
 	}
 
-	public BPEditorController getEditorController()
+	public final static class BPEditorFactoryArchive implements BPEditorFactory
 	{
-		return m_ec;
+		public String[] getFormats()
+		{
+			List<BPFormat> fs = BPFormatManager.getFormatsByFeature(BPFormatFeature.ARCHIVE);
+			String[] fnames = new String[fs.size()];
+			for (int i = 0; i < fs.size(); i++)
+				fnames[i] = fs.get(i).getName();
+			return fnames;
+		}
+
+		public BPEditor<?> createEditor(BPFormat format, BPResource res, BPConfig options, Object... params)
+		{
+			return new BPArchivePanel();
+		}
+
+		public void initEditor(BPEditor<?> editor, BPFormat format, BPResource res, BPConfig options)
+		{
+			if (res.isIO())
+			{
+				BPDataContainerBase con = new BPDataContainerBase();
+				con.bind(res);
+				((BPArchivePanel) editor).setFormat(format);
+				((BPArchivePanel) editor).bind(con);
+			}
+		}
+
+		public String getName()
+		{
+			return "Archive Editor";
+		}
 	}
 }

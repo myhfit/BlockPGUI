@@ -25,8 +25,7 @@ public interface BPEditorEventController
 
 		public void dispatchEvent(String action, Object data, Object... params)
 		{
-			final BPEditorEvent e = new BPEditorEvent(action, m_editor, data, params);
-			m_handlerref.accept(e);
+			m_handlerref.accept(new BPEditorEvent(action, m_editor, data, params));
 		}
 
 		public void installHandler(Consumer<BPEditorEvent> handler)

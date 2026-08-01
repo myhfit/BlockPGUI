@@ -49,9 +49,7 @@ public class BPFormPanelMap extends BPFormPanel
 		List<KV> datas = m_tabkvs.getBPTableModel().getDatas();
 		Map<String, Object> rc = createMap();
 		for (KV kv : datas)
-		{
 			rc.put(kv.key, kv.value);
-		}
 		return rc;
 	}
 
@@ -86,8 +84,14 @@ public class BPFormPanelMap extends BPFormPanel
 
 	protected void onAdd(ActionEvent e)
 	{
-		m_tabkvs.getBPTableModel().getDatas().add(new KV());
-		m_tabkvs.getBPTableModel().fireTableDataChanged();
+		BPTableModel<KV> m = m_tabkvs.getBPTableModel();
+		List<KV> kvs = m.getDatas();
+		kvs.add(new KV());
+		m.fireTableDataChanged();
+		int r = m_tabkvs.convertRowIndexToView(kvs.size() - 1);
+		m_tabkvs.getSelectionModel().setSelectionInterval(r, r);
+		m_tabkvs.scrollTo(r, 0);
+		m_tabkvs.requestFocus();
 	}
 
 	protected void onDel(ActionEvent e)
@@ -111,7 +115,7 @@ public class BPFormPanelMap extends BPFormPanel
 		JScrollPane scroll = new JScrollPane(m_tabkvs);
 		JPanel pnl = new JPanel();
 		BPToolBarSQ tb = new BPToolBarSQ(true);
-		tb.setActions(makeToolBarActions().toArray(new Action[0]));
+		tb.setActions(makeToolBarActions().toArray(new Action[0]), this);
 		tb.setBorderVertical(0);
 		m_tb = tb;
 
@@ -129,8 +133,8 @@ public class BPFormPanelMap extends BPFormPanel
 	protected List<Action> makeToolBarActions()
 	{
 		List<Action> rc = new ArrayList<Action>();
-		BPAction actadd = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNADD, this::onAdd);
-		BPAction actdel = BPActionHelpers.getAction(BPActionConstCommon.ACT_BTNDEL, this::onDel);
+		BPAction actadd = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNADD, BPActionConstCommon.ACT_BTNADD_CREATE_ACC, this::onAdd);
+		BPAction actdel = BPActionHelpers.getActionWithAlias(BPActionConstCommon.ACT_BTNDEL, BPActionConstCommon.ACT_BTNDEL_ACC, this::onDel);
 		rc.add(BPAction.separator());
 		rc.add(actadd);
 		rc.add(actdel);

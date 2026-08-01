@@ -110,7 +110,7 @@ public class BPFileActions
 			tools.sort(CompareUtil.COMPARATOR_NAMEABLE());
 			List<Action> r2 = new ArrayList<Action>();
 			for (BPToolGUI tool : tools)
-				r2.add(BPAction.build(tool.getName()).callback((e) -> tool.showTool(new Object[] { ress })).getAction());
+				r2.add(BPAction.build(tool.getName()).callback(e -> tool.showTool(new Object[] { ress })).getAction());
 			return r2.toArray(new Action[r2.size()]);
 		};
 		rc.putValue(BPAction.SUB_ACTIONS_FUNC, submenucb);

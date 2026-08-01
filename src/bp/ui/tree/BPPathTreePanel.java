@@ -69,7 +69,7 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 		if (actions != null && actions.length > 0)
 		{
 			vis = true;
-			m_toolbar.setActions(actions);
+			m_toolbar.setActions(actions, this);
 		}
 		m_toolbar.setVisible(vis);
 	}
@@ -88,9 +88,7 @@ public class BPPathTreePanel extends JPanel implements BPComponent<JPanel>, BPPa
 	{
 		BPFileContext context = BPCore.getFileContext();
 		if (context.isLocal())
-		{
 			loadContext(context);
-		}
 	}
 
 	public void refresh()

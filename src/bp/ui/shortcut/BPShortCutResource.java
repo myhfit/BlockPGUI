@@ -59,17 +59,14 @@ public class BPShortCutResource extends BPShortCutBase
 		m_params.put("res", ResourceUtil.getResourceLink(setting.get("res")));
 	}
 
-	public BPResource getResource()
+	protected BPResource getResource()
 	{
-		String res = (String) m_params.get("res");
-		BPResource rc = ResourceUtil.getResourceByLink(res);
-		return rc;
+		return ResourceUtil.getResourceByLink((String) m_params.get("res"));
 	}
 
 	public Action[] expand()
 	{
-		BPResource res = getResource();
-		return expandRes(res);
+		return expandRes(getResource());
 	}
 
 	public Action[] expandRes(BPResource res)
@@ -85,15 +82,15 @@ public class BPShortCutResource extends BPShortCutBase
 			if (res instanceof BPResourceProject)
 			{
 				BPResourceProject prj = (BPResourceProject) res;
-				List<BPResource> subs = prj.getProjectFunctionItems();
+				BPResource[] subs = prj.getProjectFunctionItems();
 				int c = 0;
-				if (subs != null && subs.size() > 0)
+				if (subs != null && subs.length > 0)
 				{
 					if (rc.size() > 0)
 						rc.add(BPAction.separator());
-					for (BPResource sub : subs)
+					for (int i = 0; i < subs.length; i++)
 					{
-						rc.add(makeActionDirect(sub, channelid));
+						rc.add(makeActionDirect(subs[i], channelid));
 						c++;
 						if (c >= S_LIST_LIMIT)
 						{

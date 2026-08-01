@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.SwingUtilities;
+
 import bp.BPCore;
 import bp.locale.BPLocaleConstCC;
 import bp.locale.BPLocaleConstProjectDict;
@@ -12,10 +14,10 @@ import bp.res.BPResource;
 import bp.res.BPResourceDir;
 import bp.ui.dialog.BPDialogSelectResource.SELECTSCOPE;
 import bp.ui.dialog.BPDialogSelectResource.SELECTTYPE;
-import bp.ui.dialog.BPDialogSelectResource2;
 import bp.ui.scomp.BPCheckBox;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextFieldPane;
+import bp.ui.util.CommonUIOperations;
 import bp.util.LogicUtil;
 
 public class BPFormPanelFileProject extends BPFormPanelResourceBase
@@ -73,12 +75,12 @@ public class BPFormPanelFileProject extends BPFormPanelResourceBase
 	protected String onPathMore(String oldpath)
 	{
 		String rc = null;
-		BPDialogSelectResource2 dlg = new BPDialogSelectResource2();
-		dlg.setSelectType(SELECTTYPE.DIR);
-		dlg.setScopes(SELECTSCOPE.WORKSPACE, SELECTSCOPE.COMPUTER);
-		dlg.switchPathTreeFunc(1);
-		dlg.showOpen();
-		BPResource res = dlg.getSelectedResource();
+		BPResource res = CommonUIOperations.showSelectResource(SwingUtilities.getWindowAncestor(this), dlg ->
+		{
+			dlg.setSelectType(SELECTTYPE.DIR);
+			dlg.setScopes(SELECTSCOPE.WORKSPACE, SELECTSCOPE.COMPUTER);
+			dlg.switchPathTreeFunc(1);
+		});
 		if (res != null)
 			rc = BPCore.getFileContext().comparePath(((BPResourceDir) res).getFileFullName());
 		return rc;

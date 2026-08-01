@@ -11,10 +11,10 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import bp.BPCore;
-import bp.core.BPCommandHandler;
-import bp.core.BPCommandHandlerCore;
-import bp.data.BPCommand;
-import bp.data.BPCommandResult;
+import bp.command.BPCommandHandler;
+import bp.command.BPCommandHandlerCore;
+import bp.command.BPCommand;
+import bp.command.BPCommandResult;
 import bp.remote.BPConnector;
 import bp.ui.scomp.BPPopupComboList.BPPopupComboController;
 import bp.ui.util.UIStd;

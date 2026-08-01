@@ -74,7 +74,7 @@ public class BPActionHelpers
 	public final static void reInit()
 	{
 		List<BPLocaleHelper<?, ?>> hs = new ArrayList<>(BPLocaleHelpers.S_LHS.values());
-		for (BPLocaleHelper<?, ?> h : hs)
-			h.reInit();
+		for (int i = 0; i < hs.size(); i++)
+			hs.get(0).reInit();
 	}
 }

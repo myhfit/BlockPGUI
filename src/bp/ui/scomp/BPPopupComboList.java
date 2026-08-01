@@ -66,7 +66,7 @@ public class BPPopupComboList extends JPopupMenu
 		m_txtref = new WeakRefGo<JTextComponent>(txt);
 		m_controllerref = new WeakRefGo<BPPopupComboController>(controller);
 		m_lst.setFont(txt.getFont());
-		m_lst.setCellRenderer(new BPList.BPListRenderer(controller.transfunc));
+		m_lst.setCellRenderer(new BPList.BPListRendererT<>(controller.transfunc));
 		txt.getDocument().addDocumentListener(new UIUtil.BPDocumentChangedHandler(this::onChanged));
 		txt.addComponentListener(new UIUtil.BPComponentListener(null, null, null, this::onHidden));
 		txt.setFocusTraversalKeysEnabled(false);

@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import javax.swing.Action;
 
 import bp.BPGUICore;
+import bp.locale.BPLocaleHelpers;
 import bp.project.BPProjectItemFactory;
 import bp.project.BPResourceProject;
 import bp.res.BPResource;
@@ -97,10 +98,11 @@ public class BPPathTreeNodeActions extends BPTreeNodeActions
 			if (facs != null && facs.length > 0)
 			{
 				acts.add(BPAction.separator());
-				final BPResourceProject pprj = prj;
-				for (BPProjectItemFactory fac : facs)
+				BPResourceProject pprj = prj;
+				for (int i = 0; i < facs.length; i++)
 				{
-					acts.add(BPAction.build(fac.getName()).callback((e) -> CommonUIOperations.createProjectItem(pprj, res, fac)).getAction());
+					BPProjectItemFactory fac = facs[i];
+					acts.add(BPAction.build(BPLocaleHelpers.translateByClass(BPProjectItemFactory.class, fac.getName(), "FACNAME_")).callback((e) -> CommonUIOperations.createProjectItem(pprj, res, fac)).getAction());
 				}
 			}
 			actchd = acts.toArray(new Action[acts.size()]);

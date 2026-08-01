@@ -101,8 +101,8 @@ public class BPDialogSelectFormatEditor extends BPDialogCommon
 		lbl2.setLabelFont();
 		m_lstformat.setListFont();
 		m_lsteditorfac.setListFont();
-		m_lstformat.setCellRenderer(new BPList.BPListRenderer((format) -> ((BPFormat) format).getName()));
-		m_lsteditorfac.setCellRenderer(new BPList.BPListRenderer((fac) -> ((BPEditorFactory) fac).getName()));
+		m_lstformat.setCellRenderer(new BPList.BPListRendererT<>(BPFormat::getName));
+		m_lsteditorfac.setCellRenderer(new BPList.BPListRendererT<>(BPEditorFactory::getName));
 
 		m_popupfilter = new BPPopupComboList();
 		m_popupfilter.bind(m_txtfilter, m_popupc);

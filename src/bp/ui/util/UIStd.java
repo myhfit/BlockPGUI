@@ -3,7 +3,9 @@ package bp.ui.util;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,17 +16,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.event.DocumentEvent;
 
 import bp.BPCore;
 import bp.BPGUICore;
 import bp.config.UIConfigs;
-import bp.data.BPDataWrapper;
 import bp.event.BPEvent;
 import bp.event.BPEventCoreUI;
 import bp.locale.BPLocaleConstCC;
@@ -45,6 +46,7 @@ import bp.ui.scomp.BPTable.BPTableModel;
 import bp.ui.scomp.BPTextField;
 import bp.ui.scomp.BPTextPane;
 import bp.ui.util.UIUtil.BPMouseListener;
+import bp.util.ObjUtil;
 import bp.util.LogicUtil.WeakRefGo;
 
 public class UIStd
@@ -142,7 +144,7 @@ public class UIStd
 
 	public final static String input(String text, String prompt, String title)
 	{
-		BPDataWrapper<String> rc = new BPDataWrapper<String>(null);
+		final String[] rc = new String[1];
 		JPanel panc = new JPanel();
 		panc.setLayout(new BorderLayout());
 		panc.setBackground(UIConfigs.COLOR_TEXTBG());
@@ -164,7 +166,7 @@ public class UIStd
 		Function<Integer, Boolean> dlgcallback = t ->
 		{
 			if (t == BPDialogCommon.COMMAND_OK)
-				rc.set(tf.getText());
+				rc[0]=tf.getText();
 			return false;
 		};
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(panc, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, dlgcallback);
@@ -174,7 +176,7 @@ public class UIStd
 		dlg.setModal(true);
 		dlg.setVisible(true);
 		dlg.dispose();
-		return rc.get();
+		return rc[0];
 	}
 
 	public final static String inputPath(String text, String prompt, String title)
@@ -313,7 +315,7 @@ public class UIStd
 		nlist.setListFont();
 		model.setDatas(datas);
 		if (renderer != null)
-			nlist.setCellRenderer(new BPList.BPListRenderer(renderer));
+			nlist.setCellRenderer(new BPList.BPListRendererT<T>(renderer));
 		scroll.setViewportView(nlist);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		BPDialogSimple dlg = BPDialogSimple.createWithComponent(scroll, BPDialogCommon.COMMANDBAR_OKESCAPE, null);
@@ -326,12 +328,17 @@ public class UIStd
 		dlg.setVisible(true);
 	}
 
-	public final static <T> T select(List<T> datas, String title, Function<Object, ?> renderer)
+	public final static <T> T select(List<T> datas, String title, Function<? super T, ?> renderer)
 	{
-		return select(datas, title, renderer, -1);
+		return select(datas, title, renderer, -1, false);
 	}
 
-	public final static <T> T select(List<T> datas, String title, Function<Object, ?> renderer, int selectedindex)
+	public final static <T> T select(List<T> datas, String title, Function<? super T, ?> renderer, int selectedindex)
+	{
+		return select(datas, title, renderer, selectedindex, false);
+	}
+
+	public final static <T> T select(List<T> datas, String title, Function<? super T, ?> renderer, int selectedindex, boolean showfilter)
 	{
 		T rc = null;
 		JScrollPane scroll = new JScrollPane();
@@ -341,7 +348,7 @@ public class UIStd
 		nlist.setListFont();
 		model.setDatas(datas);
 		if (renderer != null)
-			nlist.setCellRenderer(new BPList.BPListRenderer(renderer));
+			nlist.setCellRenderer(new BPList.BPListRendererT<T>(renderer));
 		scroll.setViewportView(nlist);
 		scroll.setBorder(new EmptyBorder(0, 0, 0, 0));
 		if (selectedindex > -1)
@@ -349,15 +356,84 @@ public class UIStd
 			nlist.setSelectedIndex(selectedindex);
 			nlist.ensureIndexIsVisible(selectedindex);
 		}
-		BPDialogSimple dlg = BPDialogSimple.createWithComponent(scroll, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, null);
-		nlist.addMouseListener(new BPMouseListener((e) ->
+		JPanel pnlmain=new JPanel();
+		pnlmain.setLayout(new BorderLayout());
+		pnlmain.add(scroll,BorderLayout.CENTER);
+		
+		if(showfilter)
+		{
+			BPTextField txtfilter = new BPTextField();
+			Consumer<DocumentEvent> filterc = e ->
+			{
+				if (datas == null)
+					return;
+				String filterstr = txtfilter.getText();
+				if (filterstr.trim().length() == 0)
+				{
+					nlist.getBPModel().setDatas(datas);
+				}
+				else
+				{
+					List<T> fdatas = new ArrayList<T>();
+					for (T data : datas)
+					{
+						Object obj = renderer != null ? renderer.apply(data) : data;
+						String str = ObjUtil.toString(obj);
+						if (str == null)
+							str = "";
+						if (str.toLowerCase().contains(filterstr.toLowerCase()))
+							fdatas.add(data);
+					}
+					nlist.getBPModel().setDatas(fdatas);
+				}
+			};
+			Consumer<KeyEvent> ke = e ->
+			{
+				int d = 0;
+				if (e.getKeyCode() == KeyEvent.VK_UP)
+					d = -1;
+				else if (e.getKeyCode() == KeyEvent.VK_DOWN)
+					d = 1;
+				if (d != 0)
+				{
+					int size = nlist.getModel().getSize();
+					if (size > 0)
+					{
+						int si = nlist.getSelectedIndex();
+						int newsi = -1;
+						if (si < 0)
+						{
+							newsi = 0;
+						}
+						else
+						{
+							newsi = si + d;
+							if (newsi >= size)
+								newsi = size - 1;
+							if (newsi < 0)
+								newsi = 0;
+						}
+						nlist.setSelectedIndex(newsi);
+						nlist.ensureIndexIsVisible(newsi);
+					}
+				}
+			};
+			txtfilter.setBorder(new MatteBorder(0, 0, 1, 0, UIConfigs.COLOR_WEAKBORDER()));
+			txtfilter.setLabelFont();
+			txtfilter.getDocument().addDocumentListener(new UIUtil.BPDocumentChangedHandler(filterc));
+			txtfilter.addKeyListener(new UIUtil.BPKeyListener(null, ke, null));
+			txtfilter.setVisible(true);
+			pnlmain.add(txtfilter, BorderLayout.NORTH);
+		}
+		
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(pnlmain, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, null);
+		nlist.addMouseListener(new BPMouseListener(e ->
 		{
 			if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2)
 				dlg.callCommonAction(BPDialogCommon.COMMAND_OK);
 		}, null, null, null, null));
-		if (title != null)
-			dlg.setTitle(title);
-		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(800, 600)));
+		dlg.setTitle(title == null ? UIUtil.wrapBPTitles(BPActionConstCommon.TXT_SEL, BPActionConstCommon.TXT_DATA) : title);
+		dlg.setPreferredSize(UIUtil.scaleUIDimension(new Dimension(600, 600)));
 		dlg.setModal(true);
 		dlg.pack();
 		dlg.setLocationRelativeTo(null);
@@ -389,9 +465,7 @@ public class UIStd
 			{
 				BPEventCoreUI ec = (BPEventCoreUI) e;
 				if (taskid.equals(ec.subkey))
-				{
 					f.complete((BPTask<V>) ec.datas[0]);
-				}
 			};
 			BPCore.EVENTS_CORE.on(BPCore.getCoreUIChannelID(), BPEventCoreUI.EVENTKEY_COREUI_CHANGETASKEND, cb);
 			UIUtil.block(() -> f, title);
@@ -448,7 +522,30 @@ public class UIStd
 
 	public final static boolean confirm(Component parent, String title, String message)
 	{
-		return JOptionPane.showConfirmDialog(parent, message, title, JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION;
+		if (title == null)
+			title = BPGUICore.S_BP_TITLE;
+		JPanel pnl = new JPanel();
+		BPLabel lbl = new BPLabel(message);
+		lbl.setLabelFont();
+		lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+		lbl.setFont(UIUtil.deltaFont(lbl.getFont(), 2));
+		lbl.setHorizontalAlignment(BPLabel.CENTER);
+		lbl.setVerticalAlignment(BPLabel.CENTER);
+		pnl.setLayout(new BorderLayout());
+		pnl.add(lbl, BorderLayout.CENTER);
+		BPDialogSimple dlg = BPDialogSimple.createWithComponent(pnl, BPDialogCommon.COMMANDBAR_OKENTER_CANCEL, null);
+		dlg.setTitle(title);
+		dlg.setMinimumSize(UIUtil.scaleUIDimension(new Dimension(400, 200)));
+		dlg.pack();
+		Frame[] fs = Frame.getFrames();
+		if (fs != null && fs.length > 0)
+			dlg.setLocationRelativeTo(fs[0]);
+		dlg.setModal(true);
+		dlg.setVisible(true);
+		boolean rc = dlg.getActionResult() == BPDialogSimple.COMMAND_OK;
+		dlg.dispose();
+		dlg = null;
+		return rc;
 	}
 
 	public final static void wrapSeg(Runnable seg)

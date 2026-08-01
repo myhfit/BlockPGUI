@@ -29,6 +29,8 @@ import bp.data.BPDataPipes;
 import bp.data.BPJSONContainerBase;
 import bp.data.BPTextContainer;
 import bp.format.BPFormatText;
+import bp.locale.BPLocaleConstCoreDict;
+import bp.locale.BPLocaleHelpers;
 import bp.processor.BPDataProcessor;
 import bp.processor.BPDataProcessorManager;
 import bp.processor.BPResourceProcessor;
@@ -125,8 +127,7 @@ public class BPTextPanel extends JPanel implements BPTextEditor<JPanel, BPTextCo
 			if (p instanceof BPResourceProcessor)
 			{
 				String pname = p.getName();
-				Action actp = BPAction.build(p.getUILabel()).callback((e) -> callResourceProcessor(pname)).getAction();
-				actps.add(actp);
+				actps.add(BPAction.build(BPLocaleHelpers.translate(BPLocaleConstCoreDict.S, p.getUILabel(), "PROCNAME_")).callback((e) -> callResourceProcessor(pname)).getAction());
 			}
 		}
 		m_actprocessor.putValue(BPAction.SUB_ACTIONS, actps.toArray(new Action[actps.size()]));

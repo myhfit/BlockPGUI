@@ -186,9 +186,11 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 	{
 		List<BPResource> prjitems = new ArrayList<BPResource>();
 		BPResourceProject[] prjs = BPCore.getProjectsContext().listProject();
-		for (BPResourceProject prj : prjs)
+		for (int i = 0; i < prjs.length; i++)
 		{
-			prjitems.addAll(prj.getProjectFunctionItems());
+			BPResource[] items = prjs[i].getProjectFunctionItems();
+			for (int j = 0; j < items.length; j++)
+				prjitems.add(items[j]);
 		}
 		m_prjitems = prjitems;
 	}
@@ -246,38 +248,31 @@ public class BPDialogLocateProjectItem extends BPDialogCommon
 				pan.add(lbl, BorderLayout.CENTER);
 				pan.add(lbl2, BorderLayout.EAST);
 			}
-			if (isSelected)
+
 			{
-				Color bg = list.getSelectionBackground();
-				Color fg = list.getSelectionForeground();
+				Color bg = isSelected ? list.getSelectionBackground() : list.getBackground();
+				Color fg = isSelected ? list.getSelectionForeground() : list.getForeground();
+
 				pan.setBackground(bg);
 				lbl.setBackground(bg);
 				lbl.setForeground(fg);
 				lbl1.setBackground(bg);
-				lbl1.setForeground(fg);
 				lbl2.setBackground(bg);
-				lbl2.setForeground(fg);
+
+				{
+					Color fg2 = isSelected ? fg : UIConfigs.COLOR_TEXTHALF();
+					lbl1.setForeground(fg2);
+					lbl2.setForeground(fg2);
+				}
 			}
-			else
-			{
-				Color bg = list.getBackground();
-				Color fg = list.getForeground();
-				pan.setBackground(bg);
-				lbl.setBackground(bg);
-				lbl.setForeground(fg);
-				lbl1.setBackground(bg);
-				lbl1.setForeground(UIConfigs.COLOR_TEXTHALF());
-				lbl2.setBackground(bg);
-				lbl2.setForeground(UIConfigs.COLOR_TEXTHALF());
-			}
+
 			BPResource res = (BPResource) value;
 			String p = null;
 			if (res.isOverlay())
 				p = ((BPResourceFileSystem) ((BPResourceOverlay) res).getRawResource()).getFileFullName();
 			else if (res.isFileSystem())
 				p = ((BPResourceFileSystem) res).getFileFullName();
-			String txt = res.getName();
-			lbl.setText(txt);
+			lbl.setText(res.getName());
 			lbl1.setText(getExt(res));
 			lbl2.setText((p == null ? "" : " " + p));
 			return pan;

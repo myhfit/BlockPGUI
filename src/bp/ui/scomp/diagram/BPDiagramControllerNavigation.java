@@ -15,34 +15,32 @@ public class BPDiagramControllerNavigation extends BPDiagramControllerBase
 
 	public void mousePressed(MouseEvent e)
 	{
-		m_compref.run(dcomp -> dcomp.requestFocusInWindow());
+		BPDiagramComponent comp = m_compref.get();
+		if (comp == null)
+			return;
+		comp.requestFocusInWindow();
 		int btn = e.getButton();
 		int x = e.getX();
 		int y = e.getY();
 		boolean isctrl = e.isControlDown();
 		if (btn == MouseEvent.BUTTON1)
 		{
-			BPDiagramElement downele = m_compref.exec(comp ->
+			BPDiagramElement downele = comp.getElementFromPos(x, y);
+			if (downele != null)
 			{
-				BPDiagramElement ele = comp.getElementFromPos(x, y);
-				if (ele != null)
-					comp.selectElement(ele, isctrl, btn);
-				return ele;
-			});
-			startDrag(downele, x, y);
+				comp.selectElement(downele, isctrl, btn);
+				startDrag(downele, x, y);
+			}
 		}
 		else if (btn == MouseEvent.BUTTON3)
 		{
-			m_compref.run(comp ->
+			BPDiagramElement ele = comp.getElementFromPos(x, y);
+			if (ele != null)
 			{
-				BPDiagramElement ele = comp.getElementFromPos(x, y);
-				if (ele != null)
-				{
-					if (!ele.isSelected())
-						comp.selectElement(ele, isctrl, btn);
-					comp.showContextMenu(ele, x, y);
-				}
-			});
+				if (!ele.isSelected())
+					comp.selectElement(ele, isctrl, btn);
+				comp.showContextMenu(ele, x, y);
+			}
 		}
 	}
 
@@ -63,6 +61,8 @@ public class BPDiagramControllerNavigation extends BPDiagramControllerBase
 
 	public void clearState()
 	{
-		m_compref.run(BPDiagramComponent::stopDrag);
+		BPDiagramComponent comp = m_compref.get();
+		if (comp != null)
+			comp.stopDrag();
 	}
 }

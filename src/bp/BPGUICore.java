@@ -116,23 +116,18 @@ public class BPGUICore
 				}
 			}
 			if ("standalone".equals(cliargs.params.get("mfmode")))
-			{
 				mainf.enterStandaloneMode();
-			}
 			S_MF.setTarget(mainf);
 			CONFIGS_HK.refreshHotkeys();
 			mainf.setVisible(true);
-
-			Runtime.getRuntime().addShutdownHook(new Thread()
-			{
-				public void run()
-				{
-					BPCore.stop();
-				}
-			});
-			
+			Runtime.getRuntime().addShutdownHook(new Thread(BPGUICore::onShutdown));
 			return 0;
 		}
+	}
+
+	private final static void onShutdown()
+	{
+		BPCore.stop();
 	}
 
 	protected final static void installTools()
@@ -151,10 +146,8 @@ public class BPGUICore
 				}
 				tools.add(tool);
 			};
-			for (BPToolFactory fac : facs)
-			{
-				fac.install(cb, BPPlatform.GUI_SWING);
-			}
+			for (int i = 0; i < facs.size(); i++)
+				facs.get(i).install(cb, BPPlatform.GUI_SWING);
 		}
 
 		TOOL_MAP.clear();
@@ -173,8 +166,8 @@ public class BPGUICore
 
 	public final static boolean checkMainFrameVisible()
 	{
-		Boolean r = S_MF.exec(BPMainFrameIFC::isVisible);
-		return r != null && r == true;
+		BPMainFrameIFC mf = S_MF.get();
+		return mf == null ? false : mf.isVisible();
 	}
 
 	public final static void runOnMainFrame(Consumer<BPMainFrameIFC> seg)
@@ -283,8 +276,28 @@ public class BPGUICore
 	{
 		return Boolean.TRUE.equals(S_ISPOPUP.get());
 	}
+	
+	public final static Window getCurrentWindow()
+	{
+		Window[] ws = Window.getWindows();
+		boolean ispopup = Boolean.TRUE.equals(S_ISPOPUP.get());
+		if (ws != null && ws.length > 0)
+		{
+			for (Window w : ws)
+			{
+				if (w.isVisible() && (ispopup || w.isActive()))
+					return w;
+			}
+			for (Window w : ws)
+			{
+				if (w.isVisible())
+					return w;
+			}
+		}
+		return null;
+	}
 
-	protected final static Frame getCurrentFrame()
+	public final static Frame getCurrentFrame()
 	{
 		Frame[] fs = Frame.getFrames();
 		boolean ispopup = Boolean.TRUE.equals(S_ISPOPUP.get());
